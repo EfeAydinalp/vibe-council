@@ -1,5 +1,6 @@
 """OpenRouter API client for making LLM requests."""
 
+import sys
 import httpx
 from typing import List, Dict, Any, Optional, Tuple
 from .config import OPENROUTER_API_KEY, OPENROUTER_API_URL
@@ -90,7 +91,7 @@ async def query_model_detailed(
             "reason": reason,
             "exception": type(e).__name__,
         }
-        print(f"[model-error] model={model} status={status} reason={reason}")
+        print(f"[model-error] model={model} status={status} reason={reason}", file=sys.stderr)
         return None, error
 
     except Exception as e:
@@ -101,7 +102,7 @@ async def query_model_detailed(
             "reason": reason,
             "exception": type(e).__name__,
         }
-        print(f"[model-error] model={model} status=NA reason={reason}")
+        print(f"[model-error] model={model} status=NA reason={reason}", file=sys.stderr)
         return None, error
 
 
