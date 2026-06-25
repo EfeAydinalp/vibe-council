@@ -22,18 +22,20 @@ is never printed.
 
 import argparse
 import asyncio
+import hashlib
 import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 # Importing config (transitively via council) runs load_dotenv(), consistent
 # with the rest of the backend.
-from .config import PRESETS, DEFAULT_PRESET
+from .config import PRESETS, DEFAULT_PRESET, preset_models
 from .council import run_mode_stream
 from .decision_memory import DecisionRecord, save_record
 from . import project_workspace as pw
+from . import guards
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -50,6 +52,9 @@ EXIT_OK = 0
 EXIT_RUNTIME = 1
 EXIT_USAGE = 2
 EXIT_PREMIUM = 3
+EXIT_TOKEN = 4
+EXIT_LOOP = 5
+EXIT_COST = 6
 
 
 def _err(msg: str) -> None:
@@ -78,8 +83,14 @@ async def _run(mode: str, preset: str, text: str, verbose: bool) -> Dict[str, An
     """Drive run_mode_stream and capture the outputs we care about."""
     captured: Dict[str, Any] = {
         "mode": mode, "preset": preset,
-        "stage3": None, "record": None, "markdown": None, "error": None,
+        "stage1": None, "stage2": None, "stage3": None,
+        "record": None, "markdown": None, "extract_usage": None, "error": None,
     }
+
+    def _usage_tokens(items) -> str:
+        u = guards.aggregate_usage([it.get("usage") for it in items])
+        t = u["totals"]
+        return f"tokens prompt={t['prompt_tokens']} completion={t['completion_tokens']} total={t['total_tokens']}" if u["has_tokens"] else "tokens n/a"
 
     def log(msg: str) -> None:
         if verbose:
@@ -94,15 +105,18 @@ async def _run(mode: str, preset: str, text: str, verbose: bool) -> Dict[str, An
         elif event.endswith("_start"):
             log(f"[{event}]")
         elif event == "stage1_complete":
-            log(f"[stage1_complete] {len(payload['data'])} response(s)")
+            captured["stage1"] = payload["data"]
+            log(f"[stage1_complete] {len(payload['data'])} response(s) | {_usage_tokens(payload['data'])}")
         elif event == "stage2_complete":
-            log(f"[stage2_complete] {len(payload['data'])} ranking(s)")
+            captured["stage2"] = payload["data"]
+            log(f"[stage2_complete] {len(payload['data'])} ranking(s) | {_usage_tokens(payload['data'])}")
         elif event == "stage3_complete":
             captured["stage3"] = payload["data"]
-            log("[stage3_complete]")
+            log(f"[stage3_complete] | {_usage_tokens([payload['data']])}")
         elif event == "extract_complete":
             captured["record"] = payload["data"]
             captured["markdown"] = payload["markdown"]
+            captured["extract_usage"] = payload.get("usage")
             log("[extract_complete]")
         elif event == "error":
             captured["error"] = payload["message"]
@@ -246,6 +260,17 @@ def _save_outputs(args, mode: str, captured: Dict[str, Any], ws: Optional[pw.Wor
             if ws:
                 paths = ws.save_decision(rec, rec_obj.to_json(), rec_obj.to_markdown())
                 saved += [paths["json"], paths["markdown"]]
+                # Append to the project-local append-only decision index.
+                ws.append_decision_index({
+                    "id": paths.get("slug"),
+                    "timestamp": rec.get("timestamp"),
+                    "title": (rec.get("decision") or "")[:120],
+                    "project_name": ws.config.get("project_name"),
+                    "source_file": getattr(args, "file", None),
+                    "tags": rec.get("tags", []),
+                    "json_path": paths["json"],
+                    "markdown_path": paths["markdown"],
+                })
             else:
                 paths = save_record(rec_obj)  # existing data/decisions behavior
                 saved += [paths["json"], paths["markdown"]]
@@ -273,8 +298,130 @@ def _save_outputs(args, mode: str, captured: Dict[str, Any], ws: Optional[pw.Wor
 
 
 # --------------------------------------------------------------------------- #
+# Usage / stages / guards helpers
+# --------------------------------------------------------------------------- #
+
+def _usage_items(captured: Dict[str, Any]) -> List[Optional[Dict[str, Any]]]:
+    items = []
+    for it in (captured.get("stage1") or []):
+        items.append(it.get("usage"))
+    for it in (captured.get("stage2") or []):
+        items.append(it.get("usage"))
+    if captured.get("stage3"):
+        items.append(captured["stage3"].get("usage"))
+    if captured.get("extract_usage"):
+        items.append(captured["extract_usage"])
+    return items
+
+
+def _print_usage(captured: Dict[str, Any], est_input: int) -> None:
+    """Print a usage summary to stderr (keeps stdout clean). Honest: estimates
+    are labeled; provider cost only shown if reported."""
+    summary = guards.aggregate_usage(_usage_items(captured))
+    _err(f"[usage] Estimated input tokens: ~{est_input} (rough estimate)")
+    if summary["has_tokens"]:
+        t = summary["totals"]
+        _err(f"[usage] Reported tokens: prompt={t['prompt_tokens']} "
+             f"completion={t['completion_tokens']} total={t['total_tokens']}")
+    else:
+        _err("[usage] Reported tokens: not provided by OpenRouter for this run")
+    note = guards.cost_note(summary)
+    if note:
+        _err(f"[usage] {note}")
+
+
+def _finish_cost(args, captured: Dict[str, Any]) -> int:
+    """Post-run cost-cap enforcement. Best-effort: only hard-fails (EXIT_COST)
+    when the provider reports a cost above --max-cost. stdout is already printed
+    and is preserved. Returns the process exit code."""
+    max_cost = getattr(args, "max_cost", None)
+    if max_cost is None:
+        return EXIT_OK
+    summary = guards.aggregate_usage(_usage_items(captured))
+    exceeded, _reported, msg = guards.enforce_cost_cap(summary, max_cost)
+    if msg:
+        _err(f"[cost] {msg}")
+    if exceeded:
+        _err("[cost] Cost cap exceeded (stdout preserved); exiting non-zero.")
+        return EXIT_COST
+    return EXIT_OK
+
+
+def _save_stages(args, mode: str, captured: Dict[str, Any], ws, est_input: int) -> None:
+    """Persist stage outputs + usage metadata under .council/stages|usage."""
+    if ws is None:
+        _err("[stages] --save-stages skipped: no active project workspace")
+        return
+    summary = guards.aggregate_usage(_usage_items(captured))
+    slug = pw.timestamp_slug()
+    stages_doc = {
+        "mode": mode, "preset": captured.get("preset"),
+        "estimated_input_tokens": est_input,
+        "usage_summary": summary,
+        "stages": {
+            "stage1": captured.get("stage1"),
+            "stage2": captured.get("stage2"),
+            "stage3": captured.get("stage3"),
+        },
+    }
+    try:
+        sp = ws.save_artifact("stages", f"{slug}_{mode}.json",
+                              json.dumps(stages_doc, ensure_ascii=False, indent=2))
+        up = ws.save_artifact("usage", f"{slug}_{mode}.json",
+                              json.dumps({"mode": mode, "estimated_input_tokens": est_input,
+                                          "usage_summary": summary}, ensure_ascii=False, indent=2))
+        _err(f"[saved] {sp}")
+        _err(f"[saved] {up}")
+    except Exception as e:
+        _err(f"[stages-error] {type(e).__name__}: {e}")
+
+
+def _input_hash(command: str, mode: str, preset: str, text: str) -> str:
+    return hashlib.sha256(f"{command}|{mode}|{preset}|{text}".encode("utf-8")).hexdigest()[:16]
+
+
+def _council_size(preset: str) -> int:
+    try:
+        return len(preset_models(preset)["council"])
+    except Exception:
+        return 1
+
+
+# --------------------------------------------------------------------------- #
 # Command handlers
 # --------------------------------------------------------------------------- #
+
+def _run_guarded(args, mode: str, text: str, ws, command: str):
+    """Apply token + loop guards, run the mode, release the lock.
+
+    Returns (captured, exit_code). On a guard block, captured is None and the
+    exit code is non-zero. On success exit_code is None.
+    """
+    # Token guard (pre-run, estimate) — independent of cost.
+    ok, est_input, msg = guards.token_guard(
+        text, mode, _council_size(args.preset), getattr(args, "max_tokens", None))
+    if not ok:
+        _err(f"Error: {msg}")
+        return None, est_input, EXIT_TOKEN
+
+    # Loop guard (default on; needs a workspace for its lock files).
+    lock = None
+    if ws is not None:
+        decision = guards.check_and_lock(
+            ws.subdir("locks"), command, _input_hash(command, mode, args.preset, text),
+            no_loop_guard=getattr(args, "no_loop_guard", False),
+            allow_repeat=getattr(args, "allow_repeat", False))
+        if not decision.ok:
+            _err(f"Error: {decision.message}")
+            return None, est_input, EXIT_LOOP
+        lock = decision.lock_file
+
+    try:
+        captured = asyncio.run(_run(mode, args.preset, text, args.verbose))
+    finally:
+        guards.release(lock)
+    return captured, est_input, None
+
 
 def cmd_mode(args, mode: str) -> int:
     guard = _premium_blocked(args)
@@ -289,7 +436,9 @@ def cmd_mode(args, mode: str) -> int:
         return EXIT_USAGE
 
     ws = _resolve_workspace(args)
-    captured = asyncio.run(_run(mode, args.preset, text, args.verbose))
+    captured, est_input, code = _run_guarded(args, mode, text, ws, command=mode)
+    if code is not None:
+        return code
 
     if not _has_result(captured):
         reason = captured["error"] or (
@@ -300,7 +449,11 @@ def cmd_mode(args, mode: str) -> int:
 
     print(_render(captured, args.output))
     _save_outputs(args, mode, captured, ws)
-    return EXIT_OK
+    if getattr(args, "save_stages", False):
+        _save_stages(args, mode, captured, ws, est_input)
+    if getattr(args, "usage", False):
+        _print_usage(captured, est_input)
+    return _finish_cost(args, captured)
 
 
 def _git_diff(project_path: Path) -> str:
@@ -338,7 +491,10 @@ def cmd_diff(args) -> int:
     text = ("Review the following git diff. Focus on risks, weak assumptions, "
             "security, cost, complexity, missing constraints, and better "
             f"alternatives.\n\n```diff\n{diff}\n```")
-    captured = asyncio.run(_run("review", args.preset, text, args.verbose))
+
+    captured, est_input, code = _run_guarded(args, "review", text, ws, command="diff")
+    if code is not None:
+        return code
 
     if not _has_result(captured):
         _err(f"Error: {captured['error'] or 'review failed (all model calls may have failed).'}")
@@ -348,7 +504,11 @@ def cmd_diff(args) -> int:
     print(review_md)
     if ws:
         _err(f"[saved] {ws.save_artifact('reviews', f'{slug}_diff.md', review_md)}")
-    return EXIT_OK
+    if getattr(args, "save_stages", False):
+        _save_stages(args, "review", captured, ws, est_input)
+    if getattr(args, "usage", False):
+        _print_usage(captured, est_input)
+    return _finish_cost(args, captured)
 
 
 def cmd_init(args) -> int:
@@ -405,6 +565,25 @@ def cmd_status(args) -> int:
     print(f"Last diff:      {last_diff or '(none)'}")
     print(f"Last run:       {last_run or '(none)'}")
     print(f"Premium allowed: {'no (requires --allow-premium)' if require_premium else 'yes'}")
+
+    # Decision memory + guards
+    print(f"Decisions indexed: {len(ws.read_decision_index())}")
+    print("Loop guard:     enabled (default)")
+    print(f"Runs (last 10m): {guards.recent_run_count(ws.subdir('locks'))}")
+    last_usage = ws.latest("usage", [".json"])
+    if last_usage:
+        try:
+            u = json.loads(last_usage.read_text(encoding="utf-8"))
+            tot = (u.get("usage_summary", {}).get("totals") or {})
+            if u.get("usage_summary", {}).get("has_tokens"):
+                print(f"Latest usage:   total_tokens={tot.get('total_tokens')} "
+                      f"({last_usage.name})")
+            else:
+                print(f"Latest usage:   {last_usage.name} (tokens not reported)")
+        except (OSError, json.JSONDecodeError):
+            print(f"Latest usage:   {last_usage}")
+    else:
+        print("Latest usage:   (none)")
     return EXIT_OK
 
 
@@ -416,6 +595,111 @@ def _prefer_markdown(path):
         if md.exists():
             return md
     return path
+
+
+# --------------------------------------------------------------------------- #
+# Decision memory: list / search / context (no model, no API key)
+# --------------------------------------------------------------------------- #
+
+def _load_decision(entry: Dict[str, Any]):
+    """Return (record_dict, markdown_text) for an index entry; tolerant of
+    missing files."""
+    record, md = {}, ""
+    jp = entry.get("json_path")
+    if jp and Path(jp).exists():
+        try:
+            record = json.loads(Path(jp).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            record = {}
+    mp = entry.get("markdown_path")
+    if mp and Path(mp).exists():
+        try:
+            md = Path(mp).read_text(encoding="utf-8")
+        except OSError:
+            md = ""
+    return record, md
+
+
+def _decision_blob(entry: Dict[str, Any], record: Dict[str, Any], md: str) -> str:
+    """Lowercased searchable text across index metadata, structured fields, md."""
+    parts = [
+        json.dumps(entry, ensure_ascii=False),
+        record.get("decision", ""), record.get("rationale", ""),
+        " ".join(record.get("risks", []) or []),
+        " ".join(record.get("open_questions", []) or []),
+        " ".join(record.get("next_actions", []) or []),
+        " ".join(record.get("tags", []) or []),
+        md,
+    ]
+    return "\n".join(str(p) for p in parts).lower()
+
+
+def _matches(query: str, blob: str) -> bool:
+    terms = [t for t in query.lower().split() if t]
+    return all(t in blob for t in terms) if terms else False
+
+
+def cmd_decisions(args) -> int:
+    ws = _resolve_workspace(args, create=False)
+    if ws is None:
+        print("No active council workspace in this directory.")
+        return EXIT_OK
+
+    entries = ws.read_decision_index()
+    newest_first = list(reversed(entries))
+    action = args.action
+
+    if action == "list":
+        if not newest_first:
+            print("No decisions recorded yet for this project.")
+            return EXIT_OK
+        print(f"Decisions ({len(newest_first)}), newest first:")
+        for e in newest_first:
+            tags = ", ".join(e.get("tags", []) or []) or "-"
+            print(f"  - {e.get('timestamp', '?')}  {e.get('title', '(no title)')}")
+            print(f"      tags: {tags}")
+            print(f"      md:   {e.get('markdown_path', '?')}")
+            print(f"      json: {e.get('json_path', '?')}")
+        return EXIT_OK
+
+    # search / context need a query
+    query = getattr(args, "query", None)
+    if not query:
+        _err(f"Usage: vibe decisions {action} <query>")
+        return EXIT_USAGE
+
+    matches = []
+    for e in newest_first:
+        record, md = _load_decision(e)
+        if _matches(query, _decision_blob(e, record, md)):
+            matches.append((e, record))
+
+    if not matches:
+        print(f"No decisions matched: {query}")
+        return EXIT_OK
+
+    if action == "search":
+        print(f"Matches for '{query}' ({len(matches)}):")
+        for e, record in matches:
+            tags = ", ".join(record.get("tags", []) or []) or "-"
+            print(f"  - {e.get('timestamp', '?')}  {record.get('decision', e.get('title', ''))}")
+            print(f"      tags: {tags}")
+            print(f"      md:   {e.get('markdown_path', '?')}")
+        return EXIT_OK
+
+    # context: compact block of the most relevant (newest) matches
+    top = matches[:3]
+    print(f"# Decision context for: {query}\n")
+    for e, record in top:
+        def lst(items):
+            return "; ".join(items) if items else "(none)"
+        print(f"## {record.get('decision', e.get('title', 'Decision'))}")
+        print(f"- Rationale: {record.get('rationale') or '(none)'}")
+        print(f"- Risks: {lst(record.get('risks', []))}")
+        print(f"- Next actions: {lst(record.get('next_actions', []))}")
+        print(f"- File: {e.get('markdown_path', '?')}")
+        print("")
+    return EXIT_OK
 
 
 def cmd_last(args) -> int:
@@ -496,14 +780,19 @@ Common commands:
   vibe mini    --preset balanced --prompt "..."       # quick multi-model answer
   vibe full    --preset balanced --prompt "..."       # full council (ranking)
   vibe init                                           # create .council/ workspace
-  vibe status                                         # show workspace info
+  vibe status                                         # workspace info + guards
   vibe last [review|decision|diff|run]                # print latest artifact
   vibe projects list                                  # list registered projects
+  vibe decisions list                                 # list this project's decisions
+  vibe decisions search "<query>"                     # search decisions (no model)
+  vibe decisions context "<query>"                    # compact context for planning
   vibe help
   vibe guide claude
 
 Examples:
   vibe review --preset balanced --file plan.md --yes
+  vibe review --preset balanced --file plan.md --max-tokens 10000
+  vibe review --preset balanced --file plan.md --usage --save-stages
   vibe diff --preset cheap --yes
   vibe extract --preset balanced --prompt "We decided X." --save --yes
 
@@ -511,6 +800,26 @@ Premium guard:
   Preset 'premium' (and full + premium) requires --allow-premium. This prevents
   accidental high-cost runs. Use 'balanced' for real review, 'cheap' for smoke
   tests. Do NOT use premium/full unless explicitly requested.
+
+Token guard (--max-tokens N):
+  Estimates input tokens (rough, before any model call) and fails the run if the
+  estimate exceeds N. Estimates are clearly labeled as estimates.
+
+Cost guard (--max-cost X):
+  OPTIONAL and BEST-EFFORT. If omitted there is NO cost cap. It can only
+  hard-fail AFTER the run, when OpenRouter reports an exact cost above X (exit
+  code 6); stdout is preserved. If the provider does not report a cost, the cap
+  cannot be enforced (no dollar amount is fabricated). For a real PRE-RUN block,
+  use --max-tokens.
+
+Loop guard (enabled by default):
+  Blocks (a) concurrent identical runs, (b) the same input within 60s, and
+  (c) more than 5 runs per 10 minutes — per project workspace. Override with
+  --allow-repeat (duplicate/cooldown) or --no-loop-guard (disable all).
+
+Usage (--usage, --save-stages):
+  --usage prints a token usage summary (to stderr). --save-stages writes stage
+  outputs + usage metadata under .council/stages/ and .council/usage/.
 
 Project workspace (.council/):
   When run from a project, vibe stores artifacts in <project>/.council/:
@@ -543,19 +852,28 @@ When to use:
 - Reviewing a plan, design, diff, or draft before/after implementing.
 - Capturing a decision (with rationale, risks, next actions) as a record.
 
-How to run:
-- Status first:        `vibe status`
-- Review a file:       `vibe review --preset balanced --file plan.md --yes`
-- Review the git diff: `vibe diff --preset balanced --yes`
-- Extract a decision:  `vibe extract --preset balanced --file plan.md --save --yes`
+Recommended workflow:
+1. `vibe status`
+2. `vibe decisions context "<topic>"`   # read prior decisions before planning
+3. write plan.md
+4. `vibe review --preset balanced --file plan.md --yes`
+5. implement
+6. `vibe diff --preset balanced --yes`
+7. fix issues
+8. `vibe extract --preset balanced --file plan.md --save --yes`
+
+Decision memory:
+- `vibe decisions list` / `search "<query>"` / `context "<query>"` (no model calls).
 
 Rules for agents:
 - Prefer `--preset balanced` for real review; `--preset cheap` for smoke tests.
 - Do NOT use premium or full unless the user explicitly requests it. Premium
   requires `--allow-premium`.
 - Always pass `--yes` in agent workflows to avoid interactive prompts.
+- `--max-cost` is optional; if omitted there is no cost cap. Use `--max-tokens`
+  for a reliable pre-run guard.
+- Loop guard is on by default; override with `--allow-repeat` / `--no-loop-guard`.
 - Never print or expose the OPENROUTER_API_KEY.
-- Run `vibe status` first to confirm the active workspace.
 """
 
 _GUIDE_CLAUDE = "Claude Code instructions for vibe-council:\n\n" + _GUIDE_CLAUDE_SECTION
@@ -588,6 +906,20 @@ def _build_parser() -> argparse.ArgumentParser:
     p_proj.add_argument("--verbose", action="store_true",
                         help="Print stage progress to stderr (never prints secrets).")
 
+    p_guard = argparse.ArgumentParser(add_help=False)
+    p_guard.add_argument("--max-tokens", type=int,
+                         help="Fail before model calls if estimated input exceeds N (estimate).")
+    p_guard.add_argument("--max-cost", type=float,
+                         help="Optional cost cap. If omitted, no cost cap (cost never blocks).")
+    p_guard.add_argument("--usage", action="store_true",
+                         help="Print a token usage summary (to stderr).")
+    p_guard.add_argument("--save-stages", action="store_true",
+                         help="Save stage outputs + usage under .council/stages and usage.")
+    p_guard.add_argument("--no-loop-guard", action="store_true",
+                         help="Disable the loop guard for this run.")
+    p_guard.add_argument("--allow-repeat", action="store_true",
+                         help="Bypass duplicate/cooldown loop-guard checks.")
+
     parser = argparse.ArgumentParser(
         prog="backend.cli",
         description="vibe-council CLI — modes, project workspaces, and decisions.",
@@ -601,15 +933,20 @@ def _build_parser() -> argparse.ArgumentParser:
         "full": "Collect -> peer ranking -> chairman synthesis (full council).",
     }
     for mode, desc in mode_desc.items():
-        sub.add_parser(mode, parents=[p_model, p_io, p_proj], help=desc, description=desc)
+        sub.add_parser(mode, parents=[p_model, p_io, p_proj, p_guard], help=desc, description=desc)
 
-    sub.add_parser("diff", parents=[p_model, p_proj],
+    sub.add_parser("diff", parents=[p_model, p_proj, p_guard],
                    help="Review the caller repo's git diff with review mode.")
     sub.add_parser("init", parents=[p_proj],
                    help="Create a .council/ workspace (no model calls).")
 
     sp_projects = sub.add_parser("projects", help="List registered projects.")
     sp_projects.add_argument("action", choices=["list"])
+
+    sp_dec = sub.add_parser("decisions", parents=[p_proj],
+                            help="List/search project decisions (no model calls).")
+    sp_dec.add_argument("action", choices=["list", "search", "context"])
+    sp_dec.add_argument("query", nargs="?", help="Query for search/context.")
 
     sub.add_parser("status", parents=[p_proj], help="Show active workspace info.")
 
@@ -647,6 +984,8 @@ def main(argv=None) -> int:
         return cmd_init(args)
     if cmd == "projects":
         return cmd_projects(args)
+    if cmd == "decisions":
+        return cmd_decisions(args)
     if cmd == "status":
         return cmd_status(args)
     if cmd == "last":

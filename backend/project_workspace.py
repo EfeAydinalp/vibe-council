@@ -141,7 +141,34 @@ class Workspace:
         mp = d / f"{slug}.md"
         jp.write_text(json_str, encoding="utf-8")
         mp.write_text(markdown, encoding="utf-8")
-        return {"json": str(jp), "markdown": str(mp)}
+        return {"json": str(jp), "markdown": str(mp), "slug": slug}
+
+    # ---- decision index (append-only index.jsonl) --------------------------
+    @property
+    def decisions_index_path(self) -> Path:
+        return self.subdir("decisions") / "index.jsonl"
+
+    def append_decision_index(self, entry: Dict[str, Any]) -> None:
+        path = self.decisions_index_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+    def read_decision_index(self) -> List[Dict[str, Any]]:
+        """Return index entries in file order (oldest first)."""
+        path = self.decisions_index_path
+        if not path.exists():
+            return []
+        entries = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entries.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return entries
 
     def latest(self, subdir: str, suffixes: Optional[List[str]] = None) -> Optional[Path]:
         d = self.subdir(subdir)

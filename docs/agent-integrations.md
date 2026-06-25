@@ -4,9 +4,8 @@ This guide covers the global `vibe` command, project-local `.council/` workspace
 and the Claude Code workflow. It is intended for using vibe-council from *any*
 repository on your machine and from coding agents.
 
-> PR #4 will add decision search/context, token/cost guards, a loop guard, and
-> usage reporting. This PR covers global command usage, workspaces, basic
-> artifact saving, and basic Claude Code UX only.
+> It also covers project-local decision memory (`vibe decisions list/search/context`)
+> and the token / cost / loop guards and usage tracking.
 
 ## Install the global `vibe` command (Windows)
 
@@ -108,7 +107,52 @@ vibe last
 | `mini`    | yes | only with `--save`: `.council/runs/` |
 | `full`    | yes | only with `--save`: `.council/runs/` |
 
-`stages/` and `usage/` directories are created but not yet populated (PR #4).
+With `--save-stages`, stage outputs + usage metadata are written under
+`.council/stages/` and `.council/usage/`.
+
+> **Note:** stage files contain model **input/output content** (responses,
+> rankings, synthesis) and may quote your reviewed material. They never contain
+> the API key. Keep `.council/` gitignored (vibe does this automatically) so this
+> content is never committed.
+
+## Decision memory (list / search / context)
+
+`extract --save` records each decision as JSON + Markdown under
+`.council/decisions/` and appends an entry to an append-only index,
+`.council/decisions/index.jsonl` (id, timestamp, title, project_name,
+source_file, tags, json_path, markdown_path). This project-local folder is the
+primary source for the project's decisions.
+
+```text
+vibe decisions list                 # newest-first list of recorded decisions
+vibe decisions search "topic"       # stdlib substring search over metadata + content
+vibe decisions context "topic"      # compact context block for planning (paste into a plan)
+```
+
+These commands call no model and need no API key. `search`/`context` match over
+index metadata, decision text, rationale, risks, open questions, next actions,
+tags, and Markdown content (simple V1 string matching — no embeddings, no SQLite).
+
+## Token, cost, and loop guards
+
+- **`--max-tokens N`** — estimates input tokens (rough, before any model call)
+  and fails the run if the estimate exceeds `N`. Estimates are labeled as
+  estimates.
+- **`--max-cost X`** — **optional and best-effort**. If omitted there is **no
+  cost cap**. It can only hard-fail **after** the run, when OpenRouter reports an
+  exact cost above `X` (exit code **6**); stdout is preserved. If the provider
+  does not report a cost, the cap cannot be enforced (no dollar amount is
+  fabricated). Use **`--max-tokens`** for a real pre-run block.
+- **Loop guard** — **enabled by default**, independent of cost. It blocks:
+  1. concurrent identical runs in the same workspace,
+  2. the same input within a 60s cooldown,
+  3. more than 5 runs per 10 minutes.
+  Override with `--allow-repeat` (duplicate/cooldown) or `--no-loop-guard`
+  (disable all). Lock/run metadata lives under `.council/locks/` (local-only).
+- **`--usage`** — prints a token usage summary (to stderr): estimated input
+  tokens plus provider-reported tokens when available.
+
+Use `cheap` for smoke tests and `balanced` for real review.
 
 ## Presets & the premium guard
 
@@ -129,9 +173,18 @@ vibe last
 - Generated runtime files (reviews, diffs, decisions, runs, registry) must never
   be committed.
 
-## Coming in PR #4
+## Claude Code workflow (with decision memory)
 
-- Decision search / context retrieval
-- Token / cost guards (`--max-cost`, `--max-tokens`)
-- Loop guard
-- Usage reporting (`--usage`, `--save-stages`)
+1. `vibe status`
+2. `vibe decisions context "<topic>"`
+3. write `plan.md`
+4. `vibe review --preset balanced --file plan.md --yes`
+5. implement
+6. `vibe diff --preset balanced --yes`
+7. fix issues
+8. `vibe extract --preset balanced --file plan.md --save --yes`
+
+## Future work
+
+- Provider-exact cost accounting / pricing tables
+- Embedding-based decision search and SQLite-backed memory

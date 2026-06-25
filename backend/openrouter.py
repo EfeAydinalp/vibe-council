@@ -79,6 +79,9 @@ async def query_model_detailed(
             return {
                 'content': message.get('content'),
                 'reasoning_details': message.get('reasoning_details'),
+                # Token usage (and provider 'cost' if present). Safe to surface;
+                # contains no secrets. None when the provider omits it.
+                'usage': data.get('usage'),
             }, None
 
     except httpx.HTTPStatusError as e:
