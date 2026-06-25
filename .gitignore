@@ -15,6 +15,10 @@ wheels/
 # Data files
 data/
 
+# Local project workspaces (created when vibe runs from a caller project, and
+# defensively if vibe is ever run from this repo itself)
+.council/
+
 # Frontend
 frontend/node_modules/
 frontend/dist/
