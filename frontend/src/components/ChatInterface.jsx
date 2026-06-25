@@ -3,7 +3,29 @@ import ReactMarkdown from 'react-markdown';
 import Stage1 from './Stage1';
 import Stage2 from './Stage2';
 import Stage3 from './Stage3';
+import DecisionRecord from './DecisionRecord';
 import './ChatInterface.css';
+
+const MODES = [
+  { value: 'mini', label: 'Mini — answers + synthesis' },
+  { value: 'review', label: 'Review — multi-model critique' },
+  { value: 'full', label: 'Full — answers + ranking + synthesis' },
+  { value: 'extract', label: 'Extract — decision record' },
+];
+
+const PRESETS = [
+  { value: 'cheap', label: 'Cheap' },
+  { value: 'balanced', label: 'Balanced' },
+  { value: 'premium', label: 'Premium' },
+];
+
+// Per-mode labels so a single set of components renders every mode.
+const MODE_LABELS = {
+  mini: { stage1: 'Individual Responses', stage3: 'Final Council Answer' },
+  full: { stage1: 'Stage 1: Individual Responses', stage3: 'Stage 3: Final Council Answer' },
+  review: { stage1: 'Critiques', stage3: 'Consolidated Review' },
+  extract: { stage1: '', stage3: '' },
+};
 
 export default function ChatInterface({
   conversation,
@@ -11,6 +33,8 @@ export default function ChatInterface({
   isLoading,
 }) {
   const [input, setInput] = useState('');
+  const [mode, setMode] = useState('mini');
+  const [preset, setPreset] = useState('balanced');
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -24,7 +48,7 @@ export default function ChatInterface({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
-      onSendMessage(input);
+      onSendMessage(input, mode, preset);
       setInput('');
     }
   };
@@ -69,42 +93,77 @@ export default function ChatInterface({
                   </div>
                 </div>
               ) : (
-                <div className="assistant-message">
-                  <div className="message-label">LLM Council</div>
+                (() => {
+                  const msgMode = msg.mode || 'full';
+                  const labels = MODE_LABELS[msgMode] || MODE_LABELS.full;
+                  const isReview = msgMode === 'review';
+                  return (
+                    <div className="assistant-message">
+                      <div className="message-label">
+                        LLM Council{msg.mode ? ` · ${msgMode}` : ''}
+                      </div>
 
-                  {/* Stage 1 */}
-                  {msg.loading?.stage1 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Running Stage 1: Collecting individual responses...</span>
-                    </div>
-                  )}
-                  {msg.stage1 && <Stage1 responses={msg.stage1} />}
+                      {/* Extract mode: decision record only */}
+                      {msg.loading?.extract && (
+                        <div className="stage-loading">
+                          <div className="spinner"></div>
+                          <span>Extracting decision record...</span>
+                        </div>
+                      )}
+                      {msg.decisionRecord && (
+                        <DecisionRecord
+                          record={msg.decisionRecord}
+                          markdown={msg.decisionMarkdown}
+                        />
+                      )}
 
-                  {/* Stage 2 */}
-                  {msg.loading?.stage2 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Running Stage 2: Peer rankings...</span>
-                    </div>
-                  )}
-                  {msg.stage2 && (
-                    <Stage2
-                      rankings={msg.stage2}
-                      labelToModel={msg.metadata?.label_to_model}
-                      aggregateRankings={msg.metadata?.aggregate_rankings}
-                    />
-                  )}
+                      {/* Stage 1 (answers) / Critiques (review) */}
+                      {msg.loading?.stage1 && (
+                        <div className="stage-loading">
+                          <div className="spinner"></div>
+                          <span>
+                            {isReview
+                              ? 'Collecting critiques...'
+                              : 'Collecting individual responses...'}
+                          </span>
+                        </div>
+                      )}
+                      {msg.stage1 && (
+                        <Stage1 responses={msg.stage1} title={labels.stage1} />
+                      )}
 
-                  {/* Stage 3 */}
-                  {msg.loading?.stage3 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Running Stage 3: Final synthesis...</span>
+                      {/* Stage 2 (ranking — full mode only) */}
+                      {msg.loading?.stage2 && (
+                        <div className="stage-loading">
+                          <div className="spinner"></div>
+                          <span>Running peer rankings...</span>
+                        </div>
+                      )}
+                      {msg.stage2 && msg.stage2.length > 0 && (
+                        <Stage2
+                          rankings={msg.stage2}
+                          labelToModel={msg.metadata?.label_to_model}
+                          aggregateRankings={msg.metadata?.aggregate_rankings}
+                        />
+                      )}
+
+                      {/* Stage 3 (synthesis) */}
+                      {msg.loading?.stage3 && (
+                        <div className="stage-loading">
+                          <div className="spinner"></div>
+                          <span>
+                            {isReview
+                              ? 'Synthesizing consolidated review...'
+                              : 'Synthesizing final answer...'}
+                          </span>
+                        </div>
+                      )}
+                      {msg.stage3 && msg.stage3.response && (
+                        <Stage3 finalResponse={msg.stage3} title={labels.stage3} />
+                      )}
                     </div>
-                  )}
-                  {msg.stage3 && <Stage3 finalResponse={msg.stage3} />}
-                </div>
+                  );
+                })()
               )}
             </div>
           ))
@@ -122,15 +181,53 @@ export default function ChatInterface({
 
       {conversation.messages.length === 0 && (
         <form className="input-form" onSubmit={handleSubmit}>
-          <textarea
-            className="message-input"
-            placeholder="Ask your question... (Shift+Enter for new line, Enter to send)"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isLoading}
-            rows={3}
-          />
+          <div className="composer">
+            <div className="composer-controls">
+              <label className="control">
+                <span>Mode</span>
+                <select
+                  value={mode}
+                  onChange={(e) => setMode(e.target.value)}
+                  disabled={isLoading}
+                >
+                  {MODES.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="control">
+                <span>Preset</span>
+                <select
+                  value={preset}
+                  onChange={(e) => setPreset(e.target.value)}
+                  disabled={isLoading}
+                >
+                  {PRESETS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <textarea
+              className="message-input"
+              placeholder={
+                mode === 'extract'
+                  ? 'Paste notes / chat log / discussion to extract a decision record...'
+                  : mode === 'review'
+                  ? 'Paste code / plan / draft to critique...'
+                  : 'Ask your question... (Shift+Enter for new line, Enter to send)'
+              }
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
+              rows={3}
+            />
+          </div>
           <button
             type="submit"
             className="send-button"
