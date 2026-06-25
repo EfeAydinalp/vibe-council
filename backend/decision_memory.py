@@ -152,11 +152,14 @@ def save_record(record: DecisionRecord) -> Dict[str, str]:
 async def extract_decision_record(
     text: str,
     model: str,
+    save: bool = True,
 ) -> Tuple[Dict[str, Any], str]:
     """Single-model extraction. Returns (record_dict, markdown_string).
 
-    Also persists JSON + Markdown exports to DECISIONS_DIR. No council, no peer
-    review, no chairman.
+    When ``save`` is True (default, preserving web behavior), the record is also
+    exported to DECISIONS_DIR as JSON + Markdown. Callers that manage their own
+    persistence (e.g. the CLI) pass ``save=False``. No council, no peer review,
+    no chairman.
     """
     prompt = _EXTRACTION_PROMPT.format(text=text)
     response, error = await query_model_detailed(model, [{"role": "user", "content": prompt}])
@@ -174,10 +177,11 @@ async def extract_decision_record(
     else:
         record = _parse_record(response.get("content", "") or "")
 
-    try:
-        save_record(record)
-    except OSError:
-        # Export-to-disk is best-effort; the record is still returned/streamed.
-        pass
+    if save:
+        try:
+            save_record(record)
+        except OSError:
+            # Export-to-disk is best-effort; the record is still returned/streamed.
+            pass
 
     return record.to_dict(), record.to_markdown()

@@ -340,6 +340,7 @@ async def run_mode_stream(
     user_query: str,
     mode: str,
     preset: str,
+    persist_extract: bool = True,
 ) -> AsyncGenerator[Tuple[str, Dict[str, Any]], None]:
     """Run a mode's stage list, yielding (event_type, payload) tuples.
 
@@ -403,7 +404,9 @@ async def run_mode_stream(
 
         elif stage == "extract":
             yield ("extract_start", {})
-            record, markdown = await extract_decision_record(user_query, extract_model)
+            record, markdown = await extract_decision_record(
+                user_query, extract_model, save=persist_extract
+            )
             yield ("extract_complete", {"data": record, "markdown": markdown})
 
 
