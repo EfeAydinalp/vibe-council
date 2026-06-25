@@ -46,7 +46,8 @@ async def stage1_collect_responses(
         if response is not None:  # Only include successful responses
             stage1_results.append({
                 "model": model,
-                "response": response.get('content', '')
+                "response": response.get('content', ''),
+                "usage": response.get('usage'),
             })
     return stage1_results
 
@@ -96,7 +97,8 @@ Be specific and concrete. Call out concrete problems rather than vague concerns.
         if response is not None:
             critiques.append({
                 "model": model,
-                "response": response.get('content', '')
+                "response": response.get('content', ''),
+                "usage": response.get('usage'),
             })
     return critiques
 
@@ -167,7 +169,8 @@ Now provide your evaluation and ranking:"""
             stage2_results.append({
                 "model": model,
                 "ranking": full_text,
-                "parsed_ranking": parsed
+                "parsed_ranking": parsed,
+                "usage": response.get('usage'),
             })
 
     return stage2_results, label_to_model
@@ -248,12 +251,14 @@ Provide a clear, well-reasoned final answer that represents the council's collec
     if response is None:
         return {
             "model": chairman_model,
-            "response": "Error: Unable to generate final synthesis."
+            "response": "Error: Unable to generate final synthesis.",
+            "usage": None,
         }
 
     return {
         "model": chairman_model,
-        "response": response.get('content', '')
+        "response": response.get('content', ''),
+        "usage": response.get('usage'),
     }
 
 
@@ -404,10 +409,10 @@ async def run_mode_stream(
 
         elif stage == "extract":
             yield ("extract_start", {})
-            record, markdown = await extract_decision_record(
+            record, markdown, usage = await extract_decision_record(
                 user_query, extract_model, save=persist_extract
             )
-            yield ("extract_complete", {"data": record, "markdown": markdown})
+            yield ("extract_complete", {"data": record, "markdown": markdown, "usage": usage})
 
 
 async def run_full_council(
