@@ -57,7 +57,7 @@ function App() {
     setCurrentConversationId(id);
   };
 
-  const handleSendMessage = async (content) => {
+  const handleSendMessage = async (content, mode = 'mini', preset = 'balanced') => {
     if (!currentConversationId) return;
 
     setIsLoading(true);
@@ -69,17 +69,22 @@ function App() {
         messages: [...prev.messages, userMessage],
       }));
 
-      // Create a partial assistant message that will be updated progressively
+      // Create a partial assistant message that will be updated progressively.
+      // `mode` controls which stages render; stages a mode skips simply stay null.
       const assistantMessage = {
         role: 'assistant',
+        mode,
         stage1: null,
         stage2: null,
         stage3: null,
         metadata: null,
+        decisionRecord: null,
+        decisionMarkdown: null,
         loading: {
           stage1: false,
           stage2: false,
           stage3: false,
+          extract: false,
         },
       };
 
@@ -90,8 +95,17 @@ function App() {
       }));
 
       // Send message with streaming
-      await api.sendMessageStream(currentConversationId, content, (eventType, event) => {
+      await api.sendMessageStream(currentConversationId, content, mode, preset, (eventType, event) => {
         switch (eventType) {
+          case 'start':
+            setCurrentConversation((prev) => {
+              const messages = [...prev.messages];
+              const lastMsg = messages[messages.length - 1];
+              lastMsg.mode = event.mode || lastMsg.mode;
+              return { ...prev, messages };
+            });
+            break;
+
           case 'stage1_start':
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
@@ -146,6 +160,26 @@ function App() {
               const lastMsg = messages[messages.length - 1];
               lastMsg.stage3 = event.data;
               lastMsg.loading.stage3 = false;
+              return { ...prev, messages };
+            });
+            break;
+
+          case 'extract_start':
+            setCurrentConversation((prev) => {
+              const messages = [...prev.messages];
+              const lastMsg = messages[messages.length - 1];
+              lastMsg.loading.extract = true;
+              return { ...prev, messages };
+            });
+            break;
+
+          case 'extract_complete':
+            setCurrentConversation((prev) => {
+              const messages = [...prev.messages];
+              const lastMsg = messages[messages.length - 1];
+              lastMsg.decisionRecord = event.data;
+              lastMsg.decisionMarkdown = event.markdown;
+              lastMsg.loading.extract = false;
               return { ...prev, messages };
             });
             break;

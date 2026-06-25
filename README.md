@@ -14,6 +14,31 @@ In a bit more detail, here is what happens when you submit a query:
 
 This project was 99% vibe coded as a fun Saturday hack because I wanted to explore and evaluate a number of LLMs side by side in the process of [reading books together with LLMs](https://x.com/karpathy/status/1990577951671509438). It's nice and useful to see multiple responses side by side, and also the cross-opinions of all LLMs on each other's outputs. I'm not going to support it in any way, it's provided here as is for other people's inspiration and I don't intend to improve it. Code is ephemeral now and libraries are over, ask your LLM to change it in whatever way you like.
 
+## Modes & Presets (vibe-council)
+
+This fork adds a token-conscious decision workflow on top of the original council.
+**Mode** (which stages run) and **preset** (which models fill the roles) are
+independent — any mode combines with any preset.
+
+| Mode | Pipeline | Use for |
+|------|----------|---------|
+| `extract` | single model → structured Decision Record (JSON + Markdown export) | turning messy notes / chat logs / planning sessions into a decision record |
+| `mini` *(default)* | collect → chairman synthesis (no peer review) | everyday technical / product / content decisions |
+| `review` | multi-model critique → chairman critique-synthesis (no ranking) | critiquing existing code, plans, drafts, roadmaps |
+| `full` | collect → peer ranking → chairman synthesis | critical decisions (original council behavior) |
+
+`full` is the only mode that uses anonymized peer review/ranking.
+
+**Presets:** `cheap`, `balanced` *(default)*, `premium` — defined in
+[`backend/config.py`](backend/config.py). Every model ID is overridable via
+environment variables; see [`.env.example`](.env.example). Grok tier IDs are
+placeholders — verify them on OpenRouter if a Grok call fails.
+
+Defaults: `mode=mini`, `preset=balanced` (used when either is missing).
+
+Decision Records (extract mode) are streamed to the UI and also written to
+`data/decisions/` as `.json` and `.md`.
+
 ## Setup
 
 ### 1. Install Dependencies
