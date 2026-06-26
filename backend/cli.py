@@ -24,6 +24,7 @@ import argparse
 import asyncio
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -31,7 +32,10 @@ from typing import Dict, Any, Optional, List
 
 # Importing config (transitively via council) runs load_dotenv(), consistent
 # with the rest of the backend.
-from .config import PRESETS, DEFAULT_PRESET, preset_models
+from . import __version__
+from .config import (
+    PRESETS, DEFAULT_PRESET, preset_models, MODEL_ENV_VARS, env_overridden_vars,
+)
 from .council import run_mode_stream
 from .decision_memory import DecisionRecord, save_record
 from . import project_workspace as pw
@@ -47,7 +51,15 @@ _FINAL_TITLES = {
     "review": "Consolidated Review",
 }
 
-# Exit codes
+# Exit codes (stable contract for scripts/agents):
+#   0 EXIT_OK       success
+#   1 EXIT_RUNTIME  runtime error (e.g. all model calls failed)
+#   2 EXIT_USAGE    input/usage error (e.g. missing --prompt/--file)
+#   3 EXIT_PREMIUM  premium requested without --allow-premium (checked first)
+#   4 EXIT_TOKEN    estimated input exceeds --max-tokens (before any model call)
+#   5 EXIT_LOOP     loop guard (duplicate/concurrent/rate-limited run)
+#   6 EXIT_COST     provider-reported cost exceeded --max-cost (stdout preserved)
+#   7 EXIT_NOKEY    OPENROUTER_API_KEY missing/empty for a model command
 EXIT_OK = 0
 EXIT_RUNTIME = 1
 EXIT_USAGE = 2
@@ -55,10 +67,41 @@ EXIT_PREMIUM = 3
 EXIT_TOKEN = 4
 EXIT_LOOP = 5
 EXIT_COST = 6
+EXIT_NOKEY = 7
 
 
 def _err(msg: str) -> None:
     print(msg, file=sys.stderr)
+
+
+# The exact placeholder value shipped in .env.example. If a user copies the file
+# but forgets to replace it, treat the key as not configured.
+_ENV_PLACEHOLDER_KEY = "sk-or-v1-..."
+
+
+def _require_api_key() -> Optional[int]:
+    """First-run guard for model commands. Returns EXIT_NOKEY (with a friendly,
+    traceback-free message) when OPENROUTER_API_KEY is missing, empty, or still the
+    .env.example placeholder; else None. Never prints the key value.
+
+    Note: by the time this runs, config has already called load_dotenv() (which
+    populates os.environ from .env). This reads the resolved value."""
+    key = (os.environ.get("OPENROUTER_API_KEY", "") or "").strip()
+    if key and key != _ENV_PLACEHOLDER_KEY:
+        return None
+    if key == _ENV_PLACEHOLDER_KEY:
+        _err("Error: OPENROUTER_API_KEY is still the .env.example placeholder value.")
+    else:
+        _err("Error: OPENROUTER_API_KEY is not set, so vibe-council cannot call any model.")
+    _err("To fix (one-time setup):")
+    _err("  1) Copy the example env file:")
+    _err("       Windows (PowerShell):  Copy-Item .env.example .env")
+    _err("       macOS / Linux:         cp .env.example .env")
+    _err("  2) In .env, set:           OPENROUTER_API_KEY=sk-or-v1-<your key>")
+    _err("  3) Add credits at:         https://openrouter.ai/")
+    _err("Never commit .env — it is gitignored. No-model commands (status, presets,")
+    _err("models, decisions, help) work without a key.")
+    return EXIT_NOKEY
 
 
 # --------------------------------------------------------------------------- #
@@ -429,6 +472,10 @@ def cmd_mode(args, mode: str) -> int:
         _err(f"Error: {guard}")
         return EXIT_PREMIUM
 
+    nokey = _require_api_key()
+    if nokey is not None:
+        return nokey
+
     try:
         text = _build_input(args.prompt, args.file)
     except (ValueError, OSError) as e:
@@ -481,6 +528,10 @@ def cmd_diff(args) -> int:
     if not diff.strip():
         print("No changes to review (git diff is empty).")
         return EXIT_OK
+
+    nokey = _require_api_key()
+    if nokey is not None:
+        return nokey
 
     ws = _resolve_workspace(args)
     slug = pw.timestamp_slug()
@@ -538,6 +589,47 @@ def cmd_projects(args) -> int:
         print(f"  - {p.get('project_name', '?')}")
         print(f"      path:      {p.get('project_path', '?')}")
         print(f"      last_used: {p.get('last_used_at', '?')}")
+    return EXIT_OK
+
+
+_PRESET_GUIDANCE = {
+    "cheap": "smoke tests, quick drafts, low-cost experiments",
+    "balanced": "normal real work (default)",
+    "premium": "expensive/critical only — requires --allow-premium",
+}
+
+
+def cmd_models(args) -> int:
+    """Print configured model IDs per preset + active env overrides. No model call."""
+    overridden = env_overridden_vars()
+    print("Configured models (defaults from backend/config.py; override via env):\n")
+    for name in PRESETS:
+        cfg = PRESETS[name]
+        print(f"[{name}]")
+        print(f"  council:  {', '.join(cfg['council'])}")
+        print(f"  chairman: {cfg['chairman']}")
+        print(f"  extract:  {cfg['extract']}")
+        print("")
+    if overridden:
+        print("Environment overrides active:")
+        for var in sorted(overridden):
+            # Print the var name and resolved ID (an OpenRouter model id, not a secret).
+            print(f"  {var} = {MODEL_ENV_VARS[var]}")
+    else:
+        print("Environment overrides active: none (all defaults).")
+    print("\nNote: model IDs are not validated against OpenRouter here.")
+    return EXIT_OK
+
+
+def cmd_presets(args) -> int:
+    """Print available presets and their intended use. No model call."""
+    print("Available presets (combine with any mode):\n")
+    for name in PRESETS:
+        guarded = " [guarded: needs --allow-premium]" if name == "premium" else ""
+        print(f"  {name:<9} {_PRESET_GUIDANCE.get(name, '')}{guarded}")
+    print(f"\nDefault preset: {DEFAULT_PRESET}")
+    print("premium (and full + premium) is blocked unless you pass --allow-premium.")
+    print("Use 'vibe models' to see the model IDs behind each preset.")
     return EXIT_OK
 
 
@@ -786,6 +878,9 @@ Common commands:
   vibe decisions list                                 # list this project's decisions
   vibe decisions search "<query>"                     # search decisions (no model)
   vibe decisions context "<query>"                    # compact context for planning
+  vibe models                                         # show model IDs per preset
+  vibe presets                                        # show presets + intended use
+  vibe --version
   vibe help
   vibe guide claude
 
@@ -924,6 +1019,8 @@ def _build_parser() -> argparse.ArgumentParser:
         prog="backend.cli",
         description="vibe-council CLI — modes, project workspaces, and decisions.",
     )
+    parser.add_argument("--version", action="version",
+                        version=f"vibe-council {__version__}")
     sub = parser.add_subparsers(dest="command", required=True, metavar="<command>")
 
     mode_desc = {
@@ -942,6 +1039,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_projects = sub.add_parser("projects", help="List registered projects.")
     sp_projects.add_argument("action", choices=["list"])
+
+    sub.add_parser("models", help="Show configured model IDs per preset (no model call).")
+    sub.add_parser("presets", help="Show available presets and intended use (no model call).")
 
     sp_dec = sub.add_parser("decisions", parents=[p_proj],
                             help="List/search project decisions (no model calls).")
@@ -984,6 +1084,10 @@ def main(argv=None) -> int:
         return cmd_init(args)
     if cmd == "projects":
         return cmd_projects(args)
+    if cmd == "models":
+        return cmd_models(args)
+    if cmd == "presets":
+        return cmd_presets(args)
     if cmd == "decisions":
         return cmd_decisions(args)
     if cmd == "status":

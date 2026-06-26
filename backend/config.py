@@ -46,6 +46,25 @@ GROK = os.getenv("MODEL_GROK", "x-ai/grok-4.3")
 # Cheap, fast model used for conversation-title generation.
 TITLE_MODEL = os.getenv("MODEL_TITLE", GEMINI_FLASH)
 
+# Maps each model env var to its resolved value, so the CLI can report which IDs
+# are in use and whether a value comes from a default or an environment override.
+MODEL_ENV_VARS = {
+    "MODEL_GEMINI_FLASH": GEMINI_FLASH,
+    "MODEL_GEMINI_PRO": GEMINI_PRO,
+    "MODEL_CLAUDE_HAIKU": CLAUDE_HAIKU,
+    "MODEL_CLAUDE_SONNET": CLAUDE_SONNET,
+    "MODEL_CLAUDE_OPUS": CLAUDE_OPUS,
+    "MODEL_GPT": GPT,
+    "MODEL_GROK": GROK,
+    "MODEL_TITLE": TITLE_MODEL,
+}
+
+
+def env_overridden_vars():
+    """Return the set of MODEL_* env vars that are currently set (i.e. overriding
+    a default). Reads os.environ live; does not expose any secret."""
+    return {name for name in MODEL_ENV_VARS if os.getenv(name) is not None}
+
 
 # --------------------------------------------------------------------------- #
 # Presets: which models fill the council / chairman / extract roles.

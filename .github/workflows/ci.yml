@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  smoke:
+    name: smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install runtime dependencies
+        # Runtime deps only (from pyproject); no API key, no real model calls.
+        run: pip install fastapi "uvicorn[standard]" python-dotenv httpx pydantic
+
+      - name: Compile / import check
+        run: |
+          python -m compileall -q backend
+          python -c "import backend.cli, backend.guards, backend.project_workspace, backend.council"
+
+      - name: CLI smoke (no-model commands, no key)
+        run: |
+          python -m backend.cli --version
+          python -m backend.cli presets
+          python -m backend.cli models
+
+      - name: Run tests
+        # Stdlib unittest — no extra test dependency required.
+        run: python -m unittest discover -s tests -t .

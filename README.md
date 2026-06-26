@@ -358,6 +358,7 @@ CLI commands return dedicated exit codes (useful for agents and scripts):
 | `4` | token guard (estimated input exceeds `--max-tokens`, before any model call) |
 | `5` | loop guard (duplicate/concurrent/rate-limited run) |
 | `6` | cost cap exceeded (provider-reported cost over `--max-cost`; stdout preserved) |
+| `7` | missing API key (`OPENROUTER_API_KEY` not set for a model command) |
 
 ---
 
@@ -392,6 +393,32 @@ to launch both.
 
 **Tech stack:** FastAPI (Python 3.10+), async httpx, OpenRouter API · React + Vite
 frontend · JSON-file storage under `data/` · uv for Python, npm for JavaScript.
+
+---
+
+## Privacy & local-first
+
+vibe-council is local-first and **bring-your-own-key**. You install it on your
+machine and pay your own provider bill.
+
+- **What leaves your machine:** the prompts, files, and diffs you review are sent
+  to the configured model provider — currently **OpenRouter** — to get a response.
+  Treat that like any API call: see
+  [OpenRouter's privacy policy](https://openrouter.ai/privacy) for how they handle
+  data, and avoid putting secrets/PII in prompts or reviewed files.
+- **What stays local:** everything under `.council/` — reviews, diffs, decisions,
+  runs, and stage/usage metadata — plus the `data/` registry. Nothing is uploaded
+  anywhere by vibe-council itself.
+- **Your API key:** lives only in `.env`, is read from the environment, is **never
+  printed by vibe-council itself**, and must **never be committed** (`.env` is
+  gitignored).
+- **`.council/` can contain sensitive content** (your prompts and the models'
+  outputs). vibe keeps it gitignored automatically — keep it that way.
+- **If you ever commit `.env` or `.council/` by accident:** rotate your OpenRouter
+  key immediately (the old one should be considered exposed) and remove the files
+  from history.
+- **BYO cost:** you pay the provider directly. vibe-council does not mark up or hide
+  cost; `--usage` shows provider-reported tokens/cost when available.
 
 ---
 
