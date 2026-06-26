@@ -1,6 +1,7 @@
 # vibe-council
 
-![vibe-council](header.jpg)
+
+![vibe-council preview](docs/assets/header.jpg)
 
 **vibe-council** is a multi-model decision and review workflow for developers and
 AI coding agents. It can run from a local **web UI** or from the **terminal**, and
