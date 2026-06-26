@@ -54,13 +54,18 @@ jobs:
           sh scripts/vibe.sh models
 
           # VIBE_CALLER_CWD is honored: status reports no workspace in a temp dir.
+          # Capture-then-grep (not a pipe): grep -q closes the pipe on first match,
+          # which would SIGPIPE the still-writing script under dash + pipefail.
           tmp="$(mktemp -d)"
-          ( cd "$tmp" && sh "$GITHUB_WORKSPACE/scripts/vibe.sh" status ) | grep -q "No active council workspace"
+          status_out="$( cd "$tmp" && sh "$GITHUB_WORKSPACE/scripts/vibe.sh" status )"
+          printf '%s\n' "$status_out" | grep -q "No active council workspace"
 
           # End-to-end install into a temp bin, then invoke the installed symlink.
           bin="$(mktemp -d)"
           sh scripts/install-vibe.sh --yes --bin-dir "$bin"
           test -L "$bin/vibe"            # a real symlink was created
           "$bin/vibe" --version
-          # Idempotent re-run is a no-op (already ours).
-          sh scripts/install-vibe.sh --yes --bin-dir "$bin" | grep -qi "already installed"
+          # Idempotent re-run is a no-op (already ours). Capture-then-grep so the
+          # installer's trailing PATH-guidance echoes don't write to a closed pipe.
+          reinstall_out="$(sh scripts/install-vibe.sh --yes --bin-dir "$bin")"
+          printf '%s\n' "$reinstall_out" | grep -qi "already installed"
