@@ -14,6 +14,33 @@ and cost/token/loop guardrails.
 
 ---
 
+## Why this exists
+
+A single model has blind spots. Before you commit to a plan or merge a diff, it
+helps to get a **cheap second opinion from several models at once** — and to keep a
+local record of what you decided and why. vibe-council does exactly that from your
+terminal: write a plan, get a consolidated multi-model critique, review your diff,
+and save a structured decision.
+
+Two things to be clear about up front:
+
+- **The council's output is advice, not authority.** It is a second opinion to
+  *filter*, not a gate that decides for you. Apply the findings that improve
+  correctness, security, cost, or missing constraints; discard the style nits and
+  speculative rewrites. You (or your agent, under your review) own the decision.
+- **Local-first means the *artifacts* stay local — not that nothing leaves your
+  machine.** Your prompts, files, and diffs (i.e. your code) **are sent to OpenRouter
+  and the upstream model providers** to get a response — this is *not* local inference
+  like Ollama, and "local-first" does **not** mean "never leaves my network." What it
+  *saves* (`.council/`) stays on your machine. See
+  [Privacy & local-first](#privacy--local-first).
+
+New here? Skim [Quick demo](#quick-demo) and the
+[`examples/`](examples/README.md) folder — short, realistic samples you can read
+without spending any credits.
+
+---
+
 ## Origin & credit
 
 Based on and inspired by Andrej Karpathy's
@@ -183,6 +210,36 @@ python -m backend.cli full    --preset cheap --prompt "Compare these options."
 
 ---
 
+## Quick demo
+
+A first end-to-end run using a committed example plan (no setup beyond your
+`.env` key). The wrappers write artifacts into the **current project's** `.council/`.
+
+```sh
+# 1. See where you are (and let vibe create a local .council/ workspace).
+vibe status
+
+# 2. Review a real example plan. No --yes the first time, so you see the
+#    approval prompt and that this spends credits.
+vibe review --preset balanced --file examples/plans/feature-plan.md --usage
+
+# 3. Make some edits, then review your git diff.
+vibe diff --preset balanced --yes --usage
+
+# 4. Record the decision (single model, cheapest step).
+vibe extract --preset balanced --file examples/plans/feature-plan.md --save --yes --usage
+```
+
+You'll get a consolidated review on stdout and saved artifacts under `.council/`
+(`reviews/`, `diffs/`, `decisions/`). `--usage` prints provider-reported tokens/cost
+when available. For a fuller walkthrough with expected output and artifact paths, see
+[`examples/workflows/review-diff-extract.md`](examples/workflows/review-diff-extract.md).
+
+> Tip: the cheapest way to see the tool work is `vibe extract` — it's a single model
+> with no council. Use `--preset cheap` for smoke tests and retries.
+
+---
+
 ## Core commands
 
 ```powershell
@@ -298,6 +355,33 @@ Run `vibe guide claude` to print this reusable instruction block (or
 
 - `full` is the only mode that uses anonymized peer review/ranking.
 - `premium` is blocked unless you pass `--allow-premium`.
+
+### Which mode & preset should I use?
+
+Pick by situation, not by reading every definition:
+
+| Your situation | Mode | Preset | Why |
+|----------------|------|--------|-----|
+| One-line docs/typo fix | `review` (or skip) | `cheap` | A full gate costs more than the change is worth. |
+| Real feature plan / non-trivial diff | `review` / `diff` | `balanced` | The everyday quality gate — multi-model critique that catches real issues. |
+| Quick "what should I do?" question | `mini` | `balanced` | Several models + a synthesis, no peer ranking. |
+| Capture a decision you've made | `extract` | `cheap`/`balanced` | Single model → structured record; cheapest step. |
+| Big, risky, ambiguous architecture call | `full` | `balanced` | Anonymized peer ranking adds signal when stakes are high. |
+| Expensive/critical, explicitly requested | any | `premium` | Biggest models; requires `--allow-premium`. |
+
+### Cost / quality policy
+
+- **`cheap`** → smoke tests, retries, and changes too small to deserve a full gate.
+- **`balanced`** *(default for real work)* → plan and diff quality gates.
+- **`full`** → only for big strategic/architecture decisions; it costs more and
+  rarely beats `balanced` for routine review.
+- **`premium`** → only when explicitly requested; always requires `--allow-premium`.
+- Always pass **`--usage`** so cost/tokens are visible. Rough anchors from real runs:
+  a `balanced` review is **≈ $0.15–0.30** and an `extract` is **≈ $0.03** —
+  approximate and provider-dependent. Cost scales with input size, so a very large
+  plan/diff costs more; use **`--max-tokens N`** to hard-block oversized inputs before
+  any model call (see [Token guard](#token-guard-pre-run-hard-block)).
+- After any `full`/`premium` run, it's fair to ask: *did it earn its cost?*
 
 ---
 
@@ -494,8 +578,20 @@ them.
 
 ## Roadmap / next ideas
 
-- SQLite / embedding-based decision search
+**Recently shipped:** first-run API-key guard, `vibe models` / `vibe presets` /
+`--version`, tests + CI (Ubuntu/macOS/Windows), privacy/local-first docs, decision
+memory, and cross-platform install scripts (Windows + macOS/Linux).
+
+**Near-term (toward a v0.1.0 release):**
+
+- Examples + workflow docs polish *(this PR)*
+- A short demo GIF / asciinema of the review → diff → extract loop
+- Cut a tagged **v0.1.0** release
+
+**Later (explicitly not in v0.1.0):**
+
+- Ollama / multi-provider abstraction (local inference)
 - MCP server
+- SQLite / embedding-based decision search
 - GitHub PR review bot
-- Richer web UI for decision memory and usage
 - Packaged install (`pipx`/`uvx`) and a unified launcher entry point

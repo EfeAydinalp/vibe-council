@@ -105,16 +105,49 @@ Every workspace is registered in the vibe-council repo at `data/projects.json`
 
 ## Claude Code workflow
 
+The standard loop:
+
 1. `vibe status`
-2. write `plan.md`
-3. `vibe review --preset balanced --file plan.md --yes`
-4. implement
-5. `vibe diff --preset balanced --yes`
-6. fix issues
-7. `vibe extract --preset balanced --file plan.md --save --yes`
+2. (optional) `vibe decisions context "<topic>"` — read prior decisions first
+3. write `plan.md`
+4. `vibe review --preset balanced --file plan.md --yes --usage`
+5. revise the plan — **apply only useful feedback** (see "Filtering" below)
+6. implement
+7. `vibe diff --preset balanced --yes --usage`
+8. apply only useful feedback
+9. `vibe extract --preset balanced --file plan.md --save --yes --usage`
+10. final report: files changed, council commands run, cost/tokens, and `.council/`
+    artifact paths — while keeping those artifacts local
 
 Use `--yes` in agent workflows so there are no interactive prompts.
 Generate an in-repo guide with `vibe guide claude` (or `vibe guide claude --write CLAUDE.md`).
+A copy-pasteable version of this loop lives in
+[`examples/workflows/claude-code-loop.md`](../examples/workflows/claude-code-loop.md).
+
+### Filtering: council output is advice, not authority
+
+The council is a second opinion to *filter*, not a gate that decides for you. The
+developer/agent owns the decision.
+
+- **Act on:** correctness bugs, security issues, real cost blow-ups, missing
+  constraints/edge cases, concrete factual errors.
+- **Be skeptical of:** style preferences, speculative rewrites, scope-widening
+  "consider also…" suggestions.
+- **Never** let an agent apply a diff or land a change **without human review** just
+  because the council suggested it.
+
+In the final report, say *which* findings you applied and which you declined (with a
+one-line reason). That record beats the raw review.
+
+### Preset/cost notes for agents
+
+- For **tiny changes** (a one-line docs fix), `balanced` over-reviews — use
+  `--preset cheap` for a quick smoke read, or skip the council entirely.
+- Use `balanced` for real plan/diff gates; reserve `full` for big strategic decisions
+  and `premium` (with `--allow-premium`) only when explicitly requested.
+- Always pass **`--usage`** so the final report can include provider-reported
+  tokens/cost when available.
+- **Never commit** `.council/`, `data/`, or `.env`; never print the API key.
 
 ## Exact commands
 
