@@ -173,6 +173,18 @@ Use `cheap` for smoke tests and `balanced` for real review.
 - Generated runtime files (reviews, diffs, decisions, runs, registry) must never
   be committed.
 
+## Privacy & local-first (summary)
+
+- **Leaves your machine:** prompts/files/diffs you review are sent to the configured
+  provider (currently OpenRouter) — see their privacy policy; avoid secrets/PII in
+  reviewed content.
+- **Stays local:** everything under `.council/` and the `data/` registry.
+- **API key:** lives in `.env`, never printed, never committed.
+- **BYO key / BYO cost:** you pay the provider directly; `--usage` shows
+  provider-reported tokens/cost when available.
+
+See the README's "Privacy & local-first" section for the full version.
+
 ## Claude Code workflow (with decision memory)
 
 1. `vibe status`
