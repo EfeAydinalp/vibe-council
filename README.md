@@ -1,112 +1,420 @@
-# LLM Council
+# vibe-council
 
-![llmcouncil](header.jpg)
+![vibe-council](header.jpg)
 
-The idea of this repo is that instead of asking a question to your favorite LLM provider (e.g. OpenAI GPT 5.1, Google Gemini 3.0 Pro, Anthropic Claude Sonnet 4.5, xAI Grok 4, eg.c), you can group them into your "LLM Council". This repo is a simple, local web app that essentially looks like ChatGPT except it uses OpenRouter to send your query to multiple LLMs, it then asks them to review and rank each other's work, and finally a Chairman LLM produces the final response.
+**vibe-council** is a multi-model decision and review workflow for developers and
+AI coding agents. It can run from a local **web UI** or from the **terminal**, and
+it helps you review plans, critique diffs, extract structured decisions, and keep
+a **project-local decision memory**. It started from
+[`karpathy/llm-council`](https://github.com/karpathy/llm-council) — this fork
+extends that multi-model "council" idea into a practical local agent/developer
+workflow tool with workflow modes, a CLI, project workspaces, decision memory,
+and cost/token/loop guardrails.
 
-In a bit more detail, here is what happens when you submit a query:
+---
 
-1. **Stage 1: First opinions**. The user query is given to all LLMs individually, and the responses are collected. The individual responses are shown in a "tab view", so that the user can inspect them all one by one.
-2. **Stage 2: Review**. Each individual LLM is given the responses of the other LLMs. Under the hood, the LLM identities are anonymized so that the LLM can't play favorites when judging their outputs. The LLM is asked to rank them in accuracy and insight.
-3. **Stage 3: Final response**. The designated Chairman of the LLM Council takes all of the model's responses and compiles them into a single final answer that is presented to the user.
+## Origin & credit
 
-## Vibe Code Alert
+Based on and inspired by Andrej Karpathy's
+[`llm-council`](https://github.com/karpathy/llm-council), which introduced the
+core idea: send a query to several LLMs via OpenRouter, have them review/rank each
+other's answers, and let a "chairman" model synthesize a final response.
 
-This project was 99% vibe coded as a fun Saturday hack because I wanted to explore and evaluate a number of LLMs side by side in the process of [reading books together with LLMs](https://x.com/karpathy/status/1990577951671509438). It's nice and useful to see multiple responses side by side, and also the cross-opinions of all LLMs on each other's outputs. I'm not going to support it in any way, it's provided here as is for other people's inspiration and I don't intend to improve it. Code is ephemeral now and libraries are over, ask your LLM to change it in whatever way you like.
+This fork builds on that concept and turns it into a local workflow tool. The
+additions here (modes, CLI, `vibe` command, `.council/` workspaces, decision
+memory, guardrails) are **not** part of upstream and are **not** maintained by the
+original author. Please credit the original project for the council concept.
 
-## Modes & Presets (vibe-council)
+---
 
-This fork adds a token-conscious decision workflow on top of the original council.
-**Mode** (which stages run) and **preset** (which models fill the roles) are
-independent — any mode combines with any preset.
+## What this fork adds
 
-| Mode | Pipeline | Use for |
-|------|----------|---------|
-| `extract` | single model → structured Decision Record (JSON + Markdown export) | turning messy notes / chat logs / planning sessions into a decision record |
-| `mini` *(default)* | collect → chairman synthesis (no peer review) | everyday technical / product / content decisions |
-| `review` | multi-model critique → chairman critique-synthesis (no ranking) | critiquing existing code, plans, drafts, roadmaps |
-| `full` | collect → peer ranking → chairman synthesis | critical decisions (original council behavior) |
+- **Modes** — `extract`, `mini`, `review`, `full`
+- **Presets** — `cheap`, `balanced`, `premium`
+- **CLI bridge** — `python -m backend.cli ...`
+- **Global command** — `vibe review --preset balanced --file plan.md`
+- **Project workspace** — a local `.council/` folder per project
+- **Decision memory** — `vibe decisions list` / `search` / `context`
+- **Guardrails** — premium requires `--allow-premium`, plus `--max-tokens`,
+  `--max-cost`, a loop guard, `--usage`, and `--save-stages`
+- **Claude Code workflow** — plan → review → implement → diff review → extract decision
 
-`full` is the only mode that uses anonymized peer review/ranking.
+See [`docs/agent-integrations.md`](docs/agent-integrations.md) for the full agent guide.
 
-**Presets:** `cheap`, `balanced` *(default)*, `premium` — defined in
-[`backend/config.py`](backend/config.py). Every model ID is overridable via
-environment variables; see [`.env.example`](.env.example). Grok tier IDs are
-placeholders — verify them on OpenRouter if a Grok call fails.
+---
 
-Defaults: `mode=mini`, `preset=balanced` (used when either is missing).
+## Quick start (Windows)
 
-Decision Records (extract mode) are streamed to the UI and also written to
-`data/decisions/` as `.json` and `.md`.
+```powershell
+git clone https://github.com/EfeAydinalp/vibe-council.git
+cd vibe-council
+```
 
-## Setup
+Install backend dependencies. This is a [uv](https://docs.astral.sh/uv/) project,
+so `uv sync` is the simplest path:
 
-### 1. Install Dependencies
-
-The project uses [uv](https://docs.astral.sh/uv/) for project management.
-
-**Backend:**
-```bash
+```powershell
 uv sync
 ```
 
-**Frontend:**
+Prefer a plain virtualenv + pip? There is no `requirements.txt`; install the
+dependencies declared in `pyproject.toml` directly:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install fastapi "uvicorn[standard]" python-dotenv httpx pydantic
+```
+
+Then add your OpenRouter API key:
+
+```powershell
+Copy-Item .env.example .env
+# edit .env and set OPENROUTER_API_KEY=sk-or-v1-...
+```
+
+- Get a key at [openrouter.ai](https://openrouter.ai/) and add credits.
+- **Never commit `.env`** — it is gitignored.
+
+You can now use the CLI directly (no web UI needed):
+
+```powershell
+python -m backend.cli review --preset cheap --prompt "Review this tiny plan."
+```
+
+---
+
+## Install the global `vibe` command (Windows)
+
+```powershell
+cd C:\Users\F\Desktop\llm-council
+powershell -ExecutionPolicy Bypass -File scripts\install-vibe.ps1 --yes
+```
+
+This:
+
+- creates/updates `%USERPROFILE%\bin\vibe.cmd`,
+- adds `%USERPROFILE%\bin` to your **User PATH** if missing,
+- does **not** require admin.
+
+**Restart your terminal** after a PATH change. Set `VIBE_COUNCIL_HOME` to override
+the repo location if it lives elsewhere.
+
+Preview without changing anything:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install-vibe.ps1 --dry-run
+```
+
+Use the wrapper directly without installing:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\Users\F\Desktop\llm-council\scripts\vibe.ps1 review --preset balanced --file plan.md
+```
+
+> The examples below assume the global `vibe` command is installed. Otherwise,
+> replace `vibe` with `python -m backend.cli` (from the repo) or the
+> `scripts\vibe.ps1` wrapper.
+
+### Using the CLI directly (no global command)
+
+Run any mode from the repo root with `python -m backend.cli`:
+
+```powershell
+python -m backend.cli extract --preset cheap --file plan.md --save
+python -m backend.cli mini    --preset balanced --prompt "What should we do next?"
+python -m backend.cli review  --preset balanced --file plan.md
+python -m backend.cli full    --preset cheap --prompt "Compare these options."
+```
+
+---
+
+## Core commands
+
+```powershell
+vibe status
+vibe review --preset balanced --file plan.md
+vibe diff --preset balanced
+vibe extract --preset balanced --file plan.md --save
+vibe mini --preset balanced --prompt "What should we do next?"
+vibe full --preset cheap --prompt "Compare these options."
+vibe last
+vibe last decision
+vibe help
+vibe guide claude
+```
+
+Output (the review/answer/decision) goes to **stdout**; progress, saved-file
+paths, usage, and guard messages go to **stderr**, so stdout stays clean for
+piping. The API key is never printed.
+
+---
+
+## Project-local `.council/` workspace
+
+When you run `vibe` inside a target project, it creates a local workspace:
+
+```text
+.council/
+  config.json
+  reviews/
+  diffs/
+  decisions/
+  runs/
+  stages/
+  usage/
+  locks/
+```
+
+- `.council/` is **local runtime memory** and should stay **gitignored** (vibe
+  adds it to the project's `.gitignore` automatically).
+- `reviews/` — saved reviews · `diffs/` — raw `git diff` captures ·
+  `decisions/` — formal decisions (JSON + Markdown + `index.jsonl`) ·
+  `runs/` — saved `mini`/`full` outputs · `stages/` and `usage/` —
+  stage/usage metadata (`--save-stages`) · `locks/` — loop-guard state.
+- `data/projects.json` is a **local, ignored** global registry of workspaces.
+  Nothing under `data/` is meant to be committed.
+
+> Stage files contain model input/output content (responses, rankings,
+> synthesis). They never contain the API key, but keep `.council/` gitignored.
+
+---
+
+## Decision memory
+
+```powershell
+vibe decisions list
+vibe decisions search "sqlite"
+vibe decisions context "agent workflow"
+```
+
+- `vibe extract --save` writes a decision as **JSON + Markdown** and appends an
+  entry to `.council/decisions/index.jsonl`.
+- `search` is **simple local string matching** for now — **no embeddings, no
+  SQLite yet**.
+- `context` returns a compact block of the most relevant prior decisions — handy
+  to read (or paste) **before asking Claude Code to plan**.
+- These commands call **no model** and need **no API key**.
+
+---
+
+## Claude Code workflow
+
+```text
+Use vibe-council for this project.
+
+1. Run:
+   vibe status
+
+2. Before planning, search prior decisions:
+   vibe decisions context "<topic>"
+
+3. Write plan.md.
+
+4. Review the plan:
+   vibe review --preset balanced --file plan.md --yes
+
+5. Implement.
+
+6. Review the diff:
+   vibe diff --preset balanced --yes
+
+7. Extract the decision:
+   vibe extract --preset balanced --file plan.md --save --yes
+
+Do not use premium or full unless explicitly requested.
+Use cheap for smoke tests.
+Use balanced for real review.
+Never expose API keys.
+```
+
+Run `vibe guide claude` to print this reusable instruction block (or
+`vibe guide claude --write CLAUDE.md` to append it to a project's `CLAUDE.md`).
+
+---
+
+## Modes
+
+| Mode | What it does | Notes |
+|------|--------------|-------|
+| `extract` | One model extracts a structured decision record from notes/plans | JSON + Markdown export |
+| `mini` *(default)* | Models answer + chairman synthesis (no peer ranking) | everyday decisions |
+| `review` | Multi-model critique → consolidated review (no ranking) | plans, diffs, security, architecture |
+| `full` | Full council: collect → peer ranking → chairman synthesis | slower / more expensive |
+
+- `full` is the only mode that uses anonymized peer review/ranking.
+- `premium` is blocked unless you pass `--allow-premium`.
+
+---
+
+## Presets and models
+
+A preset decides **which models** fill the council, chairman, and extract roles.
+These are the current defaults in [`backend/config.py`](backend/config.py) (all
+env-overridable):
+
+| Preset | Intended use | Council models | Chairman | Extract |
+|--------|--------------|----------------|----------|---------|
+| `cheap` | smoke tests, low-cost experiments | `google/gemini-2.5-flash`, `anthropic/claude-haiku-4.5` | `google/gemini-2.5-flash` | `google/gemini-2.5-flash` |
+| `balanced` *(default)* | normal real work | `openai/gpt-5.1`, `anthropic/claude-sonnet-4.5`, `google/gemini-2.5-pro` | `anthropic/claude-sonnet-4.5` | `anthropic/claude-sonnet-4.5` |
+| `premium` | expensive/critical only (**requires `--allow-premium`**) | `openai/gpt-5.1`, `anthropic/claude-opus-4.6`, `google/gemini-2.5-pro`, `x-ai/grok-4.3` | `anthropic/claude-opus-4.6` | `anthropic/claude-sonnet-4.5` |
+
+- **Council** models answer/critique/rank; the **chairman** synthesizes the final
+  result; **extract** is the single model used for decision extraction.
+
+### Changing models
+
+- Edit the defaults in [`backend/config.py`](backend/config.py), or override any
+  ID via environment variables (see [`.env.example`](.env.example)).
+- Use valid **OpenRouter model IDs** (e.g. `provider/model`).
+- Model **availability and pricing change** — IDs get deprecated (xAI `grok-4` is
+  already deprecated; the default is `grok-4.3`). Verify on OpenRouter if a call
+  404s.
+- After changing models, run a **cheap smoke test** first, e.g.
+  `vibe mini --preset cheap --prompt "ping"`.
+- Never hardcode secrets in `config.py` — the API key lives only in `.env`.
+
+---
+
+## Cost, token, usage, and loop guards
+
+### Premium guard
+
+```powershell
+vibe full --preset premium --prompt "..."
+```
+
+fails unless you explicitly opt in:
+
+```powershell
+vibe full --preset premium --allow-premium --prompt "..."
+```
+
+### Token guard (pre-run, hard block)
+
+```powershell
+vibe review --preset balanced --file plan.md --max-tokens 10000
+```
+
+- A **rough estimate** of input tokens, labeled as an estimate.
+- **Blocks before any model call** if the estimate exceeds the limit.
+- Best option for a hard pre-run guardrail.
+
+### Cost guard (best-effort, post-run)
+
+```powershell
+vibe review --preset balanced --file plan.md --max-cost 0.20
+```
+
+- **Optional.** If omitted, there is **no cost cap**.
+- Cost is **provider-reported** when available — **never a fabricated exact dollar
+  amount**.
+- It **cannot reliably pre-block**, because exact cost is usually only known after
+  the provider responds.
+- If the provider reports a cost **over** the cap, the command **exits non-zero
+  (code 6) while preserving stdout**.
+- For real pre-run blocking, use `--max-tokens`.
+
+### Usage and stages
+
+```powershell
+vibe review --preset balanced --file plan.md --usage
+vibe review --preset balanced --file plan.md --save-stages
+```
+
+- `--usage` prints estimated input tokens plus provider-reported
+  `prompt_tokens` / `completion_tokens` / `total_tokens` (and cost, if reported).
+- `--save-stages` writes stage outputs + usage metadata under
+  `.council/stages/` and `.council/usage/`.
+
+### Loop guard
+
+- **Enabled by default** when a project workspace is active.
+- Blocks **duplicate/repeated** runs (same input within a short cooldown),
+  **concurrent** identical runs, and **too many runs** in a short window.
+- Override:
+
+```powershell
+vibe review --preset balanced --file plan.md --allow-repeat
+vibe review --preset balanced --file plan.md --no-loop-guard
+```
+
+`--allow-repeat` bypasses the duplicate/cooldown checks (the rate limit still
+applies); `--no-loop-guard` disables the loop guard entirely.
+
+---
+
+## Exit codes
+
+CLI commands return dedicated exit codes (useful for agents and scripts):
+
+| Code | Meaning |
+|------|---------|
+| `0` | success |
+| `1` | runtime error (e.g. all model calls failed) |
+| `2` | input/usage error (e.g. missing `--prompt`/`--file`) |
+| `3` | premium guard (premium requested without `--allow-premium`) |
+| `4` | token guard (estimated input exceeds `--max-tokens`, before any model call) |
+| `5` | loop guard (duplicate/concurrent/rate-limited run) |
+| `6` | cost cap exceeded (provider-reported cost over `--max-cost`; stdout preserved) |
+
+---
+
+## Web UI
+
+The original web UI (multi-model council with stage tabs) still works.
+
+**1. Configure the API key** — `.env` in the repo root with
+`OPENROUTER_API_KEY=sk-or-v1-...` (see Quick start).
+
+**2. Install frontend dependencies:**
+
 ```bash
 cd frontend
 npm install
 cd ..
 ```
 
-### 2. Configure API Key
-
-Create a `.env` file in the project root:
+**3. Run backend and frontend** (two terminals):
 
 ```bash
-OPENROUTER_API_KEY=sk-or-v1-...
-```
-
-Get your API key at [openrouter.ai](https://openrouter.ai/). Make sure to purchase the credits you need, or sign up for automatic top up.
-
-### 3. Configure Models (Optional)
-
-Edit `backend/config.py` to customize the council:
-
-```python
-COUNCIL_MODELS = [
-    "openai/gpt-5.1",
-    "google/gemini-3-pro-preview",
-    "anthropic/claude-sonnet-4.5",
-    "x-ai/grok-4",
-]
-
-CHAIRMAN_MODEL = "google/gemini-3-pro-preview"
-```
-
-## Running the Application
-
-**Option 1: Use the start script**
-```bash
-./start.sh
-```
-
-**Option 2: Run manually**
-
-Terminal 1 (Backend):
-```bash
+# Terminal 1 — backend (http://localhost:8001)
 uv run python -m backend.main
-```
 
-Terminal 2 (Frontend):
-```bash
+# Terminal 2 — frontend (http://localhost:5173)
 cd frontend
 npm run dev
 ```
 
-Then open http://localhost:5173 in your browser.
+Then open <http://localhost:5173>. On macOS/Linux you can also use `./start.sh`
+to launch both.
 
-## Tech Stack
+**Tech stack:** FastAPI (Python 3.10+), async httpx, OpenRouter API · React + Vite
+frontend · JSON-file storage under `data/` · uv for Python, npm for JavaScript.
 
-- **Backend:** FastAPI (Python 3.10+), async httpx, OpenRouter API
-- **Frontend:** React + Vite, react-markdown for rendering
-- **Storage:** JSON files in `data/conversations/`
-- **Package Management:** uv for Python, npm for JavaScript
+---
+
+## Repository safety / ignored files
+
+Do **not** commit:
+
+- `.env`
+- `data/` (including `data/projects.json`, `data/decisions/`, `data/cli_runs/`)
+- `.council/` (any project workspace runtime)
+- `node_modules/`
+- `dist/`
+- `__pycache__/`
+- generated `reviews/` `diffs/` `decisions/` `runs/` `stages/` `usage/` `locks/`
+
+These are local runtime/secret artifacts. The repo's `.gitignore` already covers
+them.
+
+---
+
+## Roadmap / next ideas
+
+- SQLite / embedding-based decision search
+- MCP server
+- GitHub PR review bot
+- Richer web UI for decision memory and usage
+- Cross-platform install scripts (macOS/Linux)
