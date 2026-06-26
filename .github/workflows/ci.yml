@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -38,3 +38,29 @@ jobs:
       - name: Run tests
         # Stdlib unittest — no extra test dependency required.
         run: python -m unittest discover -s tests -t .
+
+      - name: POSIX wrapper smoke (Unix only, no key, no model calls)
+        # Exercises scripts/vibe.sh + the end-to-end install (symlink) path on
+        # Ubuntu and macOS. Skipped on Windows (covered by the PowerShell wrappers).
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export VIBE_PYTHON="$(command -v python)"
+
+          # Direct launcher: no-model commands work without a key.
+          sh scripts/vibe.sh --version
+          sh scripts/vibe.sh presets
+          sh scripts/vibe.sh models
+
+          # VIBE_CALLER_CWD is honored: status reports no workspace in a temp dir.
+          tmp="$(mktemp -d)"
+          ( cd "$tmp" && sh "$GITHUB_WORKSPACE/scripts/vibe.sh" status ) | grep -q "No active council workspace"
+
+          # End-to-end install into a temp bin, then invoke the installed symlink.
+          bin="$(mktemp -d)"
+          sh scripts/install-vibe.sh --yes --bin-dir "$bin"
+          test -L "$bin/vibe"            # a real symlink was created
+          "$bin/vibe" --version
+          # Idempotent re-run is a no-op (already ours).
+          sh scripts/install-vibe.sh --yes --bin-dir "$bin" | grep -qi "already installed"

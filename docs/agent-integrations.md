@@ -29,6 +29,38 @@ scripts\install-vibe.ps1 --yes      # no prompt (good for automation)
 vibe-council repo, runs `python -m backend.cli`, then restores your directory and
 forwards the exit code. The API key is never printed.
 
+## Install on macOS / Linux
+
+From the vibe-council repo:
+
+```sh
+sh scripts/install-vibe.sh --dry-run        # preview, change nothing
+sh scripts/install-vibe.sh --yes            # symlink ~/.local/bin/vibe -> scripts/vibe.sh
+sh scripts/install-vibe.sh --yes --bin-dir ~/bin   # install elsewhere
+```
+
+- User-local only (`~/.local/bin` by default) — **no sudo**, idempotent, never edits
+  your shell rc files.
+- If `~/.local/bin` is not on `PATH`, it prints the exact `export PATH=...` line and
+  the concrete rc file for your shell.
+- A conflicting, non-vibe `vibe` is left alone unless you pass `--force`.
+
+`scripts/vibe.sh` is the POSIX twin of `vibe.ps1`: it resolves the repo from its own
+(possibly symlinked) location, runs `python -m backend.cli`, and forwards the exit
+code.
+
+## Wrapper environment variables (both platforms)
+
+| Variable | Meaning |
+|----------|---------|
+| `VIBE_CALLER_CWD`   | The directory you invoked `vibe` from. The wrappers set it (respecting an outer value) so project-local `.council/` artifacts are written in your project, not in the vibe-council repo. |
+| `VIBE_COUNCIL_HOME` | Overrides the vibe-council repo root. If set, it **wins** over the script-resolved location — useful when you have multiple clones. |
+| `VIBE_PYTHON`       | (Unix) Exact Python interpreter to use. Otherwise the launcher prefers the repo `.venv`, then an active `$VIRTUAL_ENV`, then `python3`/`python` — so a bare `python` pointing at the wrong environment is never silently used. |
+
+> **Security boundary:** `VIBE_PYTHON` and `VIBE_COUNCIL_HOME` select which code runs
+> (interpreter and repo). Do **not** run `vibe` in a context where these environment
+> variables are attacker-controlled.
+
 ## Use from any repo
 
 ```powershell
