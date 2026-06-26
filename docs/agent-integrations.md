@@ -54,9 +54,9 @@ workspace is created at `<project>/.council/`:
 | `.council/diffs/`    | Raw `git diff` captures (`.diff`). |
 | `.council/decisions/`| Decision records (JSON + Markdown) from `extract --save`. |
 | `.council/runs/`     | `mini` / `full` outputs saved with `--save`. |
-| `.council/stages/`   | Reserved for PR #4 (per-stage metadata). |
-| `.council/usage/`    | Reserved for PR #4 (token/cost usage). |
-| `.council/locks/`    | Reserved for PR #4 (loop guard / locks). |
+| `.council/stages/`   | Per-stage JSON snapshots written by `--save-stages` (stage1/2/3 outputs + metadata). |
+| `.council/usage/`    | Token/cost usage metadata written by `--save-stages`. |
+| `.council/locks/`    | Loop-guard lock files (auto-managed; stale locks from crashed runs self-clean after 10 min). |
 
 `config.json` stores: `project_name`, `project_path`, `created_at`, `last_used_at`,
 `default_preset` (balanced), `max_preset` (balanced), `require_allow_premium` (true).
