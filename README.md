@@ -85,7 +85,14 @@ python -m backend.cli review --preset cheap --prompt "Review this tiny plan."
 
 ---
 
-## Install the global `vibe` command (Windows)
+## Install the global `vibe` command
+
+The wrappers set `VIBE_CALLER_CWD` so project-local `.council/` artifacts land in
+**your** project, prefer the repo's `.venv` interpreter (so a bare `python` pointing
+at the wrong environment is never used), and never print the API key. Set
+`VIBE_COUNCIL_HOME` to override the repo location if it lives elsewhere.
+
+### Windows (PowerShell)
 
 ```powershell
 cd C:\Users\F\Desktop\llm-council
@@ -98,24 +105,70 @@ This:
 - adds `%USERPROFILE%\bin` to your **User PATH** if missing,
 - does **not** require admin.
 
-**Restart your terminal** after a PATH change. Set `VIBE_COUNCIL_HOME` to override
-the repo location if it lives elsewhere.
-
-Preview without changing anything:
+**Restart your terminal** after a PATH change. Preview with `--dry-run`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\install-vibe.ps1 --dry-run
 ```
 
-Use the wrapper directly without installing:
+Use the wrapper directly without installing (PowerShell or **CMD**):
 
 ```powershell
+# PowerShell
 powershell -ExecutionPolicy Bypass -File C:\Users\F\Desktop\llm-council\scripts\vibe.ps1 review --preset balanced --file plan.md
 ```
 
+```bat
+REM CMD (vibe.cmd forwards to vibe.ps1 from any directory)
+C:\Users\F\Desktop\llm-council\scripts\vibe.cmd review --preset balanced --file plan.md
+```
+
+### macOS / Linux (shell)
+
+```sh
+cd /path/to/llm-council
+sh scripts/install-vibe.sh --yes
+```
+
+This symlinks `~/.local/bin/vibe` → `scripts/vibe.sh`. It is **user-local** (no
+sudo), idempotent, and never edits your shell rc files. Preview with `--dry-run`;
+install elsewhere with `--bin-dir DIR`; replace a conflicting `vibe` with `--force`.
+
+If `~/.local/bin` is not on your `PATH`, the installer prints the exact line to add
+to your shell rc (e.g. `~/.zshrc` or `~/.bashrc`):
+
+```sh
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Use the wrapper directly without installing:
+
+```sh
+sh /path/to/llm-council/scripts/vibe.sh review --preset balanced --file plan.md
+```
+
+The launcher picks a Python interpreter in this order: `VIBE_PYTHON` (escape hatch)
+→ repo `.venv` → active virtualenv (`$VIRTUAL_ENV`) → `python3` → `python`. If the
+chosen interpreter is missing project deps, it prints a clear message instead of a
+raw `ModuleNotFoundError`.
+
+> **Note:** the launcher prefers the repo's own `.venv` **over an activated
+> virtualenv**. This is intentional — `vibe` is a tool you run *against* your
+> project, so it uses its own dependencies, not your project's. Override with
+> `VIBE_PYTHON` if you need a specific interpreter.
+
+### Verify the install
+
+```sh
+vibe --version
+vibe status
+vibe presets
+vibe models
+```
+
 > The examples below assume the global `vibe` command is installed. Otherwise,
-> replace `vibe` with `python -m backend.cli` (from the repo) or the
-> `scripts\vibe.ps1` wrapper.
+> replace `vibe` with `python -m backend.cli` (from the repo), or the
+> `scripts\vibe.ps1` (Windows) / `scripts/vibe.sh` (macOS/Linux) wrapper.
 
 ### Using the CLI directly (no global command)
 
@@ -445,4 +498,4 @@ them.
 - MCP server
 - GitHub PR review bot
 - Richer web UI for decision memory and usage
-- Cross-platform install scripts (macOS/Linux)
+- Packaged install (`pipx`/`uvx`) and a unified launcher entry point
