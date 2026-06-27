@@ -29,6 +29,11 @@ vibe extract --preset cheap   --file examples/plans/small-doc-fix.md --save --us
 `extract` is single-model (no council), so it's the cheapest way to see the tool
 work. `review` runs the multi-model council.
 
+> These example files are **safe to read without running any real model calls** — the
+> plans are just markdown and the walkthroughs show representative (illustrative)
+> output. You only spend credits if you actually run the `vibe` commands. To turn this
+> loop into a recorded terminal demo safely, see [`../docs/demo.md`](../docs/demo.md).
+
 ## What NOT to commit
 
 Running these creates local artifacts under `.council/` (and a registry under

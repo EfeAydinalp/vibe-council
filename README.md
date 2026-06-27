@@ -238,6 +238,14 @@ when available. For a fuller walkthrough with expected output and artifact paths
 > Tip: the cheapest way to see the tool work is `vibe extract` — it's a single model
 > with no council. Use `--preset cheap` for smoke tests and retries.
 
+### Demo
+
+Want to **record** this loop as a terminal demo (asciinema/GIF) for the project page?
+See [`docs/demo.md`](docs/demo.md) for the recommended asciinema-first approach, the
+exact safe demo script, and a redaction checklist so you don't leak keys, `.env`,
+local paths, or raw `.council/` outputs. **No recorded asset ships yet** — `docs/demo.md`
+is the guide; the recording itself is a follow-up.
+
 ---
 
 ## Core commands
@@ -582,10 +590,17 @@ them.
 `--version`, tests + CI (Ubuntu/macOS/Windows), privacy/local-first docs, decision
 memory, and cross-platform install scripts (Windows + macOS/Linux).
 
+**Release status:** pre-release — the repo reports `0.1.0-dev`. Release prep (this
+PR) adds the demo guide, the [release checklist](docs/release-checklist.md), and a
+[`CHANGELOG.md`](CHANGELOG.md) draft. The `0.1.0` tag is cut by a maintainer after
+release prep merges.
+
 **Near-term (toward a v0.1.0 release):**
 
-- Examples + workflow docs polish *(this PR)*
-- A short demo GIF / asciinema of the review → diff → extract loop
+- Examples + workflow docs polish *(shipped)*
+- Demo + release-prep docs: [`docs/demo.md`](docs/demo.md),
+  [`docs/release-checklist.md`](docs/release-checklist.md), [`CHANGELOG.md`](CHANGELOG.md) *(this PR)*
+- Record the demo GIF / asciinema of the review → diff → extract loop *(follow-up)*
 - Cut a tagged **v0.1.0** release
 
 **Later (explicitly not in v0.1.0):**
