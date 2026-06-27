@@ -11,6 +11,7 @@ they explain what was decided and why.
 | [`examples-workflow-polish.md`](examples-workflow-polish.md) | README, `examples/`, and agent-workflow docs polish (toward v0.1.0). |
 | [`demo-and-release-prep.md`](demo-and-release-prep.md) | Demo recording guide, v0.1.0 release checklist, and changelog draft. |
 | [`terminal-demo-asset.md`](terminal-demo-asset.md) | Sanitized terminal-transcript demo artifact (asciinema fallback). |
+| [`v0.1.0-release.md`](v0.1.0-release.md) | First public release: version bump, changelog finalization, release notes. |
 
 ## Plans vs. raw council output
 

@@ -591,20 +591,19 @@ them.
 
 **Recently shipped:** first-run API-key guard, `vibe models` / `vibe presets` /
 `--version`, tests + CI (Ubuntu/macOS/Windows), privacy/local-first docs, decision
-memory, and cross-platform install scripts (Windows + macOS/Linux).
+memory, cross-platform install scripts (Windows + macOS/Linux), a demo guide +
+[sanitized transcript](docs/demo-transcript.md), and the **v0.1.0** release.
 
-**Release status:** pre-release — the repo reports `0.1.0-dev`. Release prep (this
-PR) adds the demo guide, the [release checklist](docs/release-checklist.md), and a
-[`CHANGELOG.md`](CHANGELOG.md) draft. The `0.1.0` tag is cut by a maintainer after
-release prep merges.
+**Release status:** **v0.1.0 — first public release.** The repo reports `0.1.0`; the
+`v0.1.0` git tag and GitHub Release are cut by a maintainer right after the release PR
+merges. See [`CHANGELOG.md`](CHANGELOG.md) for the full notes and
+[`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an early
+`0.x` release — expect breaking changes between minor versions, and see the honest
+limitations below.
 
-**Near-term (toward a v0.1.0 release):**
+**Near-term (after v0.1.0):**
 
-- Examples + workflow docs polish *(shipped)*
-- Demo + release-prep docs: [`docs/demo.md`](docs/demo.md),
-  [`docs/release-checklist.md`](docs/release-checklist.md), [`CHANGELOG.md`](CHANGELOG.md) *(this PR)*
-- Record the demo GIF / asciinema of the review → diff → extract loop *(follow-up)*
-- Cut a tagged **v0.1.0** release
+- Record the real demo GIF / asciinema of the review → diff → extract loop *(follow-up)*
 
 **Later (explicitly not in v0.1.0):**
 

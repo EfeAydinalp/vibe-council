@@ -8,6 +8,11 @@ tiered so you can tell what blocks a release from what's nice to confirm:
 - **⚪ Contextual** — do it if you have the OS/tooling; not every maintainer has all
   three platforms.
 
+> **This is a reusable runbook, not a run-log.** The checkboxes track a single release
+> *run*; don't record per-release status (e.g. "in progress", who's tagging) in here, or
+> it goes stale for the next version. Track that in the release PR, the dated
+> `CHANGELOG.md` section, and `docs/releases/<version>.md`.
+
 > **What "safe v0.1.0" means here:** the main release risks for a local-first,
 > bring-your-own-key dev tool are (1) leaking secrets or local paths into the repo or
 > a published asset, and (2) shipping broken install / inconsistent version state.

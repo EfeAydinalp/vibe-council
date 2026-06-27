@@ -5,18 +5,16 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** pre-release. The repo currently reports `0.1.0-dev`
-> (`backend/__init__.py`); the `[0.1.0]` section below is a **draft** finalized when the
-> release is cut. See [`docs/release-checklist.md`](docs/release-checklist.md).
+> **Status:** `0.1.0` is the first public release. The repo reports `0.1.0`
+> (`backend/__init__.py`). The `v0.1.0` git tag + GitHub Release are cut by a maintainer
+> right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
 
-- Demo recording guide, release checklist, and this changelog (release-prep docs).
+_Nothing yet. Post-0.1.0 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
 
-_Nothing else yet. Post-0.1.0 changes will be listed here as normal Keep-a-Changelog
-deltas (Added / Changed / Fixed / Removed)._
-
-## [0.1.0] - UNRELEASED (draft)
+## [0.1.0] - 2026-06-28
 
 First public release. Because this is the initial cut, the notes below are a
 **feature inventory** of what the fork adds on top of upstream
@@ -55,6 +53,9 @@ query several models, peer-review/rank, chairman synthesis), not a since-last-ta
 - **Examples & docs** — `examples/` (sample plans + workflow walkthroughs, readable
   without spending credits), [`docs/agent-integrations.md`](docs/agent-integrations.md),
   and committed plan docs under `docs/plans/`.
+- **Demo guide & transcript** — [`docs/demo.md`](docs/demo.md) (safe terminal-recording
+  guide) plus a committed, sanitized text walkthrough at
+  [`docs/demo-transcript.md`](docs/demo-transcript.md).
 - **Privacy / local-first docs** — explicit explanation that artifacts stay local while
   your prompts/files/diffs **are** sent to OpenRouter (not local inference), plus
   bring-your-own-key / cost transparency.
@@ -66,12 +67,13 @@ query several models, peer-review/rank, chairman synthesis), not a since-last-ta
 - **OpenRouter-only** — bring-your-own-key; no provider abstraction yet.
 - **No Ollama / local inference** — prompts are sent to remote providers.
 - **No MCP server** yet.
-- **No recorded demo asset yet** — [`docs/demo.md`](docs/demo.md) is the recording
-  guide; an actual cast/GIF is an approved follow-up.
+- **No real demo recording yet** — a sanitized text transcript
+  ([`docs/demo-transcript.md`](docs/demo-transcript.md)) ships; an actual asciinema
+  cast / GIF remains an approved follow-up.
 - **Decision search is plain string matching** — no embeddings or SQLite.
 
-<!-- Link targets below are activated when the v0.1.0 tag is cut; until then they
-     point at the repo / current tree, not a tag that does not exist yet. -->
-[Unreleased]: https://github.com/EfeAydinalp/vibe-council/commits/master
-[0.1.0]: https://github.com/EfeAydinalp/vibe-council
+<!-- The [0.1.0] tag link goes live once the maintainer pushes the v0.1.0 tag right
+     after this release PR merges (a brief 404 between merge and tag is expected). -->
+[Unreleased]: https://github.com/EfeAydinalp/vibe-council/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/EfeAydinalp/vibe-council/releases/tag/v0.1.0
 
