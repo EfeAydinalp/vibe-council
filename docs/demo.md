@@ -6,6 +6,13 @@ real API credits and risks leaking secrets/paths, so it is a separately-approved
 follow-up. When that recording happens, follow this guide so the published asset is
 **safe** (no keys, no `.env`, no local usernames/paths, no raw `.council/` outputs).
 
+> **Current best-available artifact:** a **sanitized text transcript** of the workflow
+> is committed at [`demo-transcript.md`](demo-transcript.md) (captured on a Windows dev
+> box where asciinema isn't available). It's honestly labeled as a transcript, **not** a
+> recording. The real asciinema cast / GIF described below remains the approved
+> follow-up — produce it on **Linux / WSL / a container / Codespaces**, where asciinema
+> runs.
+
 > **TL;DR:** Record an [asciinema](https://asciinema.org/) cast (text, tiny,
 > copy-pasteable) from a **neutral throwaway directory** with a **generic prompt**,
 > **history disabled**, and a **dedicated low-quota API key**. Rehearse on
