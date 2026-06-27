@@ -240,11 +240,14 @@ when available. For a fuller walkthrough with expected output and artifact paths
 
 ### Demo
 
-Want to **record** this loop as a terminal demo (asciinema/GIF) for the project page?
-See [`docs/demo.md`](docs/demo.md) for the recommended asciinema-first approach, the
-exact safe demo script, and a redaction checklist so you don't leak keys, `.env`,
-local paths, or raw `.council/` outputs. **No recorded asset ships yet** — `docs/demo.md`
-is the guide; the recording itself is a follow-up.
+See [`docs/demo-transcript.md`](docs/demo-transcript.md) for a **sanitized text
+walkthrough** of the full loop (`version → status → presets → models → review →
+extract`) with real, redacted command output. It's a hand-sanitized transcript, **not**
+a recording — a real asciinema cast / GIF is still a follow-up.
+
+Want to **record** the loop yourself? See [`docs/demo.md`](docs/demo.md) for the
+recommended asciinema-first approach, the exact safe demo script, and a redaction
+checklist so you don't leak keys, `.env`, local paths, or raw `.council/` outputs.
 
 ---
 
