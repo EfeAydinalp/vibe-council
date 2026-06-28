@@ -1,7 +1,7 @@
 [project]
-name = "llm-council"
+name = "vibe-council"
 version = "0.1.0"
-description = "Your LLM Council"
+description = "Local-first AI council workflow tool with CLI, decision memory, guardrails, and provider roadmap."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
