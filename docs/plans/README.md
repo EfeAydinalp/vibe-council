@@ -13,6 +13,7 @@ they explain what was decided and why.
 | [`terminal-demo-asset.md`](terminal-demo-asset.md) | Sanitized terminal-transcript demo artifact (asciinema fallback). |
 | [`v0.1.0-release.md`](v0.1.0-release.md) | First public release: version bump, changelog finalization, release notes. |
 | [`post-v0.1-roadmap.md`](post-v0.1-roadmap.md) | Post-v0.1 strategic roadmap: provider abstraction, Ollama, MCP, sequencing, with council guidance. |
+| [`hosted-service-strategy.md`](hosted-service-strategy.md) | Strategic review of the hosted/credit-wallet product idea; decision to keep v0.2 local-first and defer hosted SaaS. |
 
 ## Plans vs. raw council output
 
