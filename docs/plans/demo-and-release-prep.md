@@ -65,7 +65,7 @@ A terminal recording captures **everything on screen**, so the guide must call o
   history* might. Clear the screen before recording.
 - **`.env`** — don't open, print, or `ls -la` it on camera.
 - **Local usernames / paths** — `vibe status` prints the absolute project path
-  (e.g. `C:\Users\F\...`). Record from a **neutral path** (e.g. `~/demo/vibe-council`
+  (e.g. `C:\Users\<you>\...`). Record from a **neutral path** (e.g. `~/demo/vibe-council`
   or `C:\demo\...`) or redact in post. Set a generic shell prompt (no `user@host`).
 - **`.council/` raw outputs** — fine to *show that artifacts were written* (the
   stderr "saved to ..." lines), but don't open and scroll a full raw review/decision

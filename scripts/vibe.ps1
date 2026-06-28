@@ -4,12 +4,18 @@
 # caller's working directory (exposed to the CLI via VIBE_CALLER_CWD) so that
 # project-local .council/ artifacts are written in the caller's project.
 #
-# Repo location: $env:VIBE_COUNCIL_HOME if set, else the default below.
+# Repo location: $env:VIBE_COUNCIL_HOME if set, else derived from this script's
+# own location (scripts\vibe.ps1 lives at <repo>\scripts\, so the repo is its parent).
 # Never prints the API key.
 
 $ErrorActionPreference = 'Stop'
 
-$repo = if ($env:VIBE_COUNCIL_HOME) { $env:VIBE_COUNCIL_HOME } else { 'C:\Users\F\Desktop\llm-council' }
+$repo = if ($env:VIBE_COUNCIL_HOME) {
+    $env:VIBE_COUNCIL_HOME
+} else {
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    (Resolve-Path (Join-Path $scriptDir '..')).Path
+}
 
 if (-not (Test-Path $repo)) {
     Write-Error "vibe-council repo not found: $repo. Set VIBE_COUNCIL_HOME."

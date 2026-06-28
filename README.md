@@ -122,7 +122,7 @@ at the wrong environment is never used), and never print the API key. Set
 ### Windows (PowerShell)
 
 ```powershell
-cd C:\Users\F\Desktop\llm-council
+cd C:\path\to\llm-council
 powershell -ExecutionPolicy Bypass -File scripts\install-vibe.ps1 --yes
 ```
 
@@ -142,12 +142,12 @@ Use the wrapper directly without installing (PowerShell or **CMD**):
 
 ```powershell
 # PowerShell
-powershell -ExecutionPolicy Bypass -File C:\Users\F\Desktop\llm-council\scripts\vibe.ps1 review --preset balanced --file plan.md
+powershell -ExecutionPolicy Bypass -File C:\path\to\llm-council\scripts\vibe.ps1 review --preset balanced --file plan.md
 ```
 
 ```bat
 REM CMD (vibe.cmd forwards to vibe.ps1 from any directory)
-C:\Users\F\Desktop\llm-council\scripts\vibe.cmd review --preset balanced --file plan.md
+C:\path\to\llm-council\scripts\vibe.cmd review --preset balanced --file plan.md
 ```
 
 ### macOS / Linux (shell)

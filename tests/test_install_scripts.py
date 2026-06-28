@@ -51,7 +51,7 @@ class TestLauncherEnvHandling(unittest.TestCase):
         self.assertIn("backend.cli", self.text)
 
     def test_no_hardcoded_windows_path(self):
-        # Guards against copy-paste from vibe.ps1 (which has a C:\ fallback).
+        # Guards against a Windows-style absolute path leaking into the POSIX launcher.
         self.assertNotIn("C:\\", self.text)
         self.assertNotIn("C:/", self.text)
 
