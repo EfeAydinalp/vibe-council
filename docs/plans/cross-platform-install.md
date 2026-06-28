@@ -11,7 +11,8 @@ CI coverage.
 The repo already ships a Windows-only path:
 
 - **`scripts/vibe.ps1`** — the launcher. It resolves the repo root from
-  `VIBE_COUNCIL_HOME` (falling back to a hardcoded `C:\Users\F\Desktop\llm-council`),
+  `VIBE_COUNCIL_HOME` (falling back to deriving it from the script's own location, i.e.
+  the parent of `scripts\`),
   records the caller's directory in `VIBE_CALLER_CWD`, prefers the repo's
   `.venv\Scripts\python.exe` (falling back to `python` on PATH), `Push-Location`s
   into the repo, runs `python -m backend.cli @args`, restores the directory, and
