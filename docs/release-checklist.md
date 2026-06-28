@@ -97,6 +97,10 @@ tiered so you can tell what blocks a release from what's nice to confirm:
 - [ ] 🟡 State the **known limitations** in the notes: OpenRouter-only (BYO key), no
       Ollama / provider abstraction yet, no MCP yet, no recorded demo asset yet,
       decision search is plain string matching.
+- [ ] 🟡 Verify release-note links render correctly **from the GitHub Release page**
+      (not just the in-repo file): relative links resolve under `/releases/` and break
+      (e.g. README "not found"), so prefer **tag-pinned absolute URLs** for links inside
+      release bodies — e.g. `https://github.com/<owner>/<repo>/blob/<tag>/README.md`.
 - [ ] 🟡 Mark the release as **latest**.
 
 ## 9. Post-release verification
