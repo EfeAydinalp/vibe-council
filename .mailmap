@@ -1,0 +1,13 @@
+# .mailmap — normalize author/committer identity display in git history.
+#
+# This does NOT rewrite history. It only changes how names/emails are displayed
+# by git tools (git shortlog, git log, GitHub contributor graph). The underlying
+# commits are untouched.
+#
+# The repo owner committed under two identities; both are unified below under the
+# canonical GitHub-linked identity. Upstream attribution (karpathy) is left as-is
+# and intentionally NOT remapped.
+#
+# Format: Canonical Name <canonical-email> <other-email-to-map>
+
+Efe Aydinalp <77501077+EfeAydinalp@users.noreply.github.com> <aydinalpefe@gmail.com>
