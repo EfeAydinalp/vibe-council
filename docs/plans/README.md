@@ -12,6 +12,7 @@ they explain what was decided and why.
 | [`demo-and-release-prep.md`](demo-and-release-prep.md) | Demo recording guide, v0.1.0 release checklist, and changelog draft. |
 | [`terminal-demo-asset.md`](terminal-demo-asset.md) | Sanitized terminal-transcript demo artifact (asciinema fallback). |
 | [`v0.1.0-release.md`](v0.1.0-release.md) | First public release: version bump, changelog finalization, release notes. |
+| [`post-v0.1-roadmap.md`](post-v0.1-roadmap.md) | Post-v0.1 strategic roadmap: provider abstraction, Ollama, MCP, sequencing, with council guidance. |
 
 ## Plans vs. raw council output
 
