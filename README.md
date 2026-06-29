@@ -122,7 +122,7 @@ at the wrong environment is never used), and never print the API key. Set
 ### Windows (PowerShell)
 
 ```powershell
-cd C:\path\to\llm-council
+cd C:\path\to\vibe-council
 powershell -ExecutionPolicy Bypass -File scripts\install-vibe.ps1 --yes
 ```
 
@@ -142,18 +142,18 @@ Use the wrapper directly without installing (PowerShell or **CMD**):
 
 ```powershell
 # PowerShell
-powershell -ExecutionPolicy Bypass -File C:\path\to\llm-council\scripts\vibe.ps1 review --preset balanced --file plan.md
+powershell -ExecutionPolicy Bypass -File C:\path\to\vibe-council\scripts\vibe.ps1 review --preset balanced --file plan.md
 ```
 
 ```bat
 REM CMD (vibe.cmd forwards to vibe.ps1 from any directory)
-C:\path\to\llm-council\scripts\vibe.cmd review --preset balanced --file plan.md
+C:\path\to\vibe-council\scripts\vibe.cmd review --preset balanced --file plan.md
 ```
 
 ### macOS / Linux (shell)
 
 ```sh
-cd /path/to/llm-council
+cd /path/to/vibe-council
 sh scripts/install-vibe.sh --yes
 ```
 
@@ -171,7 +171,7 @@ export PATH="$HOME/.local/bin:$PATH"
 Use the wrapper directly without installing:
 
 ```sh
-sh /path/to/llm-council/scripts/vibe.sh review --preset balanced --file plan.md
+sh /path/to/vibe-council/scripts/vibe.sh review --preset balanced --file plan.md
 ```
 
 The launcher picks a Python interpreter in this order: `VIBE_PYTHON` (escape hatch)
