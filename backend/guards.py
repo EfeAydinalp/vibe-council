@@ -98,34 +98,49 @@ def aggregate_usage(items: List[Optional[Dict[str, Any]]]) -> Dict[str, Any]:
     return out
 
 
-def cost_note(usage_summary: Dict[str, Any]) -> Optional[str]:
-    """Informational cost line for --usage. Only states the provider-reported
-    cost (never fabricated). Cap enforcement lives in enforce_cost_cap()."""
+def cost_note(usage_summary: Dict[str, Any],
+              provider_name: str = "openrouter") -> Optional[str]:
+    """Informational cost line for --usage, provider-aware.
+
+    Only states a provider-reported cost (never fabricated). For providers that
+    do not return OpenRouter-style billing data (e.g. local Ollama), say so
+    explicitly rather than implying $0.00. Cap enforcement lives in
+    enforce_cost_cap()."""
     reported = usage_summary.get("reported_cost")
     if reported is not None:
-        return f"Provider-reported cost: ${reported} (as reported by OpenRouter)."
-    return None
+        if provider_name == "openrouter":
+            return f"Provider-reported cost: ${reported} (as reported by OpenRouter)."
+        return (f"Provider-reported cost: ${reported} "
+                f"(as reported by provider '{provider_name}').")
+    # No cost reported. Keep OpenRouter quiet (unchanged), but be explicit for
+    # local/other providers so a missing cost isn't read as $0.00.
+    if provider_name == "openrouter":
+        return None
+    return (f"Cost: not reported by provider '{provider_name}' "
+            f"(local providers do not return OpenRouter billing data).")
 
 
 def enforce_cost_cap(usage_summary: Dict[str, Any],
-                     max_cost: Optional[float]) -> Tuple[bool, Optional[float], Optional[str]]:
+                     max_cost: Optional[float],
+                     provider_name: str = "openrouter") -> Tuple[bool, Optional[float], Optional[str]]:
     """Post-run, best-effort cost-cap enforcement. Returns (exceeded, reported, message).
 
     - max_cost is None  -> (False, reported, None): never blocks on cost.
-    - cost not reported  -> (False, None, honest "could not enforce" message).
+    - cost not reported  -> (False, None, honest, provider-aware "could not enforce" msg).
     - reported > max_cost -> (True, reported, exceeded message).
     - reported <= max_cost -> (False, reported, within-cap message).
 
-    Never fabricates a dollar figure. Pre-run blocking is intentionally NOT done
-    here (use --max-tokens for a hard pre-run guard).
+    Never fabricates a dollar figure, and never implies the cap was enforced when
+    the provider reported no cost. Pre-run blocking is intentionally NOT done here
+    (use --max-tokens for a hard pre-run guard).
     """
     if max_cost is None:
         return False, usage_summary.get("reported_cost"), None
     reported = usage_summary.get("reported_cost")
     if reported is None:
         return (False, None,
-                f"Cost not reported by the provider; --max-cost ${max_cost} could not be "
-                f"enforced exactly (no cost fabricated).")
+                f"--max-cost ${max_cost} could not be enforced because provider "
+                f"'{provider_name}' did not report cost (no cost fabricated).")
     if reported > max_cost:
         return (True, reported,
                 f"Provider-reported cost ${reported} exceeds --max-cost ${max_cost}.")

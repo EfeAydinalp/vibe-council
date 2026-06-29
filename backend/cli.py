@@ -384,18 +384,29 @@ def _usage_items(captured: Dict[str, Any]) -> List[Optional[Dict[str, Any]]]:
     return items
 
 
+def _selected_provider_name() -> str:
+    """The active provider name for user-facing usage/cost messages. Defaults to
+    'openrouter' if selection can't be resolved (it has already been validated by
+    _require_supported_provider before any run)."""
+    try:
+        return providers.resolve_provider_name()
+    except Exception:
+        return "openrouter"
+
+
 def _print_usage(captured: Dict[str, Any], est_input: int) -> None:
-    """Print a usage summary to stderr (keeps stdout clean). Honest: estimates
-    are labeled; provider cost only shown if reported."""
+    """Print a usage summary to stderr (keeps stdout clean). Honest and provider-
+    aware: estimates are labeled; provider cost only shown if actually reported."""
     summary = guards.aggregate_usage(_usage_items(captured))
+    provider_name = _selected_provider_name()
     _err(f"[usage] Estimated input tokens: ~{est_input} (rough estimate)")
     if summary["has_tokens"]:
         t = summary["totals"]
         _err(f"[usage] Reported tokens: prompt={t['prompt_tokens']} "
              f"completion={t['completion_tokens']} total={t['total_tokens']}")
     else:
-        _err("[usage] Reported tokens: not provided by OpenRouter for this run")
-    note = guards.cost_note(summary)
+        _err(f"[usage] Reported tokens: not provided by provider '{provider_name}' for this run")
+    note = guards.cost_note(summary, provider_name)
     if note:
         _err(f"[usage] {note}")
 
@@ -408,7 +419,8 @@ def _finish_cost(args, captured: Dict[str, Any]) -> int:
     if max_cost is None:
         return EXIT_OK
     summary = guards.aggregate_usage(_usage_items(captured))
-    exceeded, _reported, msg = guards.enforce_cost_cap(summary, max_cost)
+    exceeded, _reported, msg = guards.enforce_cost_cap(
+        summary, max_cost, _selected_provider_name())
     if msg:
         _err(f"[cost] {msg}")
     if exceeded:
