@@ -94,3 +94,6 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
    [track-based roadmap](../plans/track-based-roadmap.md).
 5. **Project memory (dogfood):** public-safe project-memory seed at
    [`docs/context/project/README.md`](project/README.md) and [`STATUS.md`](project/STATUS.md).
+6. **Operator loop:** an approval/status inbox is planned as a minimal local-first layer — not a
+   dashboard or custom mobile transport. See
+   [operator control loop spec](../plans/operator-control-loop-and-approval-inbox.md).
