@@ -21,6 +21,7 @@ from backend import providers
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXIT_USAGE = 2
+EXIT_TOKEN = 4
 EXIT_NOKEY = 7
 
 
@@ -55,14 +56,14 @@ class TestResolveProviderName(unittest.TestCase):
             self.assertEqual(providers.resolve_provider_name("openrouter"), "openrouter")
 
     def test_unsupported_values_raise_clear_error(self):
-        for bad in ("ollama", "openai", "anthropic", "local", "garbage"):
+        # "ollama" is now supported (PR 3); these remain unsupported.
+        for bad in ("openai", "anthropic", "local", "garbage"):
             with self.subTest(bad=bad):
                 with self.assertRaises(providers.UnsupportedProviderError) as ctx:
                     providers.resolve_provider_name(bad)
                 msg = str(ctx.exception)
                 self.assertIn(f"Unsupported provider '{bad}'", msg)
-                self.assertIn("Supported providers: openrouter", msg)
-                self.assertIn("Ollama/local support is planned", msg)
+                self.assertIn("Supported providers: openrouter, ollama", msg)
 
 
 class TestGetProvider(unittest.TestCase):
@@ -76,22 +77,33 @@ class TestGetProvider(unittest.TestCase):
         with mock.patch.dict(os.environ, {"VIBE_PROVIDER": "openrouter"}):
             self.assertIsInstance(providers.get_provider(), providers.OpenRouterProvider)
 
+    def test_env_ollama_selects_ollama(self):
+        with mock.patch.dict(os.environ, {"VIBE_PROVIDER": "ollama"}):
+            prov = providers.get_provider()
+            self.assertIsInstance(prov, providers.OllamaProvider)
+            self.assertEqual(prov.name, "ollama")
+            self.assertFalse(prov.requires_api_key())
+
+    def test_openrouter_still_requires_api_key(self):
+        with _env_without_provider():
+            self.assertTrue(providers.get_provider().requires_api_key())
+
     def test_get_provider_caches_stable_instance(self):
         with _env_without_provider():
             self.assertIs(providers.get_provider(), providers.get_provider())
 
     def test_unsupported_provider_raises(self):
-        with mock.patch.dict(os.environ, {"VIBE_PROVIDER": "ollama"}):
+        with mock.patch.dict(os.environ, {"VIBE_PROVIDER": "openai"}):
             with self.assertRaises(providers.UnsupportedProviderError):
                 providers.get_provider()
 
 
-class TestNoOllamaYet(unittest.TestCase):
-    def test_only_openrouter_supported(self):
-        self.assertEqual(providers.SUPPORTED_PROVIDERS, ("openrouter",))
+class TestProvidersRegistered(unittest.TestCase):
+    def test_openrouter_and_ollama_supported(self):
+        self.assertEqual(providers.SUPPORTED_PROVIDERS, ("openrouter", "ollama"))
 
-    def test_no_ollama_provider_class(self):
-        self.assertFalse(hasattr(providers, "OllamaProvider"))
+    def test_ollama_provider_class_exists(self):
+        self.assertTrue(hasattr(providers, "OllamaProvider"))
 
 
 def _run_cli(args, *, key="sk-test-fake", provider=None):
@@ -112,12 +124,13 @@ def _run_cli(args, *, key="sk-test-fake", provider=None):
 class TestCliProviderGuard(unittest.TestCase):
     def test_unsupported_provider_fails_clearly_before_key_guard(self):
         # Even with a fake key present, an unsupported provider fails with EXIT_USAGE
-        # and a clear message — it does not reach the key guard.
+        # and a clear message — it does not reach the key guard. ("openai" is not a
+        # supported provider; "ollama" now is.)
         r = _run_cli(["mini", "--no-project", "--yes", "--prompt", "x"],
-                     key="sk-test-fake", provider="ollama")
+                     key="sk-test-fake", provider="openai")
         self.assertEqual(r.returncode, EXIT_USAGE)
-        self.assertIn("Unsupported provider 'ollama'", r.stderr)
-        self.assertIn("Ollama/local support is planned", r.stderr)
+        self.assertIn("Unsupported provider 'openai'", r.stderr)
+        self.assertIn("Supported providers: openrouter, ollama", r.stderr)
         self.assertNotIn("Traceback", r.stderr)
 
     def test_default_openrouter_still_hits_key_guard(self):
@@ -126,6 +139,16 @@ class TestCliProviderGuard(unittest.TestCase):
                      key=None, provider=None)
         self.assertEqual(r.returncode, EXIT_NOKEY)
         self.assertIn("OPENROUTER_API_KEY", r.stderr)
+
+    def test_ollama_skips_openrouter_key_guard(self):
+        # With VIBE_PROVIDER=ollama and NO OpenRouter key, the key guard is skipped.
+        # The token guard (--max-tokens 1) then blocks BEFORE any provider call, so
+        # no live Ollama request is made. Proves the key guard didn't fire (would be 7).
+        r = _run_cli(["review", "--preset", "cheap", "--no-project", "--max-tokens", "1",
+                      "--yes", "--prompt", "Review this tiny plan."],
+                     key=None, provider="ollama")
+        self.assertEqual(r.returncode, EXIT_TOKEN)
+        self.assertNotIn("OPENROUTER_API_KEY is not set", r.stderr)
 
 
 if __name__ == "__main__":
