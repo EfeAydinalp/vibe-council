@@ -14,13 +14,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #35 merged** — track-based roadmap.
 - **PR #36 merged** — project-memory folder convention (this `docs/context/project/` seed).
 - **PR #37 merged** — operator control loop / approval inbox spec.
-- **Council roadmap review done** — verdict: proceed to v0.3; first blocker is a real redaction guard.
-- **Current focus:** redaction guard — `vibe lint --redaction` + redaction policy (v0.3 prerequisite).
+- **PR #38 merged** — redaction guard (`vibe lint --redaction` + redaction policy).
+- **Council roadmap review done** — verdict: proceed to v0.3; blockers: redaction guard (done) + license/provenance.
+- **Current focus:** license/provenance "Question 0" checklist (commercial gate).
 
 ## Next actions
 
-1. Land the redaction guard (`vibe lint --redaction` + policy).
-2. Then v0.3 decision-memory tooling (`decisions new/lint/promote`).
+1. Finish the license/provenance checklist (upstream evidence → derived-file inventory → deps).
+2. Then v0.3 decision-memory tooling (`decisions new/lint/promote`) + extract/promote planning.
 3. Then the context-pack builder MVP (deterministic, token-budgeted).
 
 ## Blockers / open risks

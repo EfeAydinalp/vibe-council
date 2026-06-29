@@ -31,5 +31,6 @@ seed** for the linked decision-memory direction (see
 - [Project-memory folder convention](./2026-06-29-project-memory-folder-convention.md) — accepted
 - [Operator control loop / approval inbox](./2026-06-29-operator-control-loop.md) — accepted
 - [Redaction guard (`vibe lint --redaction`)](./2026-06-30-redaction-guard.md) — accepted
+- [License/provenance is Question 0 (commercial gate)](./2026-06-30-license-provenance-question-zero.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.
