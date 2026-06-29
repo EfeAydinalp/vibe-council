@@ -62,7 +62,8 @@ original author. Please credit the original project for the council concept.
 - **CLI bridge** — `python -m backend.cli ...`
 - **Global command** — `vibe review --preset balanced --file plan.md`
 - **Project workspace** — a local `.council/` folder per project
-- **Decision memory** — `vibe decisions list` / `search` / `context`
+- **Decision memory** — curated `vibe decisions list` / `show` / `new` / `lint` (over
+  `docs/decisions/`), plus local `search` / `context`
 - **Guardrails** — premium requires `--allow-premium`, plus `--max-tokens`,
   `--max-cost`, a loop guard, `--usage`, and `--save-stages`
 - **Claude Code workflow** — plan → review → implement → diff review → extract decision
@@ -350,8 +351,28 @@ When you run `vibe` inside a target project, it creates a local workspace:
 
 ## Decision memory
 
+Two layers: **curated, committed** records under `docs/decisions/*.md` (the source of
+truth), and a **gitignored local** auto-extract index under `.council/decisions/`.
+
+**Curated `docs/decisions/` records:**
+
 ```powershell
-vibe decisions list
+vibe decisions list                       # list curated records (date, status, id, title, tags)
+vibe decisions list --tag strategy        # filter by tag or --status
+vibe decisions show 2026-06-30-redaction-guard   # print a record (by stem or path)
+vibe decisions new --title "My decision"  # print a new record template (stdout)
+vibe decisions lint                       # lint records (frontmatter, headings, links, redaction)
+```
+
+- `vibe decisions new` prints a draft template (frontmatter + stable headings); it
+  **never auto-commits or auto-promotes**. Pass `--out PATH` to write it somewhere.
+- `vibe decisions lint` reuses the redaction guard ([`docs/redaction-policy.md`](docs/redaction-policy.md))
+  and exits non-zero on serious errors. `show` is path-traversal guarded to
+  `docs/decisions/` only.
+
+**Local auto-extract index (`.council/decisions/`, gitignored):**
+
+```powershell
 vibe decisions search "sqlite"
 vibe decisions context "agent workflow"
 ```
@@ -359,10 +380,8 @@ vibe decisions context "agent workflow"
 - `vibe extract --save` writes a decision as **JSON + Markdown** and appends an
   entry to `.council/decisions/index.jsonl`.
 - `search` is **simple local string matching** for now — **no embeddings, no
-  SQLite yet**.
-- `context` returns a compact block of the most relevant prior decisions — handy
-  to read (or paste) **before asking Claude Code to plan**.
-- These commands call **no model** and need **no API key**.
+  SQLite yet**; `context` returns a compact block to read before planning.
+- All of these commands call **no model** and need **no API key**.
 
 ---
 
