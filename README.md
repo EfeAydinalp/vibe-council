@@ -255,6 +255,7 @@ checklist so you don't leak keys, `.env`, local paths, or raw `.council/` output
 
 ```powershell
 vibe status
+vibe doctor
 vibe review --preset balanced --file plan.md
 vibe diff --preset balanced
 vibe extract --preset balanced --file plan.md --save
@@ -269,6 +270,27 @@ vibe guide claude
 Output (the review/answer/decision) goes to **stdout**; progress, saved-file
 paths, usage, and guard messages go to **stderr**, so stdout stays clean for
 piping. The API key is never printed.
+
+### `vibe doctor` (provider diagnostics)
+
+`vibe doctor` checks your current **provider** setup — it runs **no inference**
+and spends **no tokens**. It reports the selected provider (`VIBE_PROVIDER`,
+default `openrouter`) and:
+
+- **OpenRouter:** whether `OPENROUTER_API_KEY` is set (not the placeholder; the
+  value is never printed) and, when online, whether the **model-list** endpoint is
+  reachable (not chat/completions).
+- **Ollama:** that `OLLAMA_HOST` is a valid loopback URL, whether the local server
+  is reachable (`GET /api/tags`), and which local models are installed.
+
+```powershell
+vibe doctor            # config + reachability checks
+vibe doctor --offline  # config checks only (no network)
+```
+
+Exit code: `0` all checks pass, `1` a check failed, `2` unsupported provider. This
+is diagnostics only — it does **not** auto-configure provider-specific model IDs
+yet (presets still use OpenRouter-style IDs).
 
 ---
 
