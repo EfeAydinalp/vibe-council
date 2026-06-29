@@ -11,8 +11,14 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.1.0 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Removed
+
+- **Unused upstream web UI subsystem** — the legacy React + Vite `frontend/`, the
+  `backend/main.py` FastAPI server and `backend/storage.py` conversation storage, plus the
+  related upstream `start.sh`, root `main.py`, and root `header.jpg`. The product is the
+  local-first CLI and none of these were used by it. No dependency cleanup in this change
+  (FastAPI/Uvicorn remain declared); a future app/TUI/web surface should be rebuilt
+  intentionally rather than carried over from upstream.
 
 ## [0.1.0] - 2026-06-28
 

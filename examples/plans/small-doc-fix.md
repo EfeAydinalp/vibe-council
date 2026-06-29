@@ -1,15 +1,14 @@
-# Plan: fix the stale port number in the README
+# Plan: fix a stale command flag in the README
 
 ## Context
 
-The README's "Web UI" section says the backend runs on **port 8000**, but the code
-in `backend/main.py` binds **8001** (8000 was already taken on the author's machine).
-New users copy the wrong URL and get a connection error.
+The README's quick-start shows an example `vibe` command using an outdated flag
+spelling. New users copy it verbatim and get an "unknown option" error.
 
 ## Change
 
-- Update the one URL in `README.md` from `localhost:8000` to `localhost:8001`.
-- Grep for any other `8000` references in docs and fix them too.
+- Update the one example command in `README.md` to use the current flag name.
+- Grep for any other copies of the stale flag in `docs/` and fix them too.
 
 ## Why this is a "cheap / maybe skip the council" case
 
@@ -23,8 +22,8 @@ This is a one-line, low-risk, easily-verified factual fix. A full multi-model
 
 ## Verification
 
-- `grep -rn "8000" README.md docs/` returns nothing (or only intentional matches).
-- The Web UI section points at `http://localhost:8001`.
+- `grep -rn "<stale-flag>" README.md docs/` returns nothing (or only intentional matches).
+- The quick-start command runs without an "unknown option" error.
 
 ## Out of scope
 
