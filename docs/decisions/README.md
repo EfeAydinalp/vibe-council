@@ -26,5 +26,6 @@ seed** for the linked decision-memory direction (see
 - [Dogfood linked decision memory](./2026-06-29-linked-decision-memory.md) — accepted
 - [External tools & Obsidian research](./2026-06-29-external-tools-and-obsidian-research.md) — accepted
 - [Open-core commercial hypothesis](./2026-06-29-open-core-commercial-hypothesis.md) — **proposed**
+- [Open-core commercial direction](./2026-06-29-open-core-commercial-direction.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

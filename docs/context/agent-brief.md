@@ -70,6 +70,8 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   — **proposed**, pending the commercial feasibility review: keep a public local-first core;
   consider a *separate private* hosted/team/sync layer only if demand is validated; prefer
   BYOK + subscription/support/team-sync over a prepaid wallet; self-hosted inference is later.
+- **Commercial direction:** public-core/local-first first; detailed hosted/billing strategy remains
+  private until validated. See [open-core commercial direction](../decisions/2026-06-29-open-core-commercial-direction.md).
 
 ## What not to touch without explicit scope
 
