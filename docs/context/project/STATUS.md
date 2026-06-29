@@ -13,13 +13,15 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #34 merged** — public research addendum + open-core commercial direction.
 - **PR #35 merged** — track-based roadmap.
 - **PR #36 merged** — project-memory folder convention (this `docs/context/project/` seed).
-- **Current focus:** the operator control loop / approval inbox spec (docs-only).
+- **PR #37 merged** — operator control loop / approval inbox spec.
+- **Council roadmap review done** — verdict: proceed to v0.3; first blocker is a real redaction guard.
+- **Current focus:** redaction guard — `vibe lint --redaction` + redaction policy (v0.3 prerequisite).
 
 ## Next actions
 
-1. Land the operator control loop / approval inbox spec.
-2. Then a compact council roadmap review over the public-safe docs.
-3. Then begin **v0.3 decision-memory tooling / context-pack builder** planning.
+1. Land the redaction guard (`vibe lint --redaction` + policy).
+2. Then v0.3 decision-memory tooling (`decisions new/lint/promote`).
+3. Then the context-pack builder MVP (deterministic, token-budgeted).
 
 ## Blockers / open risks
 

@@ -97,3 +97,5 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 6. **Operator loop:** an approval/status inbox is planned as a minimal local-first layer — not a
    dashboard or custom mobile transport. See
    [operator control loop spec](../plans/operator-control-loop-and-approval-inbox.md).
+7. **Redaction guard:** `vibe lint --redaction` scans public docs for leaks (secrets, local paths,
+   raw `.council/` artifacts) before promote/commit/export. See [redaction policy](../redaction-policy.md).
