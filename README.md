@@ -271,6 +271,25 @@ Output (the review/answer/decision) goes to **stdout**; progress, saved-file
 paths, usage, and guard messages go to **stderr**, so stdout stays clean for
 piping. The API key is never printed.
 
+### Providers (OpenRouter / Ollama)
+
+The provider is selected with `VIBE_PROVIDER` (default `openrouter`). Run
+`vibe doctor` to check your setup.
+
+```powershell
+# OpenRouter (default) — uses OPENROUTER_API_KEY
+VIBE_PROVIDER=openrouter
+
+# Local Ollama — no API key; run a local Ollama server with a model pulled
+VIBE_PROVIDER=ollama
+VIBE_OLLAMA_MODEL=llama3.1   # a model you've `ollama pull`ed
+vibe doctor
+```
+
+`VIBE_OLLAMA_MODEL` maps the preset's OpenRouter-style model IDs to your local Ollama
+model (provider-specific preset config is future work). Local Ollama reports no billing
+cost, so `--max-cost` can't be enforced for Ollama runs.
+
 ### `vibe doctor` (provider diagnostics)
 
 `vibe doctor` checks your current **provider** setup — it runs **no inference**
@@ -585,25 +604,28 @@ them.
 
 ## Roadmap / next ideas
 
-**Recently shipped:** first-run API-key guard, `vibe models` / `vibe presets` /
-`--version`, tests + CI (Ubuntu/macOS/Windows), privacy/local-first docs, decision
-memory, cross-platform install scripts (Windows + macOS/Linux), a demo guide +
-[sanitized transcript](docs/demo-transcript.md), and the **v0.1.0** release.
+**Recently shipped (v0.2.0):** a **provider abstraction** with an OpenRouter adapter,
+**provider selection** via `VIBE_PROVIDER`, a **local Ollama provider**
+(`VIBE_PROVIDER=ollama`) with `VIBE_OLLAMA_MODEL`, **`vibe doctor`** provider
+diagnostics, and provider-aware usage/cost messaging. (v0.1.0 shipped the first-run
+API-key guard, `vibe models`/`presets`/`--version`, tests + CI on Ubuntu/macOS/Windows,
+privacy/local-first docs, decision memory, cross-platform install scripts, and a demo
+guide + [sanitized transcript](docs/demo-transcript.md).)
 
-**Release status:** **v0.1.0 — first public release.** The repo reports `0.1.0`; the
-`v0.1.0` git tag and GitHub Release are cut by a maintainer right after the release PR
-merges. See [`CHANGELOG.md`](CHANGELOG.md) for the full notes and
+**Release status:** **v0.2.0 — multi-provider (OpenRouter + local Ollama).** The repo
+reports `0.2.0`; the `v0.2.0` git tag and GitHub Release are cut by a maintainer right
+after the release PR merges. See [`CHANGELOG.md`](CHANGELOG.md) for the full notes and
 [`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an early
 `0.x` release — expect breaking changes between minor versions, and see the honest
 limitations below.
 
-**Near-term (after v0.1.0):**
+**Near-term:**
 
 - Record the real demo GIF / asciinema of the review → diff → extract loop *(follow-up)*
+- Provider-specific preset/model config (so Ollama doesn't need `VIBE_OLLAMA_MODEL` per run)
 
-**Later (explicitly not in v0.1.0):**
+**Later:**
 
-- Ollama / multi-provider abstraction (local inference)
 - MCP server
 - SQLite / embedding-based decision search
 - GitHub PR review bot

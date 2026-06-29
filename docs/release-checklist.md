@@ -23,14 +23,15 @@ tiered so you can tell what blocks a release from what's nice to confirm:
 
 ## 1. Pre-release (version & changelog)
 
-- [ ] 🔴 Bump `__version__` in [`backend/__init__.py`](../backend/__init__.py) from
-      `0.1.0-dev` → `0.1.0`.
-- [ ] 🔴 Confirm it matches `version` in [`pyproject.toml`](../pyproject.toml)
-      (`0.1.0`). These are **two separate strings** — they must agree.
-      Quick check: `git grep -nI "0\.1\.0-dev"` should return **nothing** after the bump.
-- [ ] 🔴 `vibe --version` prints `vibe-council 0.1.0`.
+- [ ] 🔴 Bump `__version__` in [`backend/__init__.py`](../backend/__init__.py) to the new
+      release version (e.g. `0.2.0`).
+- [ ] 🔴 Confirm it matches `version` in [`pyproject.toml`](../pyproject.toml). These are
+      **two separate strings** — they must agree. Then run `uv lock` to sync the `uv.lock`
+      self-version (it should change only the `vibe-council` self-package version).
+- [ ] 🔴 `vibe --version` prints the new version (e.g. `vibe-council 0.2.0`).
 - [ ] 🔴 In [`CHANGELOG.md`](../CHANGELOG.md), move the `Unreleased` items under a dated
-      heading: `## [0.1.0] - YYYY-MM-DD`. Leave a fresh empty `Unreleased` above it.
+      heading: `## [X.Y.Z] - YYYY-MM-DD`. Leave a fresh empty `Unreleased` above it, and
+      update the `> Status:` banner to the new version.
 
 ## 2. CI / tests
 
@@ -39,6 +40,9 @@ tiered so you can tell what blocks a release from what's nice to confirm:
       (`.venv\Scripts\python.exe` on Windows, `.venv/bin/python` on POSIX) and note it.
 - [ ] 🔴 GitHub Actions CI is green on the release commit.
 - [ ] ⚪ CI passed on **all three** OS legs (Ubuntu / macOS / Windows), not just one.
+- [ ] 🔴 `python -m compileall backend tests` passes (no syntax/import errors).
+- [ ] 🟡 `vibe doctor --offline` runs and reports the selected provider (no network, no
+      tokens, no key printed).
 
 ## 3. README / docs
 
@@ -46,9 +50,14 @@ tiered so you can tell what blocks a release from what's nice to confirm:
       `CHANGELOG.md`, `examples/`, `docs/agent-integrations.md`.
 - [ ] 🟡 README **Quick start** install steps work from a clean clone.
 - [ ] 🟡 README **Roadmap** ("Recently shipped" / "Near-term") reflects reality for the
-      release (e.g. drop "toward a v0.1.0 release" wording once cut).
+      release (e.g. move shipped items out of "Later").
 - [ ] 🟡 README **Demo** section links to `docs/demo.md` and is honest that no recorded
       asset ships yet.
+- [ ] 🟡 **Providers documented:** OpenRouter is the default (`VIBE_PROVIDER=openrouter`);
+      Ollama env vars (`VIBE_PROVIDER=ollama`, `OLLAMA_HOST`, `VIBE_OLLAMA_MODEL`) are
+      documented in README + `.env.example`.
+- [ ] 🟡 **Caveats stated:** Ollama users should set `VIBE_OLLAMA_MODEL`, and local Ollama
+      reports no cost so `--max-cost` cannot be enforced for Ollama runs.
 
 ## 4. Install checks
 
@@ -94,9 +103,11 @@ tiered so you can tell what blocks a release from what's nice to confirm:
 
 - [ ] 🔴 Create a GitHub Release for `v0.1.0`; paste the `CHANGELOG.md` `[0.1.0]`
       section as the body.
-- [ ] 🟡 State the **known limitations** in the notes: OpenRouter-only (BYO key), no
-      Ollama / provider abstraction yet, no MCP yet, no recorded demo asset yet,
-      decision search is plain string matching.
+- [ ] 🟡 State the **known limitations** in the notes for the release. For v0.2.0:
+      Ollama users should set `VIBE_OLLAMA_MODEL` (presets still use OpenRouter-style IDs);
+      local Ollama reports no cost so `--max-cost` can't be enforced for Ollama; no MCP /
+      personas / app yet; no recorded demo asset yet; decision search is plain string
+      matching; license/provenance cleanup ongoing.
 - [ ] 🟡 Verify release-note links render correctly **from the GitHub Release page**
       (not just the in-repo file): relative links resolve under `/releases/` and break
       (e.g. README "not found"), so prefer **tag-pinned absolute URLs** for links inside
