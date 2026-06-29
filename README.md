@@ -4,7 +4,7 @@
 ![vibe-council](docs/header.jpg)
 
 **vibe-council** is a multi-model decision and review workflow for developers and
-AI coding agents. It can run from a local **web UI** or from the **terminal**, and
+AI coding agents. It runs from the **terminal**, and
 it helps you review plans, critique diffs, extract structured decisions, and keep
 a **project-local decision memory**. It started from
 [`karpathy/llm-council`](https://github.com/karpathy/llm-council) — this fork
@@ -104,7 +104,7 @@ Copy-Item .env.example .env
 - Get a key at [openrouter.ai](https://openrouter.ai/) and add credits.
 - **Never commit `.env`** — it is gitignored.
 
-You can now use the CLI directly (no web UI needed):
+You can now use the CLI directly:
 
 ```powershell
 python -m backend.cli review --preset cheap --prompt "Review this tiny plan."
@@ -507,40 +507,6 @@ CLI commands return dedicated exit codes (useful for agents and scripts):
 | `5` | loop guard (duplicate/concurrent/rate-limited run) |
 | `6` | cost cap exceeded (provider-reported cost over `--max-cost`; stdout preserved) |
 | `7` | missing API key (`OPENROUTER_API_KEY` not set for a model command) |
-
----
-
-## Web UI
-
-The original web UI (multi-model council with stage tabs) still works.
-
-**1. Configure the API key** — `.env` in the repo root with
-`OPENROUTER_API_KEY=sk-or-v1-...` (see Quick start).
-
-**2. Install frontend dependencies:**
-
-```bash
-cd frontend
-npm install
-cd ..
-```
-
-**3. Run backend and frontend** (two terminals):
-
-```bash
-# Terminal 1 — backend (http://localhost:8001)
-uv run python -m backend.main
-
-# Terminal 2 — frontend (http://localhost:5173)
-cd frontend
-npm run dev
-```
-
-Then open <http://localhost:5173>. On macOS/Linux you can also use `./start.sh`
-to launch both.
-
-**Tech stack:** FastAPI (Python 3.10+), async httpx, OpenRouter API · React + Vite
-frontend · JSON-file storage under `data/` · uv for Python, npm for JavaScript.
 
 ---
 
