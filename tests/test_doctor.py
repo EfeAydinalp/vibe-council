@@ -174,6 +174,32 @@ class TestCheckOllama(_HttpMockBase):
         self.assertEqual(self._statuses(checks)["ollama:reachability"], doctor.STATUS_WARN)
         self.assertEqual(_FakeClient.captured, [])
 
+    def test_override_unset_warns(self):
+        # _env (setUp) cleared VIBE_OLLAMA_MODEL.
+        checks = doctor.check_ollama(online=False)
+        st = self._statuses(checks)
+        self.assertEqual(st["ollama:model-override"], doctor.STATUS_WARN)
+        self.assertNotIn("ollama:model-availability", st)
+
+    def test_override_set_and_installed_is_ok(self):
+        _FakeClient.response = _FakeResp(
+            {"models": [{"name": "llama3.1"}, {"name": "qwen2.5"}]}, status_code=200)
+        with mock.patch.dict(os.environ, {"VIBE_OLLAMA_MODEL": "llama3.1"}):
+            checks = doctor.check_ollama(online=True)
+        st = self._statuses(checks)
+        self.assertEqual(st["ollama:model-override"], doctor.STATUS_OK)
+        self.assertEqual(st["ollama:model-availability"], doctor.STATUS_OK)
+        override_detail = next(c.detail for c in checks if c.name == "ollama:model-override")
+        self.assertIn("llama3.1", override_detail)
+
+    def test_override_set_but_not_installed_warns(self):
+        _FakeClient.response = _FakeResp({"models": [{"name": "qwen2.5"}]}, status_code=200)
+        with mock.patch.dict(os.environ, {"VIBE_OLLAMA_MODEL": "llama3.1"}):
+            checks = doctor.check_ollama(online=True)
+        st = self._statuses(checks)
+        self.assertEqual(st["ollama:model-override"], doctor.STATUS_OK)
+        self.assertEqual(st["ollama:model-availability"], doctor.STATUS_WARN)
+
 
 class TestRunDoctorAndExit(unittest.TestCase):
     def test_unsupported_provider_raises(self):

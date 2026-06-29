@@ -12,6 +12,7 @@ The API key value is never asserted on or printed.
 """
 
 import asyncio
+import os
 import unittest
 from unittest import mock
 
@@ -129,6 +130,14 @@ class TestOpenRouterAdapter(ProviderSeamTestBase):
         self.assertEqual(result.usage["total_tokens"], 8)
         self.assertEqual(result.raw, SUCCESS_BODY)
         self.assertTrue(result.ok)
+
+    def test_openrouter_ignores_ollama_model_override(self):
+        # VIBE_OLLAMA_MODEL only affects Ollama; OpenRouter sends request.model.
+        with mock.patch.dict(os.environ, {"VIBE_OLLAMA_MODEL": "llama3.1"}):
+            prov = providers.OpenRouterProvider()
+            run(prov.chat(providers.ChatRequest("openai/gpt-5.1",
+                                                [{"role": "user", "content": "hi"}])))
+        self.assertEqual(_FakeClient.captured["json"]["model"], "openai/gpt-5.1")
 
     def test_http_status_error_maps_to_safe_error(self):
         _FakeClient.response = _FakeResp({"error": {"message": "no funds"}}, status_code=402)

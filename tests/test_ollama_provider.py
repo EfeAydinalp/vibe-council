@@ -149,6 +149,39 @@ class TestOllamaChat(_MockedBase):
         self.assertIn("network error", result.error["reason"])
 
 
+class TestOllamaModelOverride(_MockedBase):
+    def test_override_used_in_payload(self):
+        # request.model is an OpenRouter-style preset ID; the payload must use the
+        # local VIBE_OLLAMA_MODEL instead.
+        with mock.patch.dict(os.environ, {"VIBE_OLLAMA_MODEL": "llama3.1"}):
+            prov = providers.OllamaProvider()
+            req = providers.ChatRequest("anthropic/claude-sonnet-4.5",
+                                        [{"role": "user", "content": "hi"}])
+            run(prov.chat(req))
+        self.assertEqual(_FakeClient.captured["json"]["model"], "llama3.1")
+        # ChatRequest itself is not mutated.
+        self.assertEqual(req.model, "anthropic/claude-sonnet-4.5")
+
+    def test_no_override_falls_back_to_request_model(self):
+        os.environ.pop("VIBE_OLLAMA_MODEL", None)
+        prov = providers.OllamaProvider()
+        run(prov.chat(providers.ChatRequest("llama3.1", [{"role": "user", "content": "hi"}])))
+        self.assertEqual(_FakeClient.captured["json"]["model"], "llama3.1")
+
+
+class TestResolveOllamaModel(unittest.TestCase):
+    def test_override_set(self):
+        with mock.patch.dict(os.environ, {"VIBE_OLLAMA_MODEL": "  qwen2.5  "}):
+            self.assertEqual(providers.resolve_ollama_model("anthropic/x"), "qwen2.5")
+
+    def test_override_unset_or_empty(self):
+        with mock.patch.dict(os.environ, {k: v for k, v in os.environ.items()
+                                          if k != "VIBE_OLLAMA_MODEL"}, clear=True):
+            self.assertEqual(providers.resolve_ollama_model("anthropic/x"), "anthropic/x")
+        with mock.patch.dict(os.environ, {"VIBE_OLLAMA_MODEL": "   "}):
+            self.assertEqual(providers.resolve_ollama_model("anthropic/x"), "anthropic/x")
+
+
 class TestOllamaHostValidation(unittest.TestCase):
     def test_default_is_loopback(self):
         with mock.patch.dict(os.environ, {k: v for k, v in os.environ.items()

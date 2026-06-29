@@ -281,12 +281,17 @@ default `openrouter`) and:
   value is never printed) and, when online, whether the **model-list** endpoint is
   reachable (not chat/completions).
 - **Ollama:** that `OLLAMA_HOST` is a valid loopback URL, whether the local server
-  is reachable (`GET /api/tags`), and which local models are installed.
+  is reachable (`GET /api/tags`), which local models are installed, and whether your
+  `VIBE_OLLAMA_MODEL` (if set) is one of them.
 
 ```powershell
 vibe doctor            # config + reachability checks
 vibe doctor --offline  # config checks only (no network)
 ```
+
+For Ollama, set `VIBE_PROVIDER=ollama` and `VIBE_OLLAMA_MODEL=<model you pulled
+locally>` (e.g. `llama3.1`). When set, Ollama runs use that local model name
+instead of the OpenRouter-style preset IDs.
 
 Exit code: `0` all checks pass, `1` a check failed, `2` unsupported provider. This
 is diagnostics only — it does **not** auto-configure provider-specific model IDs
