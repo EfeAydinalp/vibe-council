@@ -12,14 +12,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **`vibe doctor`** exists (no-token provider diagnostics).
 - **PR #34 merged** — public research addendum + open-core commercial direction.
 - **PR #35 merged** — track-based roadmap.
-- **Current dogfood focus:** the project-memory folder convention (this PR).
+- **PR #36 merged** — project-memory folder convention (this `docs/context/project/` seed).
+- **Current focus:** the operator control loop / approval inbox spec (docs-only).
 
 ## Next actions
 
-1. Land the project-memory dogfood PR.
-2. Then write the **operator control loop / approval inbox** spec.
-3. Then a compact council roadmap review over the public-safe docs.
-4. Then begin **v0.3 decision-memory tooling / context-pack builder** planning.
+1. Land the operator control loop / approval inbox spec.
+2. Then a compact council roadmap review over the public-safe docs.
+3. Then begin **v0.3 decision-memory tooling / context-pack builder** planning.
 
 ## Blockers / open risks
 
