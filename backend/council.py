@@ -14,7 +14,7 @@ Modes compose these primitives (see config.MODES):
   full:    collect -> rank -> synthesize(answer)
 """
 
-from typing import List, Dict, Any, Tuple, AsyncGenerator
+from typing import List, Dict, Any, Tuple, AsyncGenerator, Optional
 from .openrouter import query_models_parallel, query_model
 from .config import (
     COUNCIL_MODELS,
@@ -164,7 +164,10 @@ Now provide your evaluation and ranking:"""
     stage2_results = []
     for model, response in responses.items():
         if response is not None:
-            full_text = response.get('content', '')
+            # Normalize missing/None content to '' at the boundary so a model
+            # that returns no content can't crash the parser or leak "None"
+            # into the downstream chairman prompt.
+            full_text = response.get('content') or ''
             parsed = parse_ranking_from_text(full_text)
             stage2_results.append({
                 "model": model,
@@ -266,9 +269,18 @@ Provide a clear, well-reasoned final answer that represents the council's collec
 # Ranking parsing / aggregation helpers
 # --------------------------------------------------------------------------- #
 
-def parse_ranking_from_text(ranking_text: str) -> List[str]:
-    """Parse the FINAL RANKING section from a model's response."""
+def parse_ranking_from_text(ranking_text: Optional[str]) -> List[str]:
+    """Parse the FINAL RANKING section from a model's response.
+
+    Tolerant of a missing/empty ranker output: ``None``, an empty string, or a
+    whitespace-only string all yield ``[]`` ("no ranking parsed") rather than
+    raising. Unparsable text also yields ``[]`` via the regex fallthrough. This
+    keeps `full` mode robust when a council model returns no content.
+    """
     import re
+
+    if not ranking_text or not ranking_text.strip():
+        return []
 
     if "FINAL RANKING:" in ranking_text:
         parts = ranking_text.split("FINAL RANKING:")
