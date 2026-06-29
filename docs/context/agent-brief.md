@@ -99,3 +99,6 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
    [operator control loop spec](../plans/operator-control-loop-and-approval-inbox.md).
 7. **Redaction guard:** `vibe lint --redaction` scans public docs for leaks (secrets, local paths,
    raw `.council/` artifacts) before promote/commit/export. See [redaction policy](../redaction-policy.md).
+8. **License/provenance** remains **Question 0** before serious commercialization; public/local-first
+   development continues while the review is clarified. See
+   [license & provenance resolution](../plans/license-and-provenance-resolution.md).
