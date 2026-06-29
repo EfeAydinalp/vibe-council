@@ -5,20 +5,68 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.1.0` is the first public release. The repo reports `0.1.0`
-> (`backend/__init__.py`). The `v0.1.0` git tag + GitHub Release are cut by a maintainer
+> **Status:** `0.2.0` is the current release. The repo reports `0.2.0`
+> (`backend/__init__.py`). The `v0.2.0` git tag + GitHub Release are cut by a maintainer
 > right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+_Nothing yet. Post-0.2.0 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.2.0] - 2026-06-29
+
+The **multi-provider** release: break the single-provider lock-in with a provider
+abstraction, add a local **Ollama** provider, and ship `vibe doctor` diagnostics — all
+while OpenRouter remains the default and existing behavior is unchanged.
+
+### Added
+
+- **Provider abstraction** — a minimal `Provider` seam with `ChatRequest` / `ChatResult`
+  and an **OpenRouter adapter**; legacy helper functions delegate to it with no behavior
+  change for OpenRouter users.
+- **Provider selection** via `VIBE_PROVIDER`, defaulting to `openrouter`; unsupported
+  values fail clearly before any model call.
+- **Local Ollama provider** via `VIBE_PROVIDER=ollama` — non-streaming `/api/chat`,
+  requires no API key, loopback-only `OLLAMA_HOST` validation (SSRF-safe), and never
+  fabricates a dollar cost.
+- **`VIBE_OLLAMA_MODEL`** — map the existing preset's OpenRouter-style model IDs to a
+  local Ollama model name you've pulled, without redesigning presets.
+- **`vibe doctor`** — provider diagnostics (key presence/placeholder, OpenRouter
+  model-list reachability, Ollama host validation + `/api/tags` reachability + local model
+  list + `VIBE_OLLAMA_MODEL` availability). Runs **no inference** and spends no tokens;
+  supports `--offline`.
+- **Provider-aware usage/cost messaging** — `--usage` and `--max-cost` now name the active
+  provider and state honestly when a provider does not report cost.
+
+### Fixed
+
+- **`full` mode** no longer crashes when a ranking model returns `None` or empty content
+  (`parse_ranking_from_text` tolerates missing/empty/whitespace/unparsable output).
 
 ### Removed
 
 - **Unused upstream web UI subsystem** — the legacy React + Vite `frontend/`, the
   `backend/main.py` FastAPI server and `backend/storage.py` conversation storage, plus the
-  related upstream `start.sh`, root `main.py`, and root `header.jpg`. The product is the
-  local-first CLI and none of these were used by it. No dependency cleanup in this change
-  (FastAPI/Uvicorn remain declared); a future app/TUI/web surface should be rebuilt
-  intentionally rather than carried over from upstream.
+  related upstream `start.sh`, root `main.py`, and root `header.jpg` — and the now-unused
+  **FastAPI/Uvicorn** dependencies. The product is the local-first CLI; a future app/TUI/web
+  surface should be rebuilt intentionally rather than carried over from upstream.
+
+### Changed
+
+- **Project identity** metadata renamed from `llm-council` to `vibe-council`
+  (`pyproject.toml`, `uv.lock`, `CLAUDE.md`).
+- **Author identity** normalized with a `.mailmap` (display-only; no history rewrite).
+
+### Known limitations
+
+- **Ollama users should set `VIBE_OLLAMA_MODEL`** — presets still carry OpenRouter-style
+  model IDs; provider-specific preset config is future work.
+- **Local Ollama does not report billing cost**, so `--max-cost` cannot be enforced for
+  Ollama runs (cost is never fabricated).
+- **MCP, personas/advisors, app/TUI, and community** features are still future work.
+- **License/provenance cleanup is ongoing** — parts of the backend still descend from the
+  unlicensed upstream `karpathy/llm-council`; no `LICENSE` is added yet.
 
 ## [0.1.0] - 2026-06-28
 
