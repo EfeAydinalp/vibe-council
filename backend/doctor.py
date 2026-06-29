@@ -99,10 +99,16 @@ def check_ollama(*, online: bool = True) -> List[DoctorCheck]:
         out.append(DoctorCheck("ollama:host", STATUS_FAIL, str(e)))
         return out
     out.append(DoctorCheck("ollama:host", STATUS_OK, f"loopback host OK ({host})"))
-    out.append(DoctorCheck(
-        "ollama:model-ids", STATUS_WARN,
-        "presets still use OpenRouter-style model IDs; reference local Ollama model "
-        "names until provider-specific model config lands"))
+
+    override = (os.getenv("VIBE_OLLAMA_MODEL") or "").strip()
+    if override:
+        out.append(DoctorCheck("ollama:model-override", STATUS_OK,
+                               f"VIBE_OLLAMA_MODEL set: {override}"))
+    else:
+        out.append(DoctorCheck(
+            "ollama:model-override", STATUS_WARN,
+            "VIBE_OLLAMA_MODEL not set; presets pass OpenRouter-style model IDs — "
+            "set VIBE_OLLAMA_MODEL=<a model you pulled locally> for Ollama runs"))
 
     if not online:
         out.append(DoctorCheck("ollama:reachability", STATUS_WARN,
@@ -129,6 +135,16 @@ def check_ollama(*, online: bool = True) -> List[DoctorCheck]:
     else:
         out.append(DoctorCheck("ollama:models", STATUS_WARN,
                                "no local models installed (run e.g. `ollama pull llama3.1`)"))
+
+    if override:
+        if override in models:
+            out.append(DoctorCheck("ollama:model-availability", STATUS_OK,
+                                   f"VIBE_OLLAMA_MODEL '{override}' is installed locally"))
+        else:
+            out.append(DoctorCheck(
+                "ollama:model-availability", STATUS_WARN,
+                f"VIBE_OLLAMA_MODEL '{override}' is not installed locally "
+                f"(run `ollama pull {override}`)"))
     return out
 
 

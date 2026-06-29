@@ -241,6 +241,21 @@ def resolve_ollama_host() -> str:
     return f"{parsed.scheme}://{netloc}"
 
 
+def resolve_ollama_model(request_model: str) -> str:
+    """Return the local model name to send to Ollama.
+
+    Presets still carry OpenRouter-style IDs, which a local Ollama server won't
+    recognize. When ``VIBE_OLLAMA_MODEL`` is set (non-empty), use it for Ollama
+    requests so users can point at a model they've pulled locally. Otherwise fall
+    through to ``request_model`` (current behavior). This only affects Ollama; the
+    incoming ``ChatRequest`` is never mutated and OpenRouter is unaffected.
+    """
+    override = os.getenv("VIBE_OLLAMA_MODEL")
+    if override and override.strip():
+        return override.strip()
+    return request_model
+
+
 def _ollama_usage(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Map Ollama's local stats into a usage dict. No `cost` is ever added."""
     usage: Dict[str, Any] = {}
@@ -289,7 +304,9 @@ class OllamaProvider:
 
         url = f"{host}/api/chat"
         payload = {
-            "model": request.model,
+            # VIBE_OLLAMA_MODEL override (if set) -> a local model name; else the
+            # request model. ChatRequest itself is never mutated.
+            "model": resolve_ollama_model(request.model),
             "messages": request.messages,
             "stream": False,
         }
