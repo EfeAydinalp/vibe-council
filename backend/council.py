@@ -1,4 +1,4 @@
-"""Mode-driven LLM Council orchestration.
+"""Mode-driven vibe-council orchestration.
 
 Primitives (stages):
   collect    -> N council models answer the query in parallel
@@ -74,7 +74,7 @@ async def stage_critique(
 
     This is NOT a ranking step. Each model independently critiques the same
     input. The shape matches stage 1 ({model, response}) so the chairman and
-    the frontend can reuse the same slot.
+    any consumer can reuse the same slot.
     """
     critique_models = critique_models or COUNCIL_MODELS
 
@@ -361,10 +361,10 @@ async def run_mode_stream(
 ) -> AsyncGenerator[Tuple[str, Dict[str, Any]], None]:
     """Run a mode's stage list, yielding (event_type, payload) tuples.
 
-    Payloads are frontend-ready (the SSE layer just adds {'type': event_type}).
-    The same generator backs both the streaming and non-streaming endpoints.
+    Payloads are consumer-ready (a streaming layer just adds {'type': event_type}).
+    The same generator backs both the streaming and non-streaming callers.
 
-    Slot mapping (so the frontend can reuse a small set of components):
+    Slot mapping (so a consumer can reuse a small set of slots):
       collect / critique -> stage1 events  ({"data": [{model, response}, ...]})
       rank               -> stage2 events  ({"data": [...], "metadata": {...}})
       synthesize         -> stage3 events  ({"data": {model, response}})

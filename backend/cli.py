@@ -1,6 +1,6 @@
 """Command-line bridge for vibe-council.
 
-Run council modes from the terminal without the frontend, with optional
+Run council modes from the terminal, with optional
 project-local workspaces (.council/). Reuses the existing orchestration
 (council.run_mode_stream), presets/modes (config), decision-memory export, and
 the project_workspace module — no council/model/preset logic is duplicated.

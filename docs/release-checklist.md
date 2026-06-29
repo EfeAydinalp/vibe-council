@@ -1,6 +1,6 @@
-# vibe-council v0.1.0 release checklist
+# vibe-council release checklist
 
-A practical, auditable checklist for cutting the **first public release**. Items are
+A practical, auditable checklist for cutting a release. Items are
 tiered so you can tell what blocks a release from what's nice to confirm:
 
 - **🔴 Critical** — blocking. The release does not ship until these pass.
@@ -13,7 +13,7 @@ tiered so you can tell what blocks a release from what's nice to confirm:
 > it goes stale for the next version. Track that in the release PR, the dated
 > `CHANGELOG.md` section, and `docs/releases/<version>.md`.
 
-> **What "safe v0.1.0" means here:** the main release risks for a local-first,
+> **What a "safe release" means here:** the main release risks for a local-first,
 > bring-your-own-key dev tool are (1) leaking secrets or local paths into the repo or
 > a published asset, and (2) shipping broken install / inconsistent version state.
 > "Safe" = none of those reach the published tag. This checklist is organized around
@@ -62,9 +62,9 @@ tiered so you can tell what blocks a release from what's nice to confirm:
 ## 4. Install checks
 
 - [ ] ⚪ **Windows** — `powershell -ExecutionPolicy Bypass -File scripts\install-vibe.ps1 --dry-run`
-      then `--yes`; new terminal; `vibe --version` → `0.1.0`.
+      then `--yes`; new terminal; `vibe --version` → the release version.
 - [ ] ⚪ **macOS / Linux** — `sh scripts/install-vibe.sh --dry-run` then `--yes`;
-      `vibe --version` → `0.1.0`.
+      `vibe --version` → the release version.
 - [ ] 🟡 Direct wrappers run without installing: `scripts/vibe.ps1`, `scripts/vibe.cmd`
       (Windows), `scripts/vibe.sh` (POSIX).
 - [ ] 🟡 `vibe status`, `vibe presets`, `vibe models` work (no-model commands, no key).
@@ -95,14 +95,14 @@ tiered so you can tell what blocks a release from what's nice to confirm:
 > by the prep PR.
 
 - [ ] 🔴 Create an annotated tag on the release commit:
-      `git tag -a v0.1.0 -m "vibe-council v0.1.0"`.
-- [ ] 🔴 Push it: `git push origin v0.1.0`.
-- [ ] 🟡 Confirm the tag points at the intended commit: `git show v0.1.0 --stat`.
+      `git tag -a vX.Y.Z -m "vibe-council vX.Y.Z"`.
+- [ ] 🔴 Push it: `git push origin vX.Y.Z`.
+- [ ] 🟡 Confirm the tag points at the intended commit: `git show vX.Y.Z --stat`.
 
 ## 8. GitHub release notes
 
-- [ ] 🔴 Create a GitHub Release for `v0.1.0`; paste the `CHANGELOG.md` `[0.1.0]`
-      section as the body.
+- [ ] 🔴 Create a GitHub Release for `vX.Y.Z`; paste the `CHANGELOG.md` `[X.Y.Z]`
+      section (or `docs/releases/vX.Y.Z.md`) as the body.
 - [ ] 🟡 State the **known limitations** in the notes for the release. For v0.2.0:
       Ollama users should set `VIBE_OLLAMA_MODEL` (presets still use OpenRouter-style IDs);
       local Ollama reports no cost so `--max-cost` can't be enforced for Ollama; no MCP /
@@ -116,7 +116,7 @@ tiered so you can tell what blocks a release from what's nice to confirm:
 
 ## 9. Post-release verification
 
-- [ ] 🔴 Fresh clone → install → `vibe --version` prints `0.1.0`.
+- [ ] 🔴 Fresh clone → install → `vibe --version` prints the release version.
 - [ ] 🟡 Release page renders; the tag points at the right commit; CHANGELOG link works.
 - [ ] ⚪ A `vibe review --preset cheap` smoke run succeeds against the released code.
 
@@ -130,12 +130,12 @@ Releases fail. Have the recovery path ready **before** you tag.
 - Stop. Do **not** tag. Fix forward on the branch, re-run §2 and §5, then resume.
 
 **A bad tag was already pushed** (e.g. broken install discovered post-tag):
-1. Delete the remote tag: `git push origin :refs/tags/v0.1.0`.
-2. Delete the local tag: `git tag -d v0.1.0`.
+1. Delete the remote tag: `git push origin :refs/tags/vX.Y.Z`.
+2. Delete the local tag: `git tag -d vX.Y.Z`.
 3. If a GitHub Release was published, delete or mark it as a draft.
-4. Fix the issue on `main`, then re-cut — **prefer fixing forward to `v0.1.1`** over
-   reusing `v0.1.0` if anyone may have already pulled the bad tag (a moved tag is a
-   trap for anyone who fetched it).
+4. Fix the issue on `main`, then re-cut — **prefer fixing forward to the next patch
+   version** over reusing the same tag if anyone may have already pulled the bad tag
+   (a moved tag is a trap for anyone who fetched it).
 5. Note what happened in the CHANGELOG / release notes so users aren't confused.
 
 **A secret was committed or leaked into a published asset:**
@@ -149,15 +149,15 @@ discussion/issues, so a half-released state doesn't strand early adopters.
 
 ---
 
-## Future automation (not in v0.1.0)
+## Future automation (deferred)
 
 These were raised in review and are deliberately **deferred** — recorded so the intent
-isn't lost, not because they're needed to cut v0.1.0:
+isn't lost, not because they're needed to cut a release:
 
 - A `scripts/prepare-release.{sh,ps1}` that bumps the version, dates the changelog, and
   runs the consistency checks in one shot.
-- CI that fails on **version-string drift** (`0.1.0-dev` left behind) and **broken
-  internal doc links**.
+- CI that fails on **version-string drift** (a stale `-dev` version left behind) and
+  **broken internal doc links**.
 - A broader **secrets scanner** (e.g. `gitleaks` / `trufflehog`) in pre-commit / CI,
   instead of a single `sk-or-v1-` grep.
 - A `vibe status --sanitize` / `--no-paths` flag so public demos don't have to redact
