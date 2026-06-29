@@ -490,6 +490,9 @@ vibe review --preset balanced --file plan.md --max-cost 0.20
 - If the provider reports a cost **over** the cap, the command **exits non-zero
   (code 6) while preserving stdout**.
 - For real pre-run blocking, use `--max-tokens`.
+- **Provider-dependent.** Cost enforcement relies on provider-reported billing data:
+  OpenRouter may report cost; **local Ollama does not**, so `--usage` says cost is not
+  reported and `--max-cost` **cannot be enforced** for Ollama runs (never fabricated).
 
 ### Usage and stages
 
