@@ -193,15 +193,150 @@ class OpenRouterProvider:
 
 
 # --------------------------------------------------------------------------- #
-# Provider selection (v0.2, PR 2)
+# Ollama provider (local, v0.2 PR 3)
 #
-# Only OpenRouter is supported today. Selection is read from the VIBE_PROVIDER
-# env var at call time (default "openrouter"), so existing behavior is unchanged.
-# Unsupported values fail clearly; Ollama/local is intentionally NOT implemented.
+# Talks to a local Ollama server's POST /api/chat (non-streaming). No API key,
+# no dollar cost. The host is loopback-only by default to avoid SSRF surprises;
+# model discovery and `vibe doctor` are intentionally out of scope here.
+# --------------------------------------------------------------------------- #
+
+DEFAULT_OLLAMA_HOST = "http://127.0.0.1:11434"
+
+# Only loopback hosts are permitted (no escape hatch in this PR).
+_LOOPBACK_HOSTNAMES = {"localhost", "127.0.0.1", "::1"}
+
+
+class OllamaHostError(ValueError):
+    """Raised when OLLAMA_HOST is malformed or not a loopback address."""
+
+
+def resolve_ollama_host() -> str:
+    """Resolve and validate the Ollama base URL.
+
+    Reads ``OLLAMA_HOST`` (default ``http://127.0.0.1:11434``) and accepts only
+    loopback hosts (``localhost``/``127.0.0.1``/``::1``) over http/https, with no
+    path/query. Anything else raises ``OllamaHostError`` so we never silently make
+    requests to an arbitrary remote URL.
+    """
+    from urllib.parse import urlparse
+
+    raw = os.getenv("OLLAMA_HOST")
+    if raw is None or not raw.strip():
+        raw = DEFAULT_OLLAMA_HOST
+    candidate = raw.strip()
+
+    parsed = urlparse(candidate)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        raise OllamaHostError(
+            f"Invalid OLLAMA_HOST '{candidate}'. Use a loopback URL like "
+            f"'{DEFAULT_OLLAMA_HOST}'."
+        )
+    if parsed.hostname not in _LOOPBACK_HOSTNAMES:
+        raise OllamaHostError(
+            f"Refusing non-loopback OLLAMA_HOST '{candidate}'. Only loopback hosts "
+            f"are allowed (localhost, 127.0.0.1, ::1)."
+        )
+    # Normalize: scheme://host[:port], no trailing slash/path.
+    netloc = parsed.netloc
+    return f"{parsed.scheme}://{netloc}"
+
+
+def _ollama_usage(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Map Ollama's local stats into a usage dict. No `cost` is ever added."""
+    usage: Dict[str, Any] = {}
+    prompt = data.get("prompt_eval_count")
+    completion = data.get("eval_count")
+    if isinstance(prompt, int):
+        usage["prompt_tokens"] = prompt
+    if isinstance(completion, int):
+        usage["completion_tokens"] = completion
+    if isinstance(prompt, int) and isinstance(completion, int):
+        usage["total_tokens"] = prompt + completion
+    for k in ("total_duration", "load_duration", "prompt_eval_duration", "eval_duration"):
+        v = data.get(k)
+        if isinstance(v, (int, float)):
+            usage[k] = v
+    return usage or None
+
+
+def _ollama_body_message(response: httpx.Response) -> Optional[str]:
+    """Extract Ollama's error message from a response body, truncated. Ollama
+    returns {"error": "<string>"}; never contains a secret (no key is sent)."""
+    try:
+        data = response.json()
+        err = data.get("error")
+        if isinstance(err, str) and err:
+            return err[:200]
+    except Exception:
+        pass
+    text = (response.text or "").strip()
+    return text[:200] if text else None
+
+
+class OllamaProvider:
+    """Local Ollama provider. Requires no API key and reports no dollar cost."""
+
+    name = "ollama"
+
+    def requires_api_key(self) -> bool:
+        return False
+
+    async def chat(self, request: ChatRequest) -> ChatResult:
+        try:
+            host = resolve_ollama_host()
+        except OllamaHostError as e:
+            return self._error(request.model, None, str(e), type(e).__name__)
+
+        url = f"{host}/api/chat"
+        payload = {
+            "model": request.model,
+            "messages": request.messages,
+            "stream": False,
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=request.timeout) as client:
+                response = await client.post(url, json=payload)
+                response.raise_for_status()
+                data = response.json()
+
+            message = data.get("message") or {}
+            return ChatResult(
+                content=message.get("content"),
+                reasoning_details=None,
+                usage=_ollama_usage(data),
+                raw=data,
+            )
+
+        except httpx.HTTPStatusError as e:
+            status = e.response.status_code
+            body_msg = _ollama_body_message(e.response)
+            reason = f"Ollama HTTP {status}" + (f": {body_msg}" if body_msg else "")
+            return self._error(request.model, status, reason, type(e).__name__)
+
+        except Exception as e:
+            reason = f"network error ({type(e).__name__})"
+            return self._error(request.model, None, reason, type(e).__name__)
+
+    @staticmethod
+    def _error(model: str, status: Optional[int], reason: str, exc: str) -> ChatResult:
+        error = {"model": model, "status": status, "reason": reason, "exception": exc}
+        status_str = status if status is not None else "NA"
+        print(f"[model-error] model={model} status={status_str} reason={reason}",
+              file=sys.stderr)
+        return ChatResult(error=error)
+
+
+# --------------------------------------------------------------------------- #
+# Provider selection (v0.2, PR 2; Ollama registered in PR 3)
+#
+# Selection is read from the VIBE_PROVIDER env var at call time (default
+# "openrouter"), so existing behavior is unchanged. Unsupported values fail
+# clearly. Ollama is local-only (loopback host, no API key, no cost).
 # --------------------------------------------------------------------------- #
 
 # Canonical supported provider names.
-SUPPORTED_PROVIDERS = ("openrouter",)
+SUPPORTED_PROVIDERS = ("openrouter", "ollama")
 
 # Friendly aliases that normalize to a canonical name.
 _PROVIDER_ALIASES = {
@@ -228,26 +363,31 @@ def resolve_provider_name(name: Optional[str] = None) -> str:
     if normalized not in SUPPORTED_PROVIDERS:
         raise UnsupportedProviderError(
             f"Unsupported provider '{raw.strip()}'. Supported providers: "
-            f"{', '.join(SUPPORTED_PROVIDERS)}. Ollama/local support is planned "
-            f"for v0.2 but not implemented yet."
+            f"{', '.join(SUPPORTED_PROVIDERS)}."
         )
     return normalized
 
 
-# Cached default OpenRouter instance (stable identity for callers/tests).
+# Cached provider instances (stable identity for callers/tests).
 _openrouter_provider: Provider = OpenRouterProvider()
+_ollama_provider: Provider = OllamaProvider()
+
+_PROVIDER_INSTANCES = {
+    "openrouter": _openrouter_provider,
+    "ollama": _ollama_provider,
+}
 
 
 def get_provider(name: Optional[str] = None) -> Provider:
     """Return the selected provider instance.
 
     With no selection (or ``VIBE_PROVIDER=openrouter``) this returns the cached
-    OpenRouter provider, so behavior is identical to before. An unsupported
+    OpenRouter provider, so default behavior is identical to before.
+    ``VIBE_PROVIDER=ollama`` returns the local Ollama provider. An unsupported
     selection raises ``UnsupportedProviderError``.
     """
     resolved = resolve_provider_name(name)
-    # Only "openrouter" is supported; resolve_provider_name guarantees this.
-    return _openrouter_provider
+    return _PROVIDER_INSTANCES[resolved]
 
 
 def get_default_provider() -> Provider:

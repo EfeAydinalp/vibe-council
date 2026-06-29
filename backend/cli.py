@@ -86,7 +86,16 @@ def _require_api_key() -> Optional[int]:
     .env.example placeholder; else None. Never prints the key value.
 
     Note: by the time this runs, config has already called load_dotenv() (which
-    populates os.environ from .env). This reads the resolved value."""
+    populates os.environ from .env). This reads the resolved value.
+
+    Provider-aware: only providers that need an API key are guarded here (the
+    selected provider has already been validated by _require_supported_provider).
+    Ollama, for example, requires no key."""
+    try:
+        if not providers.get_provider().requires_api_key():
+            return None
+    except providers.UnsupportedProviderError:
+        return None  # already handled by _require_supported_provider
     key = (os.environ.get("OPENROUTER_API_KEY", "") or "").strip()
     if key and key != _ENV_PLACEHOLDER_KEY:
         return None
