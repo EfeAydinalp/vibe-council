@@ -13,11 +13,13 @@ The protocol is intentionally trimmed to ``name`` + ``requires_api_key`` +
 
 from __future__ import annotations
 
+import os
 import sys
 import httpx
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
+from . import config
 from .config import OPENROUTER_API_KEY, OPENROUTER_API_URL
 
 DEFAULT_TIMEOUT = 120.0
@@ -190,11 +192,64 @@ class OpenRouterProvider:
             return ChatResult(error=error)
 
 
-# Default provider instance. Provider *selection* is a later PR; for now the
-# default is always OpenRouter, so existing behavior is unchanged.
-_default_provider: Provider = OpenRouterProvider()
+# --------------------------------------------------------------------------- #
+# Provider selection (v0.2, PR 2)
+#
+# Only OpenRouter is supported today. Selection is read from the VIBE_PROVIDER
+# env var at call time (default "openrouter"), so existing behavior is unchanged.
+# Unsupported values fail clearly; Ollama/local is intentionally NOT implemented.
+# --------------------------------------------------------------------------- #
+
+# Canonical supported provider names.
+SUPPORTED_PROVIDERS = ("openrouter",)
+
+# Friendly aliases that normalize to a canonical name.
+_PROVIDER_ALIASES = {
+    "open-router": "openrouter",
+}
+
+
+class UnsupportedProviderError(ValueError):
+    """Raised when VIBE_PROVIDER (or an explicit name) is not a supported provider."""
+
+
+def resolve_provider_name(name: Optional[str] = None) -> str:
+    """Resolve and validate a provider name.
+
+    Precedence: explicit ``name`` arg → ``VIBE_PROVIDER`` env → config default.
+    The value is normalized (trimmed, lower-cased, aliases applied). Raises
+    ``UnsupportedProviderError`` with a clear, actionable message otherwise.
+    """
+    raw = name if name is not None else os.getenv("VIBE_PROVIDER")
+    if raw is None or not raw.strip():
+        raw = config.DEFAULT_PROVIDER
+    normalized = raw.strip().lower()
+    normalized = _PROVIDER_ALIASES.get(normalized, normalized)
+    if normalized not in SUPPORTED_PROVIDERS:
+        raise UnsupportedProviderError(
+            f"Unsupported provider '{raw.strip()}'. Supported providers: "
+            f"{', '.join(SUPPORTED_PROVIDERS)}. Ollama/local support is planned "
+            f"for v0.2 but not implemented yet."
+        )
+    return normalized
+
+
+# Cached default OpenRouter instance (stable identity for callers/tests).
+_openrouter_provider: Provider = OpenRouterProvider()
+
+
+def get_provider(name: Optional[str] = None) -> Provider:
+    """Return the selected provider instance.
+
+    With no selection (or ``VIBE_PROVIDER=openrouter``) this returns the cached
+    OpenRouter provider, so behavior is identical to before. An unsupported
+    selection raises ``UnsupportedProviderError``.
+    """
+    resolved = resolve_provider_name(name)
+    # Only "openrouter" is supported; resolve_provider_name guarantees this.
+    return _openrouter_provider
 
 
 def get_default_provider() -> Provider:
-    """Return the process-wide default provider (OpenRouter for v0.2 PR 1)."""
-    return _default_provider
+    """Return the process-wide default/selected provider (honors VIBE_PROVIDER)."""
+    return get_provider()

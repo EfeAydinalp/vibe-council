@@ -40,6 +40,7 @@ from .council import run_mode_stream
 from .decision_memory import DecisionRecord, save_record
 from . import project_workspace as pw
 from . import guards
+from . import providers
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -102,6 +103,22 @@ def _require_api_key() -> Optional[int]:
     _err("Never commit .env — it is gitignored. No-model commands (status, presets,")
     _err("models, decisions, help) work without a key.")
     return EXIT_NOKEY
+
+
+def _require_supported_provider() -> Optional[int]:
+    """Validate the selected provider (VIBE_PROVIDER) before any model call.
+
+    Returns EXIT_USAGE with a clear message when the provider is unsupported,
+    else None. For the default (OpenRouter) this is a no-op, so behavior is
+    unchanged. Runs before the API-key guard so unsupported providers fail fast
+    without requiring any key.
+    """
+    try:
+        providers.get_provider()
+    except providers.UnsupportedProviderError as e:
+        _err(f"Error: {e}")
+        return EXIT_USAGE
+    return None
 
 
 # --------------------------------------------------------------------------- #
@@ -472,6 +489,10 @@ def cmd_mode(args, mode: str) -> int:
         _err(f"Error: {guard}")
         return EXIT_PREMIUM
 
+    bad_provider = _require_supported_provider()
+    if bad_provider is not None:
+        return bad_provider
+
     nokey = _require_api_key()
     if nokey is not None:
         return nokey
@@ -522,6 +543,10 @@ def cmd_diff(args) -> int:
     if guard:
         _err(f"Error: {guard}")
         return EXIT_PREMIUM
+
+    bad_provider = _require_supported_provider()
+    if bad_provider is not None:
+        return bad_provider
 
     project_path = pw.caller_cwd()
     diff = _git_diff(project_path)

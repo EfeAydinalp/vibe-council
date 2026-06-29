@@ -20,6 +20,11 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 # OpenRouter API endpoint
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
+# Provider selection (v0.2). Only "openrouter" is supported today; the active
+# provider is resolved at call time from the VIBE_PROVIDER env var (default
+# below). See backend/providers.py for the selection/validation logic.
+DEFAULT_PROVIDER = "openrouter"
+
 # Data directory for conversation storage
 DATA_DIR = "data/conversations"
 
