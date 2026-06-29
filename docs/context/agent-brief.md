@@ -88,3 +88,7 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 2. Run the **commercial feasibility review** using the research audit + the open-core hypothesis.
 3. Only if dogfooding proves value: scope a **minimal** v0.3 tooling PR with a CI secrets/redaction
    guard — not before. Keep vector/hybrid retrieval and MCP deferred.
+4. **Roadmap:** direction is organized as parallel tracks (core/release, decision-memory + context
+   pack, project memory, MCP/Remote-Control, operator inbox, packs, orchestration, commercial,
+   retrieval, security) with prerequisite-driven version sections. See
+   [track-based roadmap](../plans/track-based-roadmap.md).
