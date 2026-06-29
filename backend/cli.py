@@ -43,6 +43,7 @@ from . import guards
 from . import providers
 from . import doctor as doctor_mod
 from . import redaction
+from . import decisions_docs
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -851,7 +852,90 @@ def _matches(query: str, blob: str) -> bool:
     return all(t in blob for t in terms) if terms else False
 
 
+_DECISIONS_DOCS_ACTIONS = {"list", "show", "new", "lint"}
+
+
 def cmd_decisions(args) -> int:
+    """Dispatch: curated ``docs/decisions/`` (list/show/new/lint) vs the local
+    auto-extract index (search/context)."""
+    if args.action in _DECISIONS_DOCS_ACTIONS:
+        return cmd_decisions_docs(args)
+    return cmd_decisions_local(args)
+
+
+def cmd_decisions_docs(args) -> int:
+    """list / show / new / lint over the curated, committed ``docs/decisions/``
+    records (the source of truth). No model, no API key, no network."""
+    ddir = pw.caller_cwd() / "docs" / "decisions"
+    action = args.action
+
+    if action == "list":
+        records = decisions_docs.list_records(ddir)
+        ftags = getattr(args, "tag", None) or []
+        fstatus = getattr(args, "status", None)
+        if ftags:
+            records = [r for r in records
+                       if any(t in (r.frontmatter.get("tags") or []) for t in ftags)]
+        if fstatus:
+            records = [r for r in records
+                       if str(r.frontmatter.get("status", "")) == fstatus]
+        if not records:
+            print("No curated decision records found (docs/decisions/).")
+            return EXIT_OK
+        print(f"Curated decisions ({len(records)}):")
+        for r in records:
+            fm = r.frontmatter
+            tags = ", ".join(fm.get("tags") or []) or "-"
+            print(f"  {fm.get('date', '?')}  {str(fm.get('status', '?')):<10} {r.stem}")
+            print(f"      {r.title}")
+            print(f"      tags: {tags}")
+        return EXIT_OK
+
+    if action == "show":
+        ident = getattr(args, "query", None)
+        if not ident:
+            _err("Usage: vibe decisions show <id-or-file>")
+            return EXIT_USAGE
+        path = decisions_docs.find_record(ddir, ident)
+        if path is None:
+            _err(f"Error: decision not found under docs/decisions/: {ident}")
+            return EXIT_USAGE
+        print(path.read_text(encoding="utf-8"))
+        return EXIT_OK
+
+    if action == "new":
+        content = decisions_docs.template(
+            title=getattr(args, "title", None),
+            status=getattr(args, "status", None) or "proposed",
+            tags=getattr(args, "tag", None),
+            related=getattr(args, "related", None),
+        )
+        out = getattr(args, "out", None)
+        if out:
+            p = Path(out)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(content, encoding="utf-8")
+            _err(f"[written] decision draft template -> {p}")
+        else:
+            print(content)
+        return EXIT_OK
+
+    # action == "lint"
+    issues = decisions_docs.lint(ddir)
+    for i in issues:
+        print(f"{i.path}:{i.line} [{i.severity.upper()}] {i.rule}: {i.message}")
+    errors = sum(1 for i in issues if i.severity == "error")
+    warns = sum(1 for i in issues if i.severity == "warning")
+    _err(f"[decisions lint] {errors} error(s), {warns} warning(s)")
+    if decisions_docs.has_errors(issues):
+        _err("[decisions lint] FAILED")
+        return EXIT_RUNTIME
+    _err("[decisions lint] passed")
+    return EXIT_OK
+
+
+def cmd_decisions_local(args) -> int:
+    """search / context over the gitignored local auto-extract index."""
     ws = _resolve_workspace(args, create=False)
     if ws is None:
         print("No active council workspace in this directory.")
@@ -860,19 +944,6 @@ def cmd_decisions(args) -> int:
     entries = ws.read_decision_index()
     newest_first = list(reversed(entries))
     action = args.action
-
-    if action == "list":
-        if not newest_first:
-            print("No decisions recorded yet for this project.")
-            return EXIT_OK
-        print(f"Decisions ({len(newest_first)}), newest first:")
-        for e in newest_first:
-            tags = ", ".join(e.get("tags", []) or []) or "-"
-            print(f"  - {e.get('timestamp', '?')}  {e.get('title', '(no title)')}")
-            print(f"      tags: {tags}")
-            print(f"      md:   {e.get('markdown_path', '?')}")
-            print(f"      json: {e.get('json_path', '?')}")
-        return EXIT_OK
 
     # search / context need a query
     query = getattr(args, "query", None)
@@ -995,9 +1066,12 @@ Common commands:
   vibe status                                         # workspace info + guards
   vibe last [review|decision|diff|run]                # print latest artifact
   vibe projects list                                  # list registered projects
-  vibe decisions list                                 # list this project's decisions
-  vibe decisions search "<query>"                     # search decisions (no model)
-  vibe decisions context "<query>"                    # compact context for planning
+  vibe decisions list                                 # list curated docs/decisions records
+  vibe decisions show <id>                            # print a curated decision record
+  vibe decisions new --title "..."                    # print a new decision-record template
+  vibe decisions lint                                 # lint curated decision records (reuses redaction)
+  vibe decisions search "<query>"                     # search local .council decisions (no model)
+  vibe decisions context "<query>"                    # compact local context for planning
   vibe models                                         # show model IDs per preset
   vibe presets                                        # show presets + intended use
   vibe lint --redaction                               # scan public docs for leaks (no model)
@@ -1165,9 +1239,20 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("presets", help="Show available presets and intended use (no model call).")
 
     sp_dec = sub.add_parser("decisions", parents=[p_proj],
-                            help="List/search project decisions (no model calls).")
-    sp_dec.add_argument("action", choices=["list", "search", "context"])
-    sp_dec.add_argument("query", nargs="?", help="Query for search/context.")
+                            help="Curated decision records + local search (no model calls).")
+    sp_dec.add_argument("action",
+                        choices=["list", "show", "new", "lint", "search", "context"])
+    sp_dec.add_argument("query", nargs="?",
+                        help="id/file for `show`; query for `search`/`context`.")
+    sp_dec.add_argument("--title", help="Title for `new`.")
+    sp_dec.add_argument("--status",
+                        help="Status for `new`; or filter for `list`.")
+    sp_dec.add_argument("--tag", action="append",
+                        help="Tag for `new`; or filter for `list` (repeatable).")
+    sp_dec.add_argument("--related", action="append",
+                        help="Related id for `new` (repeatable).")
+    sp_dec.add_argument("--out",
+                        help="Write the `new` template to this path instead of stdout.")
 
     sub.add_parser("status", parents=[p_proj], help="Show active workspace info.")
 

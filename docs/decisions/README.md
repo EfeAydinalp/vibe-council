@@ -32,5 +32,6 @@ seed** for the linked decision-memory direction (see
 - [Operator control loop / approval inbox](./2026-06-29-operator-control-loop.md) — accepted
 - [Redaction guard (`vibe lint --redaction`)](./2026-06-30-redaction-guard.md) — accepted
 - [License/provenance is Question 0 (commercial gate)](./2026-06-30-license-provenance-question-zero.md) — accepted
+- [Decision memory CLI skeleton](./2026-06-30-decision-cli-skeleton.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

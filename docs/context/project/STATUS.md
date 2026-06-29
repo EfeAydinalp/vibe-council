@@ -15,13 +15,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #36 merged** — project-memory folder convention (this `docs/context/project/` seed).
 - **PR #37 merged** — operator control loop / approval inbox spec.
 - **PR #38 merged** — redaction guard (`vibe lint --redaction` + redaction policy).
-- **Council roadmap review done** — verdict: proceed to v0.3; blockers: redaction guard (done) + license/provenance.
-- **Current focus:** license/provenance "Question 0" checklist (commercial gate).
+- **PR #39 merged** — license/provenance "Question 0" checklist (commercial gate).
+- **Current focus:** v0.3 decision-memory CLI skeleton — `vibe decisions list/show/new/lint` over
+  curated `docs/decisions/`.
 
 ## Next actions
 
-1. Finish the license/provenance checklist (upstream evidence → derived-file inventory → deps).
-2. Then v0.3 decision-memory tooling (`decisions new/lint/promote`) + extract/promote planning.
+1. Land the decision-memory CLI skeleton.
+2. Then `vibe decisions promote` (raw run → curated draft → human approve) + extract/promote.
 3. Then the context-pack builder MVP (deterministic, token-budgeted).
 
 ## Blockers / open risks
