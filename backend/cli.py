@@ -41,6 +41,7 @@ from .decision_memory import DecisionRecord, save_record
 from . import project_workspace as pw
 from . import guards
 from . import providers
+from . import doctor as doctor_mod
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -655,6 +656,44 @@ def cmd_models(args) -> int:
     return EXIT_OK
 
 
+_DOCTOR_MARKS = {
+    doctor_mod.STATUS_OK: "[ok]  ",
+    doctor_mod.STATUS_WARN: "[warn]",
+    doctor_mod.STATUS_FAIL: "[fail]",
+}
+
+
+def cmd_doctor(args) -> int:
+    """Diagnose provider configuration/reachability. Runs NO inference and never
+    prints the API key. Exit: 0 all-pass, 1 a check failed, 2 unsupported provider."""
+    online = not getattr(args, "offline", False)
+    try:
+        checks, provider_name = doctor_mod.run_doctor(online=online)
+    except providers.UnsupportedProviderError as e:
+        _err(f"Error: {e}")
+        return EXIT_USAGE
+
+    print(f"vibe-council {__version__}")
+    print(f"Selected provider:   {provider_name}")
+    print(f"Supported providers: {', '.join(providers.SUPPORTED_PROVIDERS)}")
+    print("Env vars:            VIBE_PROVIDER, OPENROUTER_API_KEY (openrouter), "
+          "OLLAMA_HOST (ollama) — values not shown")
+    if not online:
+        print("Mode:                offline (network reachability checks skipped)")
+    print("")
+    for c in checks:
+        print(f"{_DOCTOR_MARKS.get(c.status, '[?]   ')} {c.name}: {c.detail}")
+
+    code = doctor_mod.doctor_exit_code(checks)
+    if code != 0:
+        print("\nOne or more checks failed.")
+    elif any(c.status == doctor_mod.STATUS_WARN for c in checks):
+        print("\nNo failures (some warnings).")
+    else:
+        print("\nAll checks passed.")
+    return code
+
+
 def cmd_presets(args) -> int:
     """Print available presets and their intended use. No model call."""
     print("Available presets (combine with any mode):\n")
@@ -1084,6 +1123,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("status", parents=[p_proj], help="Show active workspace info.")
 
+    sp_doctor = sub.add_parser(
+        "doctor", help="Diagnose provider configuration/reachability (no inference).")
+    sp_doctor.add_argument("--offline", action="store_true",
+                           help="Skip network reachability checks (config checks only).")
+
     sp_last = sub.add_parser("last", parents=[p_proj], help="Print the latest saved artifact.")
     sp_last.add_argument("artifact_type", nargs="?", choices=["review", "decision", "diff", "run"])
 
@@ -1126,6 +1170,8 @@ def main(argv=None) -> int:
         return cmd_decisions(args)
     if cmd == "status":
         return cmd_status(args)
+    if cmd == "doctor":
+        return cmd_doctor(args)
     if cmd == "last":
         return cmd_last(args)
     if cmd == "help":
