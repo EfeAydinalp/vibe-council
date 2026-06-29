@@ -92,3 +92,5 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
    pack, project memory, MCP/Remote-Control, operator inbox, packs, orchestration, commercial,
    retrieval, security) with prerequisite-driven version sections. See
    [track-based roadmap](../plans/track-based-roadmap.md).
+5. **Project memory (dogfood):** public-safe project-memory seed at
+   [`docs/context/project/README.md`](project/README.md) and [`STATUS.md`](project/STATUS.md).
