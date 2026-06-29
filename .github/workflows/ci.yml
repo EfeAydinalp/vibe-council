@@ -22,7 +22,7 @@ jobs:
 
       - name: Install runtime dependencies
         # Runtime deps only (from pyproject); no API key, no real model calls.
-        run: pip install fastapi "uvicorn[standard]" python-dotenv httpx pydantic
+        run: pip install python-dotenv httpx pydantic
 
       - name: Compile / import check
         run: |

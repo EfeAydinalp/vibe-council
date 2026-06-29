@@ -91,7 +91,7 @@ dependencies declared in `pyproject.toml` directly:
 ```powershell
 python -m venv .venv
 .venv\Scripts\activate
-pip install fastapi "uvicorn[standard]" python-dotenv httpx pydantic
+pip install python-dotenv httpx pydantic
 ```
 
 Then add your OpenRouter API key:
