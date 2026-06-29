@@ -42,6 +42,7 @@ from . import project_workspace as pw
 from . import guards
 from . import providers
 from . import doctor as doctor_mod
+from . import redaction
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -706,6 +707,40 @@ def cmd_doctor(args) -> int:
     return code
 
 
+def cmd_lint(args) -> int:
+    """Redaction guard for public docs. No model call, no API key.
+
+    Scans the given paths (or, by default, the tracked public docs) for risky
+    content. Prints `path:line:col [SEVERITY] rule-id: message — match: <masked>`
+    to stdout. Exit 0 when clean; non-zero when a blocking finding exists
+    (criticals always; warnings only with --strict). Secret/path matches are
+    masked; full secret values are never printed. See docs/redaction-policy.md.
+    """
+    root = pw.caller_cwd()
+    paths = getattr(args, "paths", None) or []
+    findings = redaction.scan_paths(paths, root)
+
+    criticals = sum(1 for f in findings if f.severity == redaction.CRITICAL)
+    warnings = sum(1 for f in findings if f.severity == redaction.WARNING)
+
+    for f in findings:
+        sev = f.severity.upper()
+        print(f"{f.path}:{f.line}:{f.col} [{sev}] {f.rule_id}: {f.message} — "
+              f"match: {f.match}")
+
+    target_desc = "given paths" if paths else "tracked public docs"
+    _err(f"[lint] redaction scan of {target_desc}: "
+         f"{criticals} critical, {warnings} warning(s)")
+    if warnings and not getattr(args, "strict", False):
+        _err("[lint] warnings are advisory (use --strict to fail on them)")
+
+    if redaction.has_blocking(findings, strict=getattr(args, "strict", False)):
+        _err("[lint] redaction check FAILED")
+        return EXIT_RUNTIME
+    _err("[lint] redaction check passed")
+    return EXIT_OK
+
+
 def cmd_presets(args) -> int:
     """Print available presets and their intended use. No model call."""
     print("Available presets (combine with any mode):\n")
@@ -965,6 +1000,7 @@ Common commands:
   vibe decisions context "<query>"                    # compact context for planning
   vibe models                                         # show model IDs per preset
   vibe presets                                        # show presets + intended use
+  vibe lint --redaction                               # scan public docs for leaks (no model)
   vibe --version
   vibe help
   vibe guide claude
@@ -1140,6 +1176,15 @@ def _build_parser() -> argparse.ArgumentParser:
     sp_doctor.add_argument("--offline", action="store_true",
                            help="Skip network reachability checks (config checks only).")
 
+    sp_lint = sub.add_parser(
+        "lint", help="Redaction guard for public docs (no model call).")
+    sp_lint.add_argument("--redaction", action="store_true",
+                         help="Run the redaction check (the only check today; default).")
+    sp_lint.add_argument("--strict", action="store_true",
+                         help="Also fail on warnings (default: warnings are advisory).")
+    sp_lint.add_argument("paths", nargs="*",
+                         help="Files/dirs to scan (default: tracked public docs).")
+
     sp_last = sub.add_parser("last", parents=[p_proj], help="Print the latest saved artifact.")
     sp_last.add_argument("artifact_type", nargs="?", choices=["review", "decision", "diff", "run"])
 
@@ -1184,6 +1229,8 @@ def main(argv=None) -> int:
         return cmd_status(args)
     if cmd == "doctor":
         return cmd_doctor(args)
+    if cmd == "lint":
+        return cmd_lint(args)
     if cmd == "last":
         return cmd_last(args)
     if cmd == "help":
