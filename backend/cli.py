@@ -748,11 +748,12 @@ def _under_docs(p: Path) -> bool:
 
 
 def cmd_context(args) -> int:
-    """Build a deterministic, local-first context pack from curated project memory.
-    No model, API key, or network. Writes to gitignored .council/context/ by default;
-    refuses output under docs/ unless --allow-docs; blocks on critical redaction findings."""
+    """Build or check a deterministic, local-first context pack. No model, API key,
+    or network."""
+    if args.action == "check":
+        return _cmd_context_check(args)
     if args.action != "build":
-        _err("Usage: vibe context build")
+        _err("Usage: vibe context build | vibe context check")
         return EXIT_USAGE
 
     root = pw.caller_cwd()
@@ -788,6 +789,54 @@ def cmd_context(args) -> int:
          f"redaction critical=0 warning={len(warns)}")
     _err("[context] LOCAL/gitignored by default; NOT staged/committed")
     return EXIT_OK
+
+
+def _cmd_context_check(args) -> int:
+    """Deterministic context-quality harness (read-only; no model/API/network)."""
+    root = pw.caller_cwd()
+    pack_path = Path(getattr(args, "file", None)
+                     or (root / ".council" / "context" / "pack-latest.md"))
+    if not pack_path.is_file():
+        _err(f"[context] pack not found: {pack_path}")
+        _err("[context] run `vibe context build` first.")
+        return EXIT_USAGE
+
+    text = pack_path.read_text(encoding="utf-8", errors="replace")
+    min_score = getattr(args, "min_score", None)
+    res = context_pack.check_pack(
+        text, strict=getattr(args, "strict", False),
+        min_score=(min_score if min_score is not None else context_pack.DEFAULT_MIN_SCORE))
+
+    if getattr(args, "json", False):
+        crit = sum(1 for f in res.redaction_findings if f.severity == redaction.CRITICAL)
+        warn = sum(1 for f in res.redaction_findings if f.severity == redaction.WARNING)
+        print(json.dumps({
+            "ok": res.ok,
+            "score": round(res.score, 3),
+            "passed": res.passed,
+            "total": res.total,
+            "redaction": {"critical": crit, "warning": warn},
+            "reasons": res.reasons,
+            "checks": [{"name": c.name, "ok": c.ok, "required": c.required,
+                        "category": c.category} for c in res.checks],
+        }, ensure_ascii=False, indent=2))
+    else:
+        for c in res.checks:
+            mark = "ok  " if c.ok else "MISS"
+            req = "required" if c.required else "advisory"
+            print(f"  [{mark}] {c.name} ({req})")
+        crit = sum(1 for f in res.redaction_findings if f.severity == redaction.CRITICAL)
+        warn = sum(1 for f in res.redaction_findings if f.severity == redaction.WARNING)
+        print(f"score: {res.passed}/{res.total} ({res.score:.0%}); "
+              f"redaction critical={crit} warning={warn}")
+        for r in res.reasons:
+            _err(f"[context-check] {r}")
+
+    if res.ok:
+        _err("[context-check] PASS")
+        return EXIT_OK
+    _err("[context-check] FAIL")
+    return EXIT_RUNTIME
 
 
 def cmd_presets(args) -> int:
@@ -1188,6 +1237,7 @@ Common commands:
   vibe presets                                        # show presets + intended use
   vibe lint --redaction                               # scan public docs for leaks (no model)
   vibe context build                                  # build a local context pack (no model)
+  vibe context check                                  # check pack quality (deterministic, no model)
   vibe --version
   vibe help
   vibe guide claude
@@ -1386,18 +1436,26 @@ def _build_parser() -> argparse.ArgumentParser:
                            help="Skip network reachability checks (config checks only).")
 
     sp_ctx = sub.add_parser(
-        "context", help="Build a local context pack from curated memory (no model call).")
-    sp_ctx.add_argument("action", choices=["build"])
+        "context", help="Build/check a local context pack from curated memory (no model call).")
+    sp_ctx.add_argument("action", choices=["build", "check"])
     sp_ctx.add_argument("--output",
-                        help="Pack output path (default: .council/context/pack-latest.md).")
+                        help="`build`: pack output path (default: .council/context/pack-latest.md).")
     sp_ctx.add_argument("--max-chars", type=int,
-                        help=f"Character budget (default: {context_pack.DEFAULT_MAX_CHARS}).")
+                        help=f"`build`: character budget (default: {context_pack.DEFAULT_MAX_CHARS}).")
     sp_ctx.add_argument("--status",
-                        help="STATUS.md path (default: docs/context/project/STATUS.md).")
+                        help="`build`: STATUS.md path (default: docs/context/project/STATUS.md).")
     sp_ctx.add_argument("--decisions-dir",
-                        help="Decisions dir (default: docs/decisions).")
+                        help="`build`: decisions dir (default: docs/decisions).")
     sp_ctx.add_argument("--allow-docs", action="store_true",
-                        help="Allow writing the pack under docs/ (default: refused).")
+                        help="`build`: allow writing the pack under docs/ (default: refused).")
+    sp_ctx.add_argument("--file",
+                        help="`check`: pack to read (default: .council/context/pack-latest.md).")
+    sp_ctx.add_argument("--strict", action="store_true",
+                        help="`check`: also fail on advisory misses and redaction warnings.")
+    sp_ctx.add_argument("--json", action="store_true",
+                        help="`check`: print a JSON report.")
+    sp_ctx.add_argument("--min-score", type=float,
+                        help=f"`check`: pass threshold (default: {context_pack.DEFAULT_MIN_SCORE}).")
 
     sp_lint = sub.add_parser(
         "lint", help="Redaction guard for public docs (no model call).")
