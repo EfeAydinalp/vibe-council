@@ -49,5 +49,6 @@ seed** for the linked decision-memory direction (see
 - [v0.4 read-only MCP contract skeleton (no server yet)](./2026-07-01-read-only-mcp-contract-skeleton.md) — accepted
 - [Read-only MCP server skeleton: status + decisions only](./2026-07-01-read-only-mcp-server-skeleton.md) — accepted
 - [MCP context pack + health are read-only in-memory reads](./2026-07-01-mcp-context-pack-health.md) — accepted
+- [Minimal read-only MCP stdio transport (stdlib, no SDK)](./2026-07-01-minimal-mcp-stdio-transport.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

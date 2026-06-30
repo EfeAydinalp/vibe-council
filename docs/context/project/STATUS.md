@@ -26,27 +26,17 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **v0.3 decision-memory / context loop is implemented end-to-end** (extract → promote → lint →
   build → check → export, plus redaction guard and operator status).
 - **v0.3.0 released** (decision-memory + curated project context; 209 tests).
-- **v0.3.1 dogfood hardening complete** (PRs #49–#51): `promote` rejects placeholder-only drafts and
-  writes `YYYY-MM-DD-slug.md`; `new --from-run` maps review sections; `context check` is **21/21**
-  (human-review signal in packs; budget 14000); plus a CLI UX pass. See
-  [`v0.3.1 release prep`](../../decisions/2026-06-30-v0.3.1-release-prep.md) and
-  [`dogfood notes`](../../dogfood/v0.3.1-notes.md).
-- **v0.3.1 released** (tag `v0.3.1`); release-note links are tag-pinned absolute (link hygiene done).
-- **Context-pack budget stabilized** (PR #55): trim order keeps the rejected-alternatives index and
-  human-review signal under the default 14000 budget (dropped only as a last resort); the
-  rejected-alternatives index is built from all curated records. Char budget stays naive;
-  token-aware budget remains deferred. See
-  [`budget headroom`](../../decisions/2026-07-01-context-pack-budget-headroom.md).
-- **v0.4 MCP contract skeleton** (PR #56): testable read-only contract (`backend/mcp_contract.py`) +
-  `vibe mcp contract`.
-- **v0.4 MCP read-only read layer** (PRs #57–#58): dependency-free `backend/mcp_server.py` for status,
-  curated decisions, and the **context pack + health** (`get_project_status` / `list_decisions` /
-  `show_decision` / `get_context_pack` / `check_context_health`) + `vibe mcp inspect [--context]
-  [--health]`. Context reads are **in-memory — no `.council/` files written**; path-guarded; no
-  private-plan reads. MCP stdio transport (+ `mcp` SDK decision) deferred. See
-  [`MCP context pack health`](../../decisions/2026-07-01-mcp-context-pack-health.md).
-- **Current focus:** **v0.4 read-only MCP** — next: MCP stdio transport + Claude Code setup docs
-  (rejected/release/constraints standalone resources still deferred). See
+- **v0.3.1 released** (tag `v0.3.1`): dogfood hardening (decision-CLI fixes, `context check` 21/21,
+  CLI UX) + release-link hygiene; context-pack budget stabilized (trim order keeps core signals under
+  the 14000 char budget; token-aware budget deferred — PR #55).
+- **v0.4 read-only MCP (in progress):** contract + dependency-free read layer + a minimal stdlib
+  stdio transport — `vibe mcp contract` / `inspect [--context --health]` / `serve --stdio`. Exposes
+  status, curated decisions, and the context pack + health (`get_project_status` / `list_decisions` /
+  `show_decision` / `get_context_pack` / `check_context_health`); **read-only, no `mcp` SDK, no
+  `.council/` writes, no write/git/shell/provider tools**. See
+  [`minimal MCP stdio transport`](../../decisions/2026-07-01-minimal-mcp-stdio-transport.md).
+- **Current focus:** **v0.4 read-only MCP** — next: Claude Code setup docs, then v0.4 dogfood +
+  release prep (rejected/release/constraints standalone resources still deferred). See
   [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
 
 ## Next actions

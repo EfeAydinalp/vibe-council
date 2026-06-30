@@ -726,12 +726,19 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
 
 - **v0.4 read-only MCP / Claude Code workflow** *(in progress)* — query curated decisions, status,
   and the context pack from Claude Code / local agents with **no write/action authority**. Browse the
-  planned contract with `vibe mcp contract`; run a read-only smoke over the implemented surface with
-  `vibe mcp inspect` — project status + curated decisions (`--id <id>` shows one decision), plus the
-  context pack and deterministic health check (`--context` / `--health`, built **in memory** so no
-  `.council/` file is written), and `--json` for a report. All **read-only and start no server** —
-  the MCP stdio transport is a later increment. See
+  planned contract with `vibe mcp contract`; run a read-only smoke with `vibe mcp inspect`
+  (`--id <id>`, `--context`, `--health`, `--json` — context pack/health are built **in memory**, no
+  `.council/` file written); and start the read-only MCP server for Claude Code / MCP clients with
+  `vibe mcp serve --stdio` (a minimal stdlib JSON-RPC stdio transport — **no extra dependency**, no
+  HTTP port, no daemon). **No write/action tools are exposed** (no promote/file/git/shell/provider);
+  only status, curated decisions, the context pack, and a health check are readable. See
   [`docs/plans/v0.4-read-only-mcp-workflow.md`](docs/plans/v0.4-read-only-mcp-workflow.md).
+
+  ```sh
+  vibe mcp contract                 # planned read-only resources/tools + forbidden tools
+  vibe mcp inspect --context --health   # read-only smoke (in memory; nothing written)
+  vibe mcp serve --stdio            # read-only MCP server over stdio (no write tools)
+  ```
 - Record the real demo GIF / asciinema of the review → diff → extract loop *(follow-up)*
 - Provider-specific preset/model config (so Ollama doesn't need `VIBE_OLLAMA_MODEL` per run)
 

@@ -1270,12 +1270,14 @@ def cmd_decisions_local(args) -> int:
 def cmd_mcp(args) -> int:
     """`mcp contract` | `mcp inspect`: the read-only MCP surface (v0.4).
 
-    Both actions are read-only, deterministic, stdlib-only: they start no server,
-    open no socket, need no MCP dependency, make no model/provider/network call,
-    and write nothing. `contract` prints the planned surface; `inspect` runs a
-    bounded read-only smoke over the *implemented* surface (status + decisions)."""
+    All actions are read-only, stdlib-only: no write/git/shell/provider/model calls.
+    `contract` prints the planned surface; `inspect` runs a bounded read-only smoke;
+    `serve --stdio` starts the minimal read-only MCP stdio transport (no socket/HTTP,
+    no daemon, no `.council/` writes)."""
     if getattr(args, "action", None) == "inspect":
         return _cmd_mcp_inspect(args)
+    if getattr(args, "action", None) == "serve":
+        return _cmd_mcp_serve(args)
 
     if getattr(args, "json", False):
         print(json.dumps(mcp_contract.contract_dict(), ensure_ascii=False, indent=2))
@@ -1364,6 +1366,23 @@ def _cmd_mcp_inspect(args) -> int:
 
     _err("[mcp] read-only inspect; no server started, no .council/ file written.")
     return EXIT_OK
+
+
+def _cmd_mcp_serve(args) -> int:
+    """`mcp serve --stdio`: start the minimal read-only MCP stdio transport.
+
+    Speaks newline-delimited JSON-RPC over stdin/stdout for the existing read-only
+    surface (status, decisions, context pack, health). No socket/HTTP port, no
+    daemon, no write/git/shell/provider/model calls, no `.council/` writes. Runs
+    until stdin EOF. `--stdio` is required (the only transport)."""
+    from . import mcp_stdio
+    if not getattr(args, "stdio", False):
+        _err("Usage: vibe mcp serve --stdio   (stdio is the only supported transport)")
+        return EXIT_USAGE
+    root = pw.caller_cwd()
+    _err("[mcp] read-only stdio transport (JSON-RPC); no write tools, no .council/ writes. "
+         "Reading stdin until EOF.")
+    return mcp_stdio.serve_stdio(root, sys.stdin, sys.stdout)
 
 
 def cmd_last(args) -> int:
@@ -1718,14 +1737,17 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_mcp = sub.add_parser(
         "mcp", help="Read-only MCP surface (no server): print the contract or inspect status+decisions.")
-    sp_mcp.add_argument("action", choices=["contract", "inspect"],
+    sp_mcp.add_argument("action", choices=["contract", "inspect", "serve"],
                         help="contract: print read-only resources/tools + forbidden tools. "
-                             "inspect: read-only smoke over status + curated decisions.")
+                             "inspect: read-only smoke over status/decisions/context. "
+                             "serve: start the read-only MCP stdio transport (--stdio).")
     sp_mcp.add_argument("--id", help="inspect: also show one curated decision by id/stem.")
     sp_mcp.add_argument("--context", action="store_true",
                         help="inspect: also build the context pack in memory (no file written).")
     sp_mcp.add_argument("--health", action="store_true",
                         help="inspect: also run the deterministic context health check (in memory).")
+    sp_mcp.add_argument("--stdio", action="store_true",
+                        help="serve: use the stdio transport (newline-delimited JSON-RPC).")
     sp_mcp.add_argument("--json", action="store_true", help="Print output as JSON.")
 
     sp_last = sub.add_parser("last", parents=[p_proj], help="Print the latest saved artifact.")
