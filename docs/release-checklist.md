@@ -114,6 +114,30 @@ tiered so you can tell what blocks a release from what's nice to confirm:
       release bodies — e.g. `https://github.com/<owner>/<repo>/blob/<tag>/README.md`.
 - [ ] 🟡 Mark the release as **latest**.
 
+### Release link hygiene
+
+The `docs/releases/vX.Y.Z.md` file is pasted **verbatim** as the GitHub Release body
+(`gh release create ... --notes-file docs/releases/vX.Y.Z.md`). GitHub resolves relative
+links on a Release page **differently** from the in-repo file view, so a relative
+`../plans/foo.md` or `docs/...` link that works in the repo **404s on the Release page**.
+
+- [ ] 🔴 **No fragile relative links in release-note files.** In `docs/releases/*.md`, do
+      **not** use `../...`, `./...`, or `docs/...` links — they break in the Release body.
+      Use **tag-pinned absolute URLs**:
+      `https://github.com/EfeAydinalp/vibe-council/blob/vX.Y.Z/<path>` (pin to the
+      release's own tag, not `master`, so the link is stable). Quick audit:
+      `grep -nE "\]\((\.\.?/|docs/)" docs/releases/*.md` should return nothing.
+- [ ] 🔴 **Check release-note links before tag/release** — confirm each link target exists
+      at the tag: `git cat-file -e vX.Y.Z:<path>`.
+- [ ] 🟡 **Check the GitHub Release body links after publishing** — open the Release page
+      (or `gh release view vX.Y.Z --json body -q .body | grep -oE "\]\([^)]+\)"`) and click
+      through; nothing should 404.
+- [ ] 🟡 Verify links to: **CHANGELOG**, the **release notes** file, the **roadmap**
+      (`docs/plans/track-based-roadmap.md`), **decisions** (`docs/decisions/...`), the
+      **redaction policy** (`docs/redaction-policy.md`), and **dogfood notes** if referenced.
+- [ ] 🟡 If a Release body is **edited after publishing** (e.g. to fix a link), **record it
+      in the release report** (which tag, what changed) so the edit is auditable.
+
 ## 9. Post-release verification
 
 - [ ] 🔴 Fresh clone → install → `vibe --version` prints the release version.
