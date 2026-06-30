@@ -753,8 +753,10 @@ def cmd_context(args) -> int:
     or network."""
     if args.action == "check":
         return _cmd_context_check(args)
+    if args.action == "export":
+        return _cmd_context_export(args)
     if args.action != "build":
-        _err("Usage: vibe context build | vibe context check")
+        _err("Usage: vibe context build | check | export claude-code")
         return EXIT_USAGE
 
     root = pw.caller_cwd()
@@ -838,6 +840,64 @@ def _cmd_context_check(args) -> int:
         return EXIT_OK
     _err("[context-check] FAIL")
     return EXIT_RUNTIME
+
+
+def _cmd_context_export(args) -> int:
+    """`context export claude-code`: wrap the local pack as a Claude Code-friendly
+    context file. Read-only on inputs; writes one gitignored local file. No model/
+    API/network. Blocks on a failing quality check or a critical redaction finding;
+    never modifies CLAUDE.md or writes under docs/ (unless --allow-docs)."""
+    target = getattr(args, "target", None)
+    if target != "claude-code":
+        _err("Usage: vibe context export claude-code")
+        return EXIT_USAGE
+
+    root = pw.caller_cwd()
+    inp = Path(getattr(args, "input", None)
+               or (root / ".council" / "context" / "pack-latest.md"))
+    if not inp.is_file():
+        _err(f"[context-export] pack not found: {inp}")
+        _err("[context-export] run `vibe context build` first.")
+        return EXIT_USAGE
+
+    pack_text = inp.read_text(encoding="utf-8", errors="replace")
+
+    # quality gate (includes redaction): a failing check blocks export.
+    res = context_pack.check_pack(pack_text)
+    if not res.ok:
+        _err("[context-export] context check failed; not exporting:")
+        for r in res.reasons:
+            _err(f"  - {r}")
+        _err("[context-export] fix the pack (see `vibe context check`) and retry.")
+        return EXIT_RUNTIME
+
+    export_text = context_pack.wrap_for_claude_code(pack_text)
+
+    # belt-and-suspenders: scan the final wrapped export too.
+    crit = [f for f in redaction.scan_text(export_text, "<claude-code-export>")
+            if f.severity == redaction.CRITICAL]
+    if crit:
+        _err(f"[context-export] BLOCKED: {len(crit)} critical redaction finding(s); not writing")
+        for f in crit:
+            _err(f"  - line {f.line} {f.rule_id}: {f.message} (match {f.match})")
+        return EXIT_RUNTIME
+
+    out = Path(getattr(args, "output", None)
+               or (root / ".council" / "context" / "claude-code-context.md"))
+    if _under_docs(out) and not getattr(args, "allow_docs", False):
+        _err("[context-export] refusing to write under docs/ (use --allow-docs to override)")
+        return EXIT_USAGE
+
+    if getattr(args, "dry_run", False):
+        print(f"[dry-run] would write: {out}")
+        return EXIT_OK
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(export_text, encoding="utf-8")
+    print(str(out))
+    _err(f"[context-export] wrote Claude Code context ({len(export_text)} chars)")
+    _err("[context-export] LOCAL/gitignored; NOT staged/committed; CLAUDE.md not modified")
+    return EXIT_OK
 
 
 def cmd_operator(args) -> int:
@@ -1294,6 +1354,7 @@ Common commands:
   vibe lint --redaction                               # scan public docs for leaks (no model)
   vibe context build                                  # build a local context pack (no model)
   vibe context check                                  # check pack quality (deterministic, no model)
+  vibe context export claude-code                     # wrap the pack as a local Claude Code context
   vibe operator status                                # show local workflow status (no model)
   vibe --version
   vibe help
@@ -1507,9 +1568,17 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_ctx = sub.add_parser(
         "context", help="Build/check a local context pack from curated memory (no model call).")
-    sp_ctx.add_argument("action", choices=["build", "check"])
+    sp_ctx.add_argument("action", choices=["build", "check", "export"])
+    sp_ctx.add_argument("target", nargs="?",
+                        help="`export`: target (claude-code).")
+    sp_ctx.add_argument("--input",
+                        help="`export`: pack to read (default: .council/context/pack-latest.md).")
+    sp_ctx.add_argument("--dry-run", action="store_true",
+                        help="`export`: validate + show target, but write nothing.")
     sp_ctx.add_argument("--output",
-                        help="`build`: pack output path (default: .council/context/pack-latest.md).")
+                        help="`build`/`export`: output path "
+                             "(build default .council/context/pack-latest.md; "
+                             "export default .council/context/claude-code-context.md).")
     sp_ctx.add_argument("--max-chars", type=int,
                         help=f"`build`: character budget (default: {context_pack.DEFAULT_MAX_CHARS}).")
     sp_ctx.add_argument("--status",
