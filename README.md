@@ -368,16 +368,19 @@ vibe decisions lint                       # lint records (frontmatter, headings,
 
 - `vibe decisions new` prints a draft template (frontmatter + stable headings); it
   **never auto-commits or auto-promotes**. Pass `--out PATH` to write it somewhere.
-- `vibe decisions new --from-run <review.md>` extracts a **local** draft (verdict / risks /
-  next-actions heuristics, no LLM) into gitignored `.council/decisions/drafts/`. It runs a
-  redaction scan and **reports** findings (advisory — fix before promote), refuses to write
-  under `docs/decisions/`, and **never stages/commits**. Then review/redact the draft and run
-  `vibe decisions promote <draft>`.
+- `vibe decisions new --from-run <review.md>` extracts a **local** draft into gitignored
+  `.council/decisions/drafts/`, mapping a review's verdict, rationale, alternatives, risks/
+  consequences, and next actions into the matching record sections (deterministic heuristics,
+  no LLM; unmatched sections keep `TODO` markers). It runs a redaction scan and **reports**
+  findings (advisory — fix before promote), refuses to write under `docs/decisions/`, and
+  **never stages/commits**. Then review/redact the draft and run `vibe decisions promote <draft>`.
 - `vibe decisions promote <draft.md>` validates a **human-reviewed** draft (frontmatter,
-  headings, redaction) and writes the curated record into `docs/decisions/`. It refuses
-  unsafe paths, refuses overwrite without `--force`, supports `--dry-run`, and **never
-  auto-stages, commits, or reads raw `.council/` run logs**. It prints the created path and
-  suggests `git diff` / `vibe decisions lint` as the next steps.
+  headings, redaction) and writes the curated record into `docs/decisions/` as a
+  `YYYY-MM-DD-slug.md` file. It requires **meaningful (non-placeholder) content** in the core
+  sections (Decision, Rationale, and Consequences/Next actions) — an all-`TODO` scaffold is
+  refused. It refuses unsafe paths, refuses overwrite without `--force`, supports `--dry-run`,
+  and **never auto-stages, commits, or reads raw `.council/` run logs**. It prints the created
+  path and suggests `git diff` / `vibe decisions lint` as the next steps.
 - `vibe decisions lint` reuses the redaction guard ([`docs/redaction-policy.md`](docs/redaction-policy.md))
   and exits non-zero on serious errors. `show` is path-traversal guarded to
   `docs/decisions/` only.

@@ -32,6 +32,9 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #50 (v0.3.1):** context packs now carry the human-review promotion boundary and the char
   budget was bumped to 14000; `vibe context check` passes **21/21** on the real repo. See
   [`context-human-review-signal`](../../decisions/2026-06-30-context-human-review-signal.md).
+- **PR #51 (v0.3.1):** small CLI UX polish — clearer `lint --redaction` verdict, `context build`
+  budget note, `context check` advisory-miss summary, and `decisions` help boundary. See
+  [`v0.3.1-ux-consistency`](../../decisions/2026-06-30-v0.3.1-ux-consistency.md).
 - **Current focus:** **v0.3.1 hardening / dogfood** — exercise the v0.3 loop on real tasks and fix
   rough edges before new features. See [`docs/dogfood/v0.3.1-notes.md`](../../dogfood/v0.3.1-notes.md).
 
