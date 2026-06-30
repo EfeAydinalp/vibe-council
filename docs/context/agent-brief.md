@@ -77,10 +77,11 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   and a dependency-free read layer (`backend/mcp_server.py` + `vibe mcp inspect`) for **status,
   curated decisions, and the context pack + health** (`get_project_status` / `list_decisions` /
   `show_decision` / `get_context_pack` / `check_context_health`). Context reads are **in-memory — no
-  `.council/` files written**. **No MCP stdio transport / no `mcp` SDK yet** (deferred); standalone
-  rejected/release/constraints resources deferred. Write/action MCP, personas/advisors, app/TUI, and
-  community features are **future work**. See
-  [MCP context pack health](../decisions/2026-07-01-mcp-context-pack-health.md).
+  `.council/` files written**. A minimal **stdlib stdio transport** (`backend/mcp_stdio.py` + `vibe
+  mcp serve --stdio`, newline-delimited JSON-RPC) exposes exactly that surface — **no `mcp` SDK
+  dependency**. Standalone rejected/release/constraints resources are deferred. Write/action MCP,
+  personas/advisors, app/TUI, and community features are **future work**. See
+  [minimal MCP stdio transport](../decisions/2026-07-01-minimal-mcp-stdio-transport.md).
 
 ## Accepted decisions (curated set)
 
