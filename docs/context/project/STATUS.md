@@ -19,13 +19,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #40 merged** — decision-memory CLI skeleton (`vibe decisions list/show/new/lint`).
 - **PR #41 merged** — `vibe decisions promote` (safe draft → curated `docs/decisions/`).
 - **PR #42 merged** — `vibe decisions new --from-run` (extract a LOCAL draft from raw council output).
-- **Current focus:** `vibe context build` — deterministic, local-first context-pack builder MVP.
+- **PR #43 merged** — `vibe context build` (deterministic, local-first context-pack builder MVP).
+- **Current focus:** `vibe context check` — deterministic context-quality harness (not an LLM eval).
 
 ## Next actions
 
-1. Land the context-pack builder MVP (`vibe context build`).
+1. Land the context-quality harness (`vibe context check`).
 2. Then a token-aware budget + optional MCP read-only export of the pack.
-3. Then rolling summaries / context-quality measurement.
+3. Then rolling summaries and (eventually) an LLM-based context eval.
 
 ## Blockers / open risks
 

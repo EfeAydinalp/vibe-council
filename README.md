@@ -400,6 +400,8 @@ vibe decisions context "agent workflow"
 ```powershell
 vibe context build                        # assemble a local context pack from curated memory
 vibe context build --max-chars 8000       # tighten the budget
+vibe context check                        # check pack quality (deterministic, no LLM)
+vibe context check --json --strict        # machine-readable; fail on advisory misses/warnings
 ```
 
 - `vibe context build` **deterministically** assembles a compact agent context pack from
@@ -410,6 +412,11 @@ vibe context build --max-chars 8000       # tighten the budget
 - Output defaults to **gitignored `.council/context/pack-latest.md`** (local-first); it **refuses to
   write under `docs/` unless `--allow-docs`** and **never stages/commits**. A character budget
   (`--max-chars`) trims recent decisions / indexes before status, never dropping metadata or status.
+- `vibe context check` is a **deterministic quality harness (no LLM eval)**: it checks the pack has the
+  required sections, constraints, current-state facts, decision-memory signals, and a rejected-
+  alternatives signal, runs the redaction scan (critical findings fail), and scores `passed/total`.
+  It exits non-zero below `--min-score` (default 0.8) or on any required/critical miss; `--strict`
+  also fails on advisory misses and redaction warnings; `--json` for a machine-readable report.
 
 ---
 

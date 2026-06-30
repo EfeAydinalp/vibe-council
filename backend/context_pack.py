@@ -178,7 +178,15 @@ def build_pack(decisions_dir: Path, status_path: Optional[Path],
     warn = sum(1 for f in findings if f.severity == redaction.WARNING)
 
     generated_at = on or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    src = f"STATUS={status_path if status_path else 'none'}, decisions={decisions_dir} ({len(records)} records)"
+
+    def _label(p) -> str:
+        # path-safe label (parent/name) — never an absolute local path, so the
+        # generated pack can't leak a per-user path (e.g. C:\Users\<name>\...).
+        pp = Path(p)
+        return f"{pp.parent.name}/{pp.name}" if pp.parent.name else pp.name
+
+    src = (f"STATUS={_label(status_path) if status_path else 'none'}, "
+           f"decisions={_label(decisions_dir)} ({len(records)} records)")
     metadata = (
         "## Metadata\n\n"
         f"- generated_at: {generated_at}\n"
@@ -196,3 +204,127 @@ def build_pack(decisions_dir: Path, status_path: Optional[Path],
             seen.add(w)
             uniq.append(w)
     return BuildResult(pack, uniq, findings)
+
+
+# --------------------------------------------------------------------------- #
+# check (deterministic context-quality harness — NOT an LLM eval)
+# --------------------------------------------------------------------------- #
+
+DEFAULT_MIN_SCORE = 0.8
+
+
+class Check(NamedTuple):
+    name: str
+    ok: bool
+    required: bool
+    category: str
+
+
+class CheckResult(NamedTuple):
+    checks: List[Check]
+    redaction_findings: List[redaction.Finding]
+    passed: int
+    total: int
+    score: float
+    ok: bool
+    reasons: List[str]
+
+
+def check_pack(text: str, strict: bool = False,
+               min_score: float = DEFAULT_MIN_SCORE) -> CheckResult:
+    """Deterministic checklist over a built context pack. No LLM, no network.
+
+    Required checks (hard-fail if missing): the core sections and constraints, and
+    no critical redaction finding. Advisory checks (count toward the score) cover
+    current-state facts, decision-memory signals, and a rejected-alternatives
+    signal. Fails if any required check fails, a critical redaction finding exists,
+    or the score is below ``min_score``. ``strict`` also fails on advisory misses
+    and redaction warnings.
+    """
+    low = text.lower()
+
+    def has(*subs: str) -> bool:
+        return all(s.lower() in low for s in subs)
+
+    def any_has(*subs: str) -> bool:
+        return any(s.lower() in low for s in subs)
+
+    checks: List[Check] = []
+
+    def add(name: str, ok: bool, required: bool, category: str) -> None:
+        checks.append(Check(name, ok, required, category))
+
+    # required sections
+    add("section:metadata", "## metadata" in low, True, "section")
+    add("section:project-identity", "## project identity" in low, True, "section")
+    add("section:current-status", "## current status" in low, True, "section")
+    add("section:recent-or-pinned",
+        any_has("## recent decisions", "## pinned"), True, "section")
+    add("section:decision-index", "## decision index" in low, True, "section")
+    add("section:constraints", "## constraints" in low, True, "section")
+
+    # required constraints
+    add("constraint:council-local-gitignored",
+        ".council" in low and any_has("gitignored", "local"), True, "constraint")
+    add("constraint:public-curated-redacted",
+        "redact" in low and any_has("curated/redacted", "curated"), True, "constraint")
+    add("constraint:redaction-guard", "redaction" in low, True, "constraint")
+    add("constraint:license-question-zero", "question 0" in low, True, "constraint")
+
+    # current project facts (advisory)
+    add("fact:decision-cli",
+        any_has("decision memory cli", "decision cli", "decisions list", "decision-cli"),
+        False, "fact")
+    add("fact:draft-extraction",
+        any_has("draft extraction", "from-run", "decision-draft-extraction"),
+        False, "fact")
+    add("fact:decision-promote",
+        any_has("promotion", "promote", "decision-promote"), False, "fact")
+    add("fact:context-build",
+        any_has("context pack builder", "context build", "context-pack-builder"),
+        False, "fact")
+    add("fact:context-pack-local",
+        any_has(".council/context") or (".council" in low and "gitignored" in low),
+        False, "fact")
+
+    # decision-memory facts (advisory)
+    add("memory:docs-decisions-source",
+        "docs/decisions" in low
+        and any_has("source-of-truth", "source of truth", "canonical"),
+        False, "memory")
+    add("memory:status-snapshot",
+        "status.md" in low and "snapshot" in low, False, "memory")
+    add("memory:human-review",
+        any_has("human review", "human-reviewed", "review before", "before promotion"),
+        False, "memory")
+    add("memory:decisions-lint", "vibe decisions lint" in low, False, "memory")
+    add("memory:redaction-lint", "vibe lint --redaction" in low, False, "memory")
+
+    # rejected-alternatives signal (advisory)
+    add("signal:rejected-alternatives",
+        any_has("## rejected alternatives", "rejected alternative"), False, "signal")
+
+    findings = redaction.scan_text(text, "<context-pack>")
+    crit = [f for f in findings if f.severity == redaction.CRITICAL]
+    warn = [f for f in findings if f.severity == redaction.WARNING]
+
+    passed = sum(1 for c in checks if c.ok)
+    total = len(checks)
+    score = passed / total if total else 0.0
+
+    reasons: List[str] = []
+    req_fail = [c.name for c in checks if c.required and not c.ok]
+    if req_fail:
+        reasons.append("missing required: " + ", ".join(req_fail))
+    if crit:
+        reasons.append(f"{len(crit)} critical redaction finding(s)")
+    if score < min_score:
+        reasons.append(f"score {score:.0%} below min {min_score:.0%}")
+    if strict:
+        adv_fail = [c.name for c in checks if not c.required and not c.ok]
+        if adv_fail:
+            reasons.append("strict: advisory checks failed: " + ", ".join(adv_fail))
+        if warn:
+            reasons.append(f"strict: {len(warn)} redaction warning(s)")
+
+    return CheckResult(checks, findings, passed, total, score, not reasons, reasons)

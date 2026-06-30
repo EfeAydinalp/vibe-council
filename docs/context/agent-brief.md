@@ -111,3 +111,5 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
     `docs/decisions/` + STATUS (metadata, identity, status, pinned/recent decisions, indexes,
     constraints). No LLM/vector/MCP; runs redaction (blocks on critical); writes gitignored
     `.council/context/pack-latest.md` by default (refuses `docs/` unless `--allow-docs`).
+    `vibe context check` is a deterministic quality harness (not an LLM eval): required sections/
+    constraints + advisory facts/signals + redaction, scored `passed/total` (`--strict`/`--json`/`--min-score`).
