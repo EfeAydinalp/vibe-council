@@ -418,6 +418,23 @@ vibe context check --json --strict        # machine-readable; fail on advisory m
   It exits non-zero below `--min-score` (default 0.8) or on any required/critical miss; `--strict`
   also fails on advisory misses and redaction warnings; `--json` for a machine-readable report.
 
+## Operator status
+
+```powershell
+vibe operator status                      # show local workflow status (or "No operator status yet.")
+vibe operator status --json               # machine-readable
+vibe operator set --state needs_input --message "review awaiting approval" --next-action "promote"
+vibe operator clear                       # remove the local status file
+```
+
+- A tiny **local-first** status surface: a single gitignored `.council/operator/status.json` with
+  `state` (`needs_input` / `failed` / `done` / `running` / `idle`), `message`, `next_action`,
+  `source`, and `severity`. `set` validates the state/severity, sanitizes + caps free text, and only
+  ever writes `.council/operator/status.json` — **never staged/committed**.
+- This is **not** an event log, dashboard, notification system, or remote transport. Human-readable
+  state is meant to be **Remote Control-friendly** (surface a clear decision point inside a
+  Remote-Control'd session) without any custom mobile/remote transport. No model/API/network.
+
 ---
 
 ## Claude Code workflow
