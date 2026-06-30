@@ -726,10 +726,12 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
 
 - **v0.4 read-only MCP / Claude Code workflow** *(in progress)* — query curated decisions, status,
   and the context pack from Claude Code / local agents with **no write/action authority**. Browse the
-  planned contract with `vibe mcp contract`; run a read-only smoke over the first implemented surface
-  (project status + curated decisions) with `vibe mcp inspect` (`--id <id>` to show one decision,
-  `--json` for a report). Both are **read-only and start no server** — the MCP stdio transport is a
-  later increment. See [`docs/plans/v0.4-read-only-mcp-workflow.md`](docs/plans/v0.4-read-only-mcp-workflow.md).
+  planned contract with `vibe mcp contract`; run a read-only smoke over the implemented surface with
+  `vibe mcp inspect` — project status + curated decisions (`--id <id>` shows one decision), plus the
+  context pack and deterministic health check (`--context` / `--health`, built **in memory** so no
+  `.council/` file is written), and `--json` for a report. All **read-only and start no server** —
+  the MCP stdio transport is a later increment. See
+  [`docs/plans/v0.4-read-only-mcp-workflow.md`](docs/plans/v0.4-read-only-mcp-workflow.md).
 - Record the real demo GIF / asciinema of the review → diff → extract loop *(follow-up)*
 - Provider-specific preset/model config (so Ollama doesn't need `VIBE_OLLAMA_MODEL` per run)
 

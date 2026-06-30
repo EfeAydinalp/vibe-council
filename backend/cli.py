@@ -1309,6 +1309,12 @@ def _cmd_mcp_inspect(args) -> int:
         status_note = "not found"
 
     one_id = getattr(args, "id", None)
+    want_context = getattr(args, "context", False)
+    want_health = getattr(args, "health", False)
+
+    # context pack + health are built IN MEMORY (no .council/ file is written).
+    pack = mcp_server.get_context_pack(root) if want_context else None
+    health = mcp_server.check_context_health(root) if want_health else None
 
     if getattr(args, "json", False):
         out = {
@@ -1327,9 +1333,16 @@ def _cmd_mcp_inspect(args) -> int:
                                    "chars": len(rec["text"])}
             except mcp_server.ReadError as e:
                 out["decision_error"] = str(e)
+        if pack is not None:
+            out["context_pack"] = {"chars": pack["chars"], "warnings": pack["warnings"],
+                                   "redaction": pack["redaction"]}
+        if health is not None:
+            out["context_health"] = {k: health[k] for k in
+                                     ("ok", "passed", "total", "score",
+                                      "failed_checks", "redaction")}
         print(json.dumps(out, ensure_ascii=False, indent=2))
     else:
-        print("MCP read-only inspect (status + decisions; no server/transport)")
+        print("MCP read-only inspect (status + decisions + context; no server/transport)")
         print("  enabled resources: " + ", ".join(mcp_server.ENABLED_RESOURCES))
         print("  enabled tools:     " + ", ".join(mcp_server.ENABLED_TOOLS))
         print("  deferred tools:    " + ", ".join(mcp_server.DEFERRED_TOOLS))
@@ -1341,8 +1354,15 @@ def _cmd_mcp_inspect(args) -> int:
                 print(f"  show_decision({one_id}): {rec['title']} ({len(rec['text'])} chars)")
             except mcp_server.ReadError as e:
                 print(f"  show_decision({one_id}): {e}")
+        if pack is not None:
+            print(f"  get_context_pack: {pack['chars']} chars (in-memory, not written); "
+                  f"redaction critical={pack['redaction']['critical']}")
+        if health is not None:
+            fails = ", ".join(health["failed_checks"]) or "none"
+            print(f"  check_context_health: {health['passed']}/{health['total']} "
+                  f"({health['score']:.0%}); failed: {fails}")
 
-    _err("[mcp] read-only inspect; no server started, nothing written.")
+    _err("[mcp] read-only inspect; no server started, no .council/ file written.")
     return EXIT_OK
 
 
@@ -1702,6 +1722,10 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="contract: print read-only resources/tools + forbidden tools. "
                              "inspect: read-only smoke over status + curated decisions.")
     sp_mcp.add_argument("--id", help="inspect: also show one curated decision by id/stem.")
+    sp_mcp.add_argument("--context", action="store_true",
+                        help="inspect: also build the context pack in memory (no file written).")
+    sp_mcp.add_argument("--health", action="store_true",
+                        help="inspect: also run the deterministic context health check (in memory).")
     sp_mcp.add_argument("--json", action="store_true", help="Print output as JSON.")
 
     sp_last = sub.add_parser("last", parents=[p_proj], help="Print the latest saved artifact.")

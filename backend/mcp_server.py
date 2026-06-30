@@ -28,13 +28,24 @@ from typing import Callable, Dict, List
 
 from . import decisions_docs as dd
 from . import mcp_contract
+from . import context_pack
 
-# The read-only surface implemented in THIS PR — a subset of the full contract.
-ENABLED_TOOLS = ("get_project_status", "list_decisions", "show_decision")
-ENABLED_RESOURCES = ("vibe://status", "vibe://decisions", "vibe://decisions/{id}")
+# The read-only surface implemented so far (a subset of the full contract).
+# PR #57: status + curated decisions. PR #58: context pack + health.
+ENABLED_TOOLS = (
+    "get_project_status", "list_decisions", "show_decision",
+    "get_context_pack", "check_context_health",
+)
+ENABLED_RESOURCES = (
+    "vibe://status", "vibe://decisions", "vibe://decisions/{id}",
+    "vibe://context/latest",
+)
 
 # Surfaces declared in the contract but deliberately not implemented yet.
-DEFERRED_TOOLS = ("get_context_pack", "check_context_health", "list_rejected_alternatives")
+DEFERRED_TOOLS = ("list_rejected_alternatives",)
+DEFERRED_RESOURCES = (
+    "vibe://rejected-alternatives", "vibe://release-notes", "vibe://constraints",
+)
 
 
 class ReadError(Exception):
@@ -53,6 +64,14 @@ def _decisions_dir(root: Path) -> Path:
 
 def _status_path(root: Path) -> Path:
     return Path(root) / "docs" / "context" / "project" / "STATUS.md"
+
+
+def _crit_warn(findings) -> Dict[str, int]:
+    from . import redaction
+    return {
+        "critical": sum(1 for f in findings if f.severity == redaction.CRITICAL),
+        "warning": sum(1 for f in findings if f.severity == redaction.WARNING),
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -100,6 +119,39 @@ def show_decision(root: Path, identifier: str) -> Dict[str, object]:
     }
 
 
+def get_context_pack(root: Path) -> Dict[str, object]:
+    """Build the context pack **in memory** from curated docs and return it.
+
+    Read-only: reuses ``context_pack.build_pack`` (which returns text and does not
+    write); this handler writes **nothing** — no ``.council/context/pack-latest.md``,
+    no export. The pack reflects the current curated decisions + ``STATUS.md``."""
+    res = context_pack.build_pack(_decisions_dir(root), _status_path(root))
+    return {
+        "text": res.text,
+        "chars": len(res.text),
+        "warnings": list(res.warnings),
+        "redaction": _crit_warn(res.redaction_findings),
+    }
+
+
+def check_context_health(root: Path) -> Dict[str, object]:
+    """Build the pack in memory and run the deterministic context check on it.
+
+    Read-only: no file is written. Returns the score and any failed checks so an
+    agent can judge whether the curated context is complete."""
+    res = context_pack.build_pack(_decisions_dir(root), _status_path(root))
+    chk = context_pack.check_pack(res.text)
+    return {
+        "ok": chk.ok,
+        "passed": chk.passed,
+        "total": chk.total,
+        "score": round(chk.score, 3),
+        "reasons": list(chk.reasons),
+        "failed_checks": [c.name for c in chk.checks if not c.ok],
+        "redaction": _crit_warn(chk.redaction_findings),
+    }
+
+
 # --------------------------------------------------------------------------- #
 # Dispatch + contract validation (pure, no transport)
 # --------------------------------------------------------------------------- #
@@ -108,6 +160,8 @@ _HANDLERS: Dict[str, Callable[..., object]] = {
     "get_project_status": lambda root, **kw: get_project_status(root),
     "list_decisions": lambda root, **kw: list_decisions(root),
     "show_decision": lambda root, id="", **kw: show_decision(root, id),
+    "get_context_pack": lambda root, **kw: get_context_pack(root),
+    "check_context_health": lambda root, **kw: check_context_health(root),
 }
 
 
@@ -144,6 +198,9 @@ def validate_server_contract() -> List[str]:
     for t in DEFERRED_TOOLS:
         if t in ENABLED_TOOLS:
             errors.append(f"deferred tool enabled too early: {t}")
+    for r in DEFERRED_RESOURCES:
+        if r in ENABLED_RESOURCES:
+            errors.append(f"deferred resource enabled too early: {r}")
     if set(_HANDLERS) != set(ENABLED_TOOLS):
         errors.append("handler/enabled-tool mismatch")
     return errors
