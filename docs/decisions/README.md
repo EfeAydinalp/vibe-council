@@ -47,5 +47,6 @@ seed** for the linked decision-memory direction (see
 - [v0.4 starts as read-only MCP / Claude Code workflow](./2026-07-01-v0.4-read-only-mcp-scope.md) — accepted
 - [Context packs keep core signals stable under the default budget](./2026-07-01-context-pack-budget-headroom.md) — accepted
 - [v0.4 read-only MCP contract skeleton (no server yet)](./2026-07-01-read-only-mcp-contract-skeleton.md) — accepted
+- [Read-only MCP server skeleton: status + decisions only](./2026-07-01-read-only-mcp-server-skeleton.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

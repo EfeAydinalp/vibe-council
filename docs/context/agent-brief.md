@@ -73,10 +73,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 - The context-pack budget is a **naive char budget** (default 14000); trim order now keeps the
   rejected-alternatives index + human-review signal stable (a **token-aware budget** is deferred).
   See [budget headroom decision](../decisions/2026-07-01-context-pack-budget-headroom.md).
-- MCP is **read-only for v0.4**: a testable contract skeleton exists (`backend/mcp_contract.py` +
-  `vibe mcp contract`) — **no server yet**; write/action MCP, personas/advisors, app/TUI, and
-  community features are **future work**. See
-  [read-only MCP contract](../decisions/2026-07-01-read-only-mcp-contract-skeleton.md).
+- MCP is **read-only for v0.4**: a tested contract (`backend/mcp_contract.py` + `vibe mcp contract`)
+  and a dependency-free read layer for **status + curated decisions** (`backend/mcp_server.py` +
+  `vibe mcp inspect`) exist. **No MCP stdio transport / no `mcp` SDK yet** (deferred); context-pack /
+  health / rejected-alternatives resources are deferred. Write/action MCP, personas/advisors,
+  app/TUI, and community features are **future work**. See
+  [read-only MCP server skeleton](../decisions/2026-07-01-read-only-mcp-server-skeleton.md).
 
 ## Accepted decisions (curated set)
 

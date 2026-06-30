@@ -37,13 +37,15 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   rejected-alternatives index is built from all curated records. Char budget stays naive;
   token-aware budget remains deferred. See
   [`budget headroom`](../../decisions/2026-07-01-context-pack-budget-headroom.md).
-- **v0.4 MCP design skeleton landed** (PR #56): a testable **read-only contract**
-  (`backend/mcp_contract.py`) + `vibe mcp contract` — read-only resources/tools + explicit forbidden
-  tools, validation helpers. **Contract-only: no server, no socket, no MCP dependency.** See
-  [`read-only MCP contract`](../../decisions/2026-07-01-read-only-mcp-contract-skeleton.md).
-- **Current focus:** **v0.4 read-only MCP** — query curated memory + context pack from Claude Code /
-  local agents with no write/action authority. Next: read-only server skeleton (status + decisions).
-  See [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
+- **v0.4 MCP contract skeleton** (PR #56): testable read-only contract (`backend/mcp_contract.py`) +
+  `vibe mcp contract`.
+- **v0.4 MCP read-only server skeleton** (PR #57): dependency-free read layer
+  (`backend/mcp_server.py`) for status + curated decisions (`get_project_status` / `list_decisions` /
+  `show_decision`) + `vibe mcp inspect`; path-guarded, no `.council/`/private-plan reads. Transport
+  (MCP stdio + the `mcp` SDK decision) deferred. See
+  [`read-only MCP server skeleton`](../../decisions/2026-07-01-read-only-mcp-server-skeleton.md).
+- **Current focus:** **v0.4 read-only MCP** — next: context-pack + health resources, then MCP stdio
+  transport + Claude Code setup docs. See [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
 
 ## Next actions
 
