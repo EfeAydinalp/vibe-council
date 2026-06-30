@@ -132,6 +132,29 @@ class TestBuild(unittest.TestCase):
             if saved is not None:
                 os.environ["OPENROUTER_API_KEY"] = saved
 
+    def test_pack_includes_human_review_signal(self):
+        # the generated pack must carry the promotion human-review boundary so the
+        # context-check `memory:human-review` advisory is satisfied (v0.3.1 dogfood).
+        self._seed(3)
+        res = cp.build_pack(self.ddir, self.status, on="2026-06-30T00:00:00Z")
+        self.assertIn("human-reviewed", res.text)
+        chk = cp.check_pack(res.text)
+        hr = next(c for c in chk.checks if c.name == "memory:human-review")
+        self.assertTrue(hr.ok)
+
+    def test_human_review_check_fails_without_signal(self):
+        # if the signal is absent the check must still fail (don't weaken the check)
+        self._seed(3)
+        res = cp.build_pack(self.ddir, self.status, on="2026-06-30T00:00:00Z")
+        stripped = res.text
+        for ph in ("human-reviewed", "human review", "review before", "before promotion"):
+            stripped = stripped.replace(ph, "X")
+        chk = cp.check_pack(stripped)
+        hr = next(c for c in chk.checks if c.name == "memory:human-review")
+        self.assertFalse(hr.ok)
+        # redaction still runs over the (modified) pack
+        self.assertIsInstance(chk.redaction_findings, list)
+
 
 class TestContextCLI(unittest.TestCase):
     def test_default_output_path(self):
