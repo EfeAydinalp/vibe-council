@@ -73,8 +73,10 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 - The context-pack budget is a **naive char budget** (default 14000); trim order now keeps the
   rejected-alternatives index + human-review signal stable (a **token-aware budget** is deferred).
   See [budget headroom decision](../decisions/2026-07-01-context-pack-budget-headroom.md).
-- MCP (read-only, planned for v0.4), personas/advisors, app/TUI, and community features are
-  **future work**.
+- MCP is **read-only for v0.4**: a testable contract skeleton exists (`backend/mcp_contract.py` +
+  `vibe mcp contract`) — **no server yet**; write/action MCP, personas/advisors, app/TUI, and
+  community features are **future work**. See
+  [read-only MCP contract](../decisions/2026-07-01-read-only-mcp-contract-skeleton.md).
 
 ## Accepted decisions (curated set)
 
@@ -95,7 +97,9 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 
 ## What not to touch without explicit scope
 
-- Do not start provider-abstraction-2, app/TUI/web, MCP, persona/advisor, or community work.
+- Do not start provider-abstraction-2, app/TUI/web, persona/advisor, or community work. MCP is
+  scoped **read-only for v0.4** (per its plan/decision); do not add write/action MCP, an MCP server
+  beyond the scoped sequence, or an MCP dependency without explicit scope.
 - Do not add or change a `LICENSE`, or weaken upstream attribution/provenance.
 - Do not commit `.council/`, `data/`, `.env`, `.venv/`, raw outputs, or `.obsidian/`.
 - Do not use `premium`/`full` for real runs unless asked; default preset is `balanced`.

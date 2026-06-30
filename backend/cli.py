@@ -46,6 +46,7 @@ from . import redaction
 from . import decisions_docs
 from . import context_pack
 from . import operator as operator_mod
+from . import mcp_contract
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -1265,6 +1266,26 @@ def cmd_decisions_local(args) -> int:
     return EXIT_OK
 
 
+def cmd_mcp(args) -> int:
+    """Print the planned **read-only** MCP contract (v0.4 design skeleton).
+
+    DESIGN SKELETON ONLY: starts no server, opens no socket, needs no MCP
+    dependency, makes no model/provider/network call, and writes nothing.
+    Deterministic and stdlib-only. Exits non-zero only if the static contract
+    fails its own validation (a programming error), never from I/O."""
+    if getattr(args, "json", False):
+        print(json.dumps(mcp_contract.contract_dict(), ensure_ascii=False, indent=2))
+    else:
+        print(mcp_contract.render_contract())
+    violations = mcp_contract.validate_mcp_contract()
+    if violations:
+        for v in violations:
+            _err(f"[mcp] contract violation: {v}")
+        return EXIT_RUNTIME
+    _err("[mcp] read-only contract (design skeleton); no server started, nothing written.")
+    return EXIT_OK
+
+
 def cmd_last(args) -> int:
     ws = _resolve_workspace(args, create=False)
     if ws is None:
@@ -1615,6 +1636,12 @@ def _build_parser() -> argparse.ArgumentParser:
     sp_lint.add_argument("paths", nargs="*",
                          help="Files/dirs to scan (default: tracked public docs).")
 
+    sp_mcp = sub.add_parser(
+        "mcp", help="Print the planned read-only MCP contract (design skeleton; no server).")
+    sp_mcp.add_argument("action", choices=["contract"],
+                        help="contract: print the read-only MCP resources/tools + forbidden tools.")
+    sp_mcp.add_argument("--json", action="store_true", help="Print the contract as JSON.")
+
     sp_last = sub.add_parser("last", parents=[p_proj], help="Print the latest saved artifact.")
     sp_last.add_argument("artifact_type", nargs="?", choices=["review", "decision", "diff", "run"])
 
@@ -1665,6 +1692,8 @@ def main(argv=None) -> int:
         return cmd_context(args)
     if cmd == "operator":
         return cmd_operator(args)
+    if cmd == "mcp":
+        return cmd_mcp(args)
     if cmd == "last":
         return cmd_last(args)
     if cmd == "help":

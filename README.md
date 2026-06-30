@@ -724,12 +724,17 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
 
 **Near-term:**
 
+- **v0.4 read-only MCP / Claude Code workflow** *(in progress)* — query curated decisions, status,
+  and the context pack from Claude Code / local agents with **no write/action authority**. The
+  planned contract is browsable now via `vibe mcp contract` (a **design skeleton** — it prints the
+  read-only resources/tools + forbidden tools and starts **no server**). See
+  [`docs/plans/v0.4-read-only-mcp-workflow.md`](docs/plans/v0.4-read-only-mcp-workflow.md).
 - Record the real demo GIF / asciinema of the review → diff → extract loop *(follow-up)*
 - Provider-specific preset/model config (so Ollama doesn't need `VIBE_OLLAMA_MODEL` per run)
 
 **Later:**
 
-- MCP server
+- MCP **write/action** surface (deferred; v0.4 is read-only first)
 - SQLite / embedding-based decision search
 - GitHub PR review bot
 - Packaged install (`pipx`/`uvx`) and a unified launcher entry point
