@@ -24,14 +24,18 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   → `decisions lint` → `context build` → `context check` → `context export claude-code`, plus
   `vibe lint --redaction` and `operator status`. All deterministic and local-first; **generated
   context packs/exports stay local/gitignored**. See [v0.3.0 release notes](../releases/v0.3.0.md).
-- **v0.3.1** (prepared; next release target) — **dogfood hardening** of that loop, **no new command
-  surface**: `decisions promote` rejects placeholder-only drafts and writes curated
-  `YYYY-MM-DD-slug.md` records; `decisions new --from-run` maps review sections into the draft;
-  `context check` passes **21/21** on the real repo (explicit human-review signal in packs; default
-  char budget bumped to 14000); plus a CLI UX pass. **v0.4 / MCP remains deferred until after the
-  v0.3.1 release.** See [v0.3.1 release notes](../releases/v0.3.1.md) and
-  [release-prep decision](../decisions/2026-06-30-v0.3.1-release-prep.md). No commercial-clearance
+- **v0.3.1** (released) — **dogfood hardening** of that loop, **no new command surface**:
+  `decisions promote` rejects placeholder-only drafts and writes curated `YYYY-MM-DD-slug.md`
+  records; `decisions new --from-run` maps review sections into the draft; `context check` passes
+  **21/21** on the real repo (explicit human-review signal in packs; default char budget 14000);
+  plus a CLI UX pass. See [v0.3.1 release notes](../releases/v0.3.1.md). No commercial-clearance
   claim — license/provenance remains "Question 0".
+- **v0.4** (planning) — a **read-only** MCP / Claude Code workflow: expose curated decisions, status,
+  rejected alternatives, constraints, and the generated context pack to Claude Code / local agents
+  **with no write/action authority** (no promotion, file, git, shell, or remote-approval tools).
+  Curated docs stay source-of-truth; generated/local/private artifacts excluded by default. See
+  [v0.4 read-only MCP plan](../plans/v0.4-read-only-mcp-workflow.md) and
+  [v0.4 scope decision](../decisions/2026-07-01-v0.4-read-only-mcp-scope.md).
 
 ## Provider architecture
 

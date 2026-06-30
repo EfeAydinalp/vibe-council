@@ -31,14 +31,17 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   (human-review signal in packs; budget 14000); plus a CLI UX pass. See
   [`v0.3.1 release prep`](../../decisions/2026-06-30-v0.3.1-release-prep.md) and
   [`dogfood notes`](../../dogfood/v0.3.1-notes.md).
-- **Current focus:** **v0.3.1 release prep** — version `0.3.1`, CHANGELOG `[0.3.1]`,
-  `docs/releases/v0.3.1.md`, README/STATUS/agent-brief aligned.
+- **v0.3.1 released** (tag `v0.3.1`); release-note links are tag-pinned absolute (link hygiene done).
+- **Current focus:** **v0.4 planning** — a **read-only** MCP / Claude Code workflow (query curated
+  memory + context pack; no write/action authority). See
+  [`v0.4 read-only MCP plan`](../../plans/v0.4-read-only-mcp-workflow.md) and
+  [`v0.4 scope`](../../decisions/2026-07-01-v0.4-read-only-mcp-scope.md).
 
 ## Next actions
 
-1. Merge the v0.3.1 release-prep PR; then (when requested) tag `v0.3.1` and publish the release notes.
-2. After release: open a standalone **v0.4** design — likely read-only MCP / Claude Code workflow
-   improvements — but only once v0.3.1 is published.
+1. Land the v0.4 plan, then sequence small PRs (#55 design → #56 server skeleton → #57 pack/health →
+   #58 Claude Code docs → #59 dogfood → #60 release prep).
+2. Keep v0.4 **read-only**: no write-capable MCP, no remote approval transport, no hosted/sync.
 3. Later: token-aware budget / rolling summaries; vector retrieval only if plain retrieval proves
    insufficient.
 4. License/provenance "Question 0" remains the gate before any commercial step.
