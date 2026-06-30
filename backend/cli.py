@@ -45,6 +45,7 @@ from . import doctor as doctor_mod
 from . import redaction
 from . import decisions_docs
 from . import context_pack
+from . import operator as operator_mod
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -839,6 +840,61 @@ def _cmd_context_check(args) -> int:
     return EXIT_RUNTIME
 
 
+def cmd_operator(args) -> int:
+    """Minimal local-first operator status. No model, API key, or network.
+    Reads/writes a single gitignored .council/operator/status.json; never an event
+    log, dashboard, notification, or remote transport."""
+    root = pw.caller_cwd()
+    path = operator_mod.status_path(root)
+    action = args.action
+
+    if action == "status":
+        data, err = operator_mod.read_status(path)
+        if err:
+            _err(f"[operator] {err}: {path}")
+            return EXIT_RUNTIME
+        if data is None:
+            print("No operator status yet.")
+            return EXIT_OK
+        if getattr(args, "json", False):
+            print(json.dumps(data, ensure_ascii=False, indent=2))
+        else:
+            print(operator_mod.render(data))
+        return EXIT_OK
+
+    if action == "clear":
+        if path.is_file():
+            try:
+                path.unlink()
+            except OSError as e:
+                _err(f"[operator] could not clear status ({type(e).__name__})")
+                return EXIT_RUNTIME
+            _err(f"[operator] cleared {path}")
+        else:
+            _err("[operator] no status to clear")
+        return EXIT_OK
+
+    # action == "set"
+    state = getattr(args, "state", None)
+    if not state:
+        _err("Usage: vibe operator set --state <"
+             + "|".join(operator_mod.STATES) + "> [--message ...] [--next-action ...]")
+        return EXIT_USAGE
+    doc, err = operator_mod.write_status(
+        path, state=state,
+        message=getattr(args, "message", "") or "",
+        next_action=getattr(args, "next_action", "") or "",
+        source=getattr(args, "source", "") or "",
+        severity=getattr(args, "severity", None) or "info",
+    )
+    if err:
+        _err(f"[operator] {err}")
+        return EXIT_USAGE
+    print(str(path))
+    _err("[operator] wrote LOCAL status (gitignored; NOT staged/committed)")
+    return EXIT_OK
+
+
 def cmd_presets(args) -> int:
     """Print available presets and their intended use. No model call."""
     print("Available presets (combine with any mode):\n")
@@ -1238,6 +1294,7 @@ Common commands:
   vibe lint --redaction                               # scan public docs for leaks (no model)
   vibe context build                                  # build a local context pack (no model)
   vibe context check                                  # check pack quality (deterministic, no model)
+  vibe operator status                                # show local workflow status (no model)
   vibe --version
   vibe help
   vibe guide claude
@@ -1435,6 +1492,19 @@ def _build_parser() -> argparse.ArgumentParser:
     sp_doctor.add_argument("--offline", action="store_true",
                            help="Skip network reachability checks (config checks only).")
 
+    sp_op = sub.add_parser(
+        "operator", help="Minimal local operator status (no model call).")
+    sp_op.add_argument("action", choices=["status", "set", "clear"])
+    sp_op.add_argument("--json", action="store_true",
+                       help="`status`: print JSON.")
+    sp_op.add_argument("--state", choices=list(operator_mod.STATES),
+                       help="`set`: workflow state.")
+    sp_op.add_argument("--message", help="`set`: short public-safe message.")
+    sp_op.add_argument("--next-action", help="`set`: short next step.")
+    sp_op.add_argument("--source", help="`set`: source label.")
+    sp_op.add_argument("--severity", choices=list(operator_mod.SEVERITIES),
+                       help="`set`: severity (default: info).")
+
     sp_ctx = sub.add_parser(
         "context", help="Build/check a local context pack from curated memory (no model call).")
     sp_ctx.add_argument("action", choices=["build", "check"])
@@ -1514,6 +1584,8 @@ def main(argv=None) -> int:
         return cmd_lint(args)
     if cmd == "context":
         return cmd_context(args)
+    if cmd == "operator":
+        return cmd_operator(args)
     if cmd == "last":
         return cmd_last(args)
     if cmd == "help":

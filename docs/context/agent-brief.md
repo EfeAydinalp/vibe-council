@@ -113,3 +113,6 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
     `.council/context/pack-latest.md` by default (refuses `docs/` unless `--allow-docs`).
     `vibe context check` is a deterministic quality harness (not an LLM eval): required sections/
     constraints + advisory facts/signals + redaction, scored `passed/total` (`--strict`/`--json`/`--min-score`).
+11. **Operator status:** `vibe operator status` (+ `set`/`clear`) is a tiny local-first status surface
+    — one gitignored `.council/operator/status.json` (state/message/next_action/severity). Not an
+    event log, dashboard, notifications, or remote transport; Remote-Control-friendly, no model calls.
