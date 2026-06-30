@@ -27,13 +27,19 @@ PROJECT_IDENTITY = (
     "pack builder + skill/council packs + later optional hosted commercial layer."
 )
 PACK_VERSION = "1"
-DEFAULT_MAX_CHARS = 12000
+# Char budget for the assembled pack. Bumped from the 12000 MVP value: the curated
+# decision set outgrew it, so the budget trimmer was dropping the rejected-
+# alternatives index (and other advisory signal) from the real-repo pack. Still a
+# naive char budget (not token-aware) — see docs/decisions for the rationale.
+DEFAULT_MAX_CHARS = 14000
 DEFAULT_RECENT = 5
 _METADATA_RESERVE = 800  # chars kept aside for the metadata header
 
 CONSTRAINTS = (
     "- Raw `.council/` outputs stay local and gitignored; never committed.\n"
     "- The public repo holds only curated/redacted docs.\n"
+    "- Promotion into `docs/decisions/*.md` is manual and human-reviewed; automatic "
+    "extraction from raw `.council/` output only creates local drafts.\n"
     "- A redaction guard exists: `vibe lint --redaction` / `vibe decisions lint` "
     "(see `docs/redaction-policy.md`).\n"
     "- License/provenance remains \"Question 0\" before serious commercialization."

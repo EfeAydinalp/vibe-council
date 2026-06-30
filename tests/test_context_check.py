@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 
 from backend import context_pack as cp
+from backend import redaction
 from tests.test_cli_smoke import run_cli
 
 FAKE_OR_KEY = "sk-or-v1-" + "a" * 40
@@ -106,6 +107,29 @@ class TestCheck(unittest.TestCase):
         finally:
             if saved is not None:
                 os.environ["OPENROUTER_API_KEY"] = saved
+
+
+class TestRealRepoPack(unittest.TestCase):
+    """The dogfood success criterion: the *real* curated repo pack scores 21/21.
+
+    Builds from this repo's actual ``docs/decisions/`` + project ``STATUS.md`` (no
+    model/API/network, nothing written) and asserts a perfect, redaction-clean
+    check. This guards the v0.3.1 fix and will flag if the pack later drops an
+    advisory signal (e.g. the budget trimmer outgrowing its char limit again)."""
+
+    def test_real_repo_pack_passes_21_of_21(self):
+        repo = Path(__file__).resolve().parents[1]
+        ddir = repo / "docs" / "decisions"
+        status = repo / "docs" / "context" / "project" / "STATUS.md"
+        if not ddir.is_dir() or not status.is_file():
+            self.skipTest("real repo docs not present")
+        res = cp.build_pack(ddir, status)
+        chk = cp.check_pack(res.text)
+        missed = [c.name for c in chk.checks if not c.ok]
+        self.assertEqual((chk.passed, chk.total), (21, 21), missed)
+        self.assertTrue(chk.ok, chk.reasons)
+        self.assertEqual([f for f in chk.redaction_findings
+                          if f.severity == redaction.CRITICAL], [])
 
 
 class TestCheckCLI(unittest.TestCase):
