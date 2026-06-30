@@ -21,13 +21,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #42 merged** — `vibe decisions new --from-run` (extract a LOCAL draft from raw council output).
 - **PR #43 merged** — `vibe context build` (deterministic, local-first context-pack builder MVP).
 - **PR #44 merged** — `vibe context check` (deterministic context-quality harness, not an LLM eval).
-- **Current focus:** `vibe operator status` — minimal local-first operator status MVP.
+- **PR #45 merged** — `vibe operator status` (minimal local-first operator status MVP).
+- **Current focus:** `vibe context export claude-code` — local Claude Code context export MVP.
 
 ## Next actions
 
-1. Land the operator status MVP (`vibe operator status` / `set` / `clear`).
-2. Then (later, prerequisite-gated) an append-only event log + terminal/desktop notifications.
-3. Then a token-aware context budget + optional MCP read-only export of the pack.
+1. Land the Claude Code context export MVP (`vibe context export claude-code`).
+2. Then (later, prerequisite-gated) MCP read-only export of the pack.
+3. Then an append-only operator event log + a token-aware context budget.
 
 ## Blockers / open risks
 

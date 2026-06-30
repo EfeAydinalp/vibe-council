@@ -116,3 +116,7 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 11. **Operator status:** `vibe operator status` (+ `set`/`clear`) is a tiny local-first status surface
     — one gitignored `.council/operator/status.json` (state/message/next_action/severity). Not an
     event log, dashboard, notifications, or remote transport; Remote-Control-friendly, no model calls.
+12. **Claude Code export:** `vibe context export claude-code` wraps the pack (usage note + paste-able
+    operator instruction + pack body + next commands) into gitignored
+    `.council/context/claude-code-context.md`. Gates on check + redaction; refuses `docs/` unless
+    `--allow-docs`; never modifies `CLAUDE.md`; no MCP/Remote-Control integration yet.

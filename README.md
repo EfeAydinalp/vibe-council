@@ -402,6 +402,7 @@ vibe context build                        # assemble a local context pack from c
 vibe context build --max-chars 8000       # tighten the budget
 vibe context check                        # check pack quality (deterministic, no LLM)
 vibe context check --json --strict        # machine-readable; fail on advisory misses/warnings
+vibe context export claude-code           # wrap the pack as a local Claude Code context file
 ```
 
 - `vibe context build` **deterministically** assembles a compact agent context pack from
@@ -417,6 +418,12 @@ vibe context check --json --strict        # machine-readable; fail on advisory m
   alternatives signal, runs the redaction scan (critical findings fail), and scores `passed/total`.
   It exits non-zero below `--min-score` (default 0.8) or on any required/critical miss; `--strict`
   also fails on advisory misses and redaction warnings; `--json` for a machine-readable report.
+- `vibe context export claude-code` wraps the pack as a **Claude Code-friendly** local context file
+  (title, usage note, a paste-able operator instruction block, the pack body, and next commands). It
+  runs the quality check + redaction scan first and **refuses to export** on a failing check or a
+  critical finding. Output defaults to **gitignored `.council/context/claude-code-context.md`**;
+  `--input`/`--output`/`--dry-run`; it **refuses `docs/` unless `--allow-docs`**, **never modifies
+  `CLAUDE.md`**, and **never stages/commits**.
 
 ## Operator status
 
