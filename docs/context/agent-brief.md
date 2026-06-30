@@ -107,3 +107,7 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
    `new --from-run <review>` extracts a **local** draft (gitignored `.council/decisions/drafts/`, no
    LLM, never under `docs/decisions/`); `promote <draft>` validates (frontmatter/headings/redaction) +
    writes into `docs/decisions/` with no auto-stage/commit; `lint` reuses the redaction guard.
+10. **Context pack:** `vibe context build` deterministically assembles a compact pack from
+    `docs/decisions/` + STATUS (metadata, identity, status, pinned/recent decisions, indexes,
+    constraints). No LLM/vector/MCP; runs redaction (blocks on critical); writes gitignored
+    `.council/context/pack-latest.md` by default (refuses `docs/` unless `--allow-docs`).

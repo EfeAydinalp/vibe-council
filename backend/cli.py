@@ -44,6 +44,7 @@ from . import providers
 from . import doctor as doctor_mod
 from . import redaction
 from . import decisions_docs
+from . import context_pack
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -742,6 +743,53 @@ def cmd_lint(args) -> int:
     return EXIT_OK
 
 
+def _under_docs(p: Path) -> bool:
+    return "docs" in [x.lower() for x in p.resolve().parts]
+
+
+def cmd_context(args) -> int:
+    """Build a deterministic, local-first context pack from curated project memory.
+    No model, API key, or network. Writes to gitignored .council/context/ by default;
+    refuses output under docs/ unless --allow-docs; blocks on critical redaction findings."""
+    if args.action != "build":
+        _err("Usage: vibe context build")
+        return EXIT_USAGE
+
+    root = pw.caller_cwd()
+    ddir = Path(getattr(args, "decisions_dir", None) or (root / "docs" / "decisions"))
+    status = Path(getattr(args, "status", None)
+                  or (root / "docs" / "context" / "project" / "STATUS.md"))
+    out = Path(getattr(args, "output", None)
+               or (root / ".council" / "context" / "pack-latest.md"))
+    max_chars = getattr(args, "max_chars", None) or context_pack.DEFAULT_MAX_CHARS
+
+    if _under_docs(out) and not getattr(args, "allow_docs", False):
+        _err("[context] refusing to write a generated pack under docs/ "
+             "(use --allow-docs to override)")
+        return EXIT_USAGE
+
+    res = context_pack.build_pack(ddir, status, max_chars=max_chars)
+
+    for w in res.warnings:
+        _err(f"[context] warning: {w}")
+
+    crit = [f for f in res.redaction_findings if f.severity == redaction.CRITICAL]
+    warns = [f for f in res.redaction_findings if f.severity == redaction.WARNING]
+    if crit:
+        _err(f"[context] BLOCKED: {len(crit)} critical redaction finding(s); not writing")
+        for f in crit:
+            _err(f"  - line {f.line} {f.rule_id}: {f.message} (match {f.match})")
+        return EXIT_RUNTIME
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(res.text, encoding="utf-8")
+    print(str(out))
+    _err(f"[context] wrote pack ({len(res.text)} chars); "
+         f"redaction critical=0 warning={len(warns)}")
+    _err("[context] LOCAL/gitignored by default; NOT staged/committed")
+    return EXIT_OK
+
+
 def cmd_presets(args) -> int:
     """Print available presets and their intended use. No model call."""
     print("Available presets (combine with any mode):\n")
@@ -1139,6 +1187,7 @@ Common commands:
   vibe models                                         # show model IDs per preset
   vibe presets                                        # show presets + intended use
   vibe lint --redaction                               # scan public docs for leaks (no model)
+  vibe context build                                  # build a local context pack (no model)
   vibe --version
   vibe help
   vibe guide claude
@@ -1336,6 +1385,20 @@ def _build_parser() -> argparse.ArgumentParser:
     sp_doctor.add_argument("--offline", action="store_true",
                            help="Skip network reachability checks (config checks only).")
 
+    sp_ctx = sub.add_parser(
+        "context", help="Build a local context pack from curated memory (no model call).")
+    sp_ctx.add_argument("action", choices=["build"])
+    sp_ctx.add_argument("--output",
+                        help="Pack output path (default: .council/context/pack-latest.md).")
+    sp_ctx.add_argument("--max-chars", type=int,
+                        help=f"Character budget (default: {context_pack.DEFAULT_MAX_CHARS}).")
+    sp_ctx.add_argument("--status",
+                        help="STATUS.md path (default: docs/context/project/STATUS.md).")
+    sp_ctx.add_argument("--decisions-dir",
+                        help="Decisions dir (default: docs/decisions).")
+    sp_ctx.add_argument("--allow-docs", action="store_true",
+                        help="Allow writing the pack under docs/ (default: refused).")
+
     sp_lint = sub.add_parser(
         "lint", help="Redaction guard for public docs (no model call).")
     sp_lint.add_argument("--redaction", action="store_true",
@@ -1391,6 +1454,8 @@ def main(argv=None) -> int:
         return cmd_doctor(args)
     if cmd == "lint":
         return cmd_lint(args)
+    if cmd == "context":
+        return cmd_context(args)
     if cmd == "last":
         return cmd_last(args)
     if cmd == "help":
