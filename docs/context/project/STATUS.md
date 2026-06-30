@@ -26,6 +26,9 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **v0.3 decision-memory / context loop is implemented end-to-end** (extract → promote → lint →
   build → check → export, plus redaction guard and operator status).
 - **v0.3.0 released** (decision-memory + curated project context; 209 tests).
+- **PR #49 (v0.3.1):** decision-CLI dogfood fixes — `promote` rejects placeholder-only drafts and
+  emits the curated `YYYY-MM-DD-slug.md` name; `new --from-run` maps review sections; slug length
+  capped. See [`decision-cli-dogfood-fixes`](../../decisions/2026-06-30-decision-cli-dogfood-fixes.md).
 - **Current focus:** **v0.3.1 hardening / dogfood** — exercise the v0.3 loop on real tasks and fix
   rough edges before new features. See [`docs/dogfood/v0.3.1-notes.md`](../../dogfood/v0.3.1-notes.md).
 

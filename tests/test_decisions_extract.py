@@ -17,6 +17,8 @@ FAKE_OR_KEY = "sk-or-v1-" + "a" * 40
 SIMPLE_REVIEW = (
     "# Sample Review\n\n"
     "## Verdict\nProceed with changes.\n\n"
+    "## Rationale\n- clearer for users\n- lower long-term risk\n\n"
+    "## Rejected alternatives\n- do nothing\n- bigger rewrite\n\n"
     "## Risks\n- risk one\n- risk two\n\n"
     "## Final action list\n- do a\n- do b\n"
 )
@@ -130,6 +132,46 @@ class TestExtract(unittest.TestCase):
         finally:
             if saved is not None:
                 os.environ["OPENROUTER_API_KEY"] = saved
+
+    def test_maps_review_sections_into_draft(self):
+        # Verdict -> Decision, Rationale -> Rationale,
+        # Rejected alternatives -> Alternatives considered, actions -> Next actions
+        res = dd.extract_draft(_src(self.root), self.drafts, on="2026-06-30")
+        text = res.out_path.read_text(encoding="utf-8")
+
+        def _section(t, h):
+            return dd._section_body(t, h)
+
+        self.assertIn("Proceed with changes.", _section(text, "Decision"))
+        rat = _section(text, "Rationale")
+        self.assertIn("clearer for users", rat)
+        self.assertNotIn("TODO", rat)
+        alts = _section(text, "Alternatives considered")
+        self.assertIn("do nothing", alts)
+        self.assertIn("bigger rewrite", alts)
+        cons = _section(text, "Consequences")
+        self.assertIn("risk one", cons)
+        nxt = _section(text, "Next actions")
+        self.assertIn("do a", nxt)
+        self.assertIn("do b", nxt)
+
+    def test_extracted_draft_is_promotable(self):
+        # a draft extracted from a sectioned review fills the core sections, so it
+        # passes the new promote content validation (no manual editing needed)
+        res = dd.extract_draft(_src(self.root), self.drafts, on="2026-06-30")
+        ddir = self.root / "docs" / "decisions"
+        ddir.mkdir(parents=True)
+        prom = dd.promote(res.out_path, ddir)
+        self.assertTrue(prom.ok and prom.written, prom.errors)
+
+    def test_sparse_review_keeps_todos(self):
+        # if a section is absent in the source, the draft keeps its TODO marker
+        sparse = "# Bare\n\n## Verdict\nship it.\n"
+        res = dd.extract_draft(_src(self.root, sparse, name="bare.md"),
+                               self.drafts, on="2026-06-30")
+        text = res.out_path.read_text(encoding="utf-8")
+        self.assertIn("_TODO: rationale._", text)
+        self.assertIn("ship it.", text)
 
     def test_clean_draft_can_be_promoted(self):
         # extract a clean source -> draft -> promote into a curated dir succeeds
