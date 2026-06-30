@@ -117,19 +117,34 @@ class TestRealRepoPack(unittest.TestCase):
     check. This guards the v0.3.1 fix and will flag if the pack later drops an
     advisory signal (e.g. the budget trimmer outgrowing its char limit again)."""
 
-    def test_real_repo_pack_passes_21_of_21(self):
+    def _build_real(self):
         repo = Path(__file__).resolve().parents[1]
         ddir = repo / "docs" / "decisions"
         status = repo / "docs" / "context" / "project" / "STATUS.md"
         if not ddir.is_dir() or not status.is_file():
             self.skipTest("real repo docs not present")
-        res = cp.build_pack(ddir, status)
+        return cp.build_pack(ddir, status)
+
+    def test_real_repo_pack_passes_21_of_21(self):
+        res = self._build_real()
         chk = cp.check_pack(res.text)
         missed = [c.name for c in chk.checks if not c.ok]
         self.assertEqual((chk.passed, chk.total), (21, 21), missed)
         self.assertTrue(chk.ok, chk.reasons)
         self.assertEqual([f for f in chk.redaction_findings
                           if f.severity == redaction.CRITICAL], [])
+
+    def test_real_repo_keeps_dedicated_rejected_index(self):
+        # the rejected-alternatives signal must come from the dedicated index
+        # section, not just incidentally from an included decision body (PR #55).
+        res = self._build_real()
+        self.assertIn("## Rejected alternatives index", res.text)
+        self.assertNotIn("dropped rejected-alternatives index",
+                         " ".join(res.warnings))
+
+    def test_real_repo_keeps_human_review_signal(self):
+        res = self._build_real()
+        self.assertIn("human-reviewed", res.text)
 
 
 class TestCheckCLI(unittest.TestCase):

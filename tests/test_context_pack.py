@@ -82,6 +82,65 @@ class TestBuild(unittest.TestCase):
         self.assertIn("## Rejected alternatives index", res.text)
         self.assertIn("Alt rec00", res.text)
 
+    # --- budget headroom / trim-order stabilization (PR #55) ----------------- #
+
+    def _seed_big(self, n=10, pad_lines=16):
+        # sizeable bodies so a moderate budget forces trimming of recent bodies
+        filler = "\n\n" + ("padding context line for budget testing.\n" * pad_lines)
+        for i in range(n):
+            _rec(self.ddir, f"rec{i:02d}", f"2026-06-{10 + i:02d}", extra=filler)
+
+    def test_critical_signals_survive_normal_trim(self):
+        # under budget pressure the build trims recent bodies / the older index
+        # but KEEPS the dedicated rejected-alternatives index and the always-present
+        # human-review constraint (critical signals are not dropped first).
+        self._seed_big(10)
+        res = cp.build_pack(self.ddir, self.status, max_chars=5000,
+                            on="2026-06-30T00:00:00Z")
+        self.assertTrue(res.warnings)  # trimming happened
+        self.assertIn("## Rejected alternatives index", res.text)
+        self.assertIn("human-reviewed", res.text)
+        self.assertFalse(any("dropped rejected-alternatives index" in w
+                             for w in res.warnings))
+
+    def test_rejected_index_drawn_from_all_records(self):
+        # even with only one recent full body, an alternative from a non-recent
+        # record still surfaces (the rejected index is built from ALL records).
+        self._seed_big(8)
+        res = cp.build_pack(self.ddir, self.status, max_chars=20000, recent=1,
+                            on="2026-06-30T00:00:00Z")
+        self.assertIn("## Rejected alternatives index", res.text)
+        self.assertIn("Alt rec00", res.text)  # oldest record, not in the single body
+        self.assertEqual(res.text.count("### rec00 title"), 0)  # its body isn't included
+
+    def test_rejected_index_dropped_only_as_last_resort(self):
+        # with a punishing budget the rejected index is the LAST thing dropped —
+        # only after recent/index/status have already been trimmed.
+        self._seed_big(10)
+        long_status = self.root / "LONGSTATUS.md"
+        long_status.write_text("# Status\n\n" + ("status detail line.\n" * 80),
+                               encoding="utf-8")
+        res = cp.build_pack(self.ddir, long_status, max_chars=1300,
+                            on="2026-06-30T00:00:00Z")
+        ws = res.warnings
+        self.assertTrue(any("dropped rejected-alternatives index" in w
+                            and "last resort" in w for w in ws))
+        status_i = next(i for i, w in enumerate(ws) if "truncated status" in w)
+        rej_i = next(i for i, w in enumerate(ws)
+                     if "dropped rejected-alternatives" in w)
+        self.assertLess(status_i, rej_i)  # status trimmed before rejected dropped
+
+    def test_status_truncation_is_one_shot(self):
+        # status truncation must not loop forever (it would block the last resort)
+        self._seed_big(10)
+        long_status = self.root / "LONGSTATUS.md"
+        long_status.write_text("# Status\n\n" + ("status detail line.\n" * 80),
+                               encoding="utf-8")
+        res = cp.build_pack(self.ddir, long_status, max_chars=1300,
+                            on="2026-06-30T00:00:00Z")
+        self.assertEqual(sum(1 for w in res.warnings
+                             if "truncated status" in w), 1)
+
     def test_pinned_decisions_first(self):
         _rec(self.ddir, "normal", "2026-06-20")
         _rec(self.ddir, "important", "2026-06-10",

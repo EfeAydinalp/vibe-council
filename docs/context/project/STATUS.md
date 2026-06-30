@@ -32,15 +32,20 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   [`v0.3.1 release prep`](../../decisions/2026-06-30-v0.3.1-release-prep.md) and
   [`dogfood notes`](../../dogfood/v0.3.1-notes.md).
 - **v0.3.1 released** (tag `v0.3.1`); release-note links are tag-pinned absolute (link hygiene done).
-- **Current focus:** **v0.4 planning** — a **read-only** MCP / Claude Code workflow (query curated
-  memory + context pack; no write/action authority). See
-  [`v0.4 read-only MCP plan`](../../plans/v0.4-read-only-mcp-workflow.md) and
+- **Context-pack budget stabilized** (PR #55): trim order keeps the rejected-alternatives index and
+  human-review signal under the default 14000 budget (dropped only as a last resort); the
+  rejected-alternatives index is built from all curated records. Char budget stays naive;
+  token-aware budget remains deferred. See
+  [`budget headroom`](../../decisions/2026-07-01-context-pack-budget-headroom.md).
+- **Current focus:** **v0.4 read-only MCP** — query curated memory + context pack from Claude Code /
+  local agents with no write/action authority. See
+  [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md) and
   [`v0.4 scope`](../../decisions/2026-07-01-v0.4-read-only-mcp-scope.md).
 
 ## Next actions
 
-1. Land the v0.4 plan, then sequence small PRs (#55 design → #56 server skeleton → #57 pack/health →
-   #58 Claude Code docs → #59 dogfood → #60 release prep).
+1. Next v0.4 PRs: MCP design skeleton → read-only server (status + decisions) → pack/health resource
+   → Claude Code docs → dogfood → release prep.
 2. Keep v0.4 **read-only**: no write-capable MCP, no remote approval transport, no hosted/sync.
 3. Later: token-aware budget / rolling summaries; vector retrieval only if plain retrieval proves
    insufficient.
