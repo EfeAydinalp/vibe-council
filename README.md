@@ -682,20 +682,39 @@ them.
 
 ## Roadmap / next ideas
 
-**Recently shipped (v0.2.0):** a **provider abstraction** with an OpenRouter adapter,
-**provider selection** via `VIBE_PROVIDER`, a **local Ollama provider**
-(`VIBE_PROVIDER=ollama`) with `VIBE_OLLAMA_MODEL`, **`vibe doctor`** provider
-diagnostics, and provider-aware usage/cost messaging. (v0.1.0 shipped the first-run
-API-key guard, `vibe models`/`presets`/`--version`, tests + CI on Ubuntu/macOS/Windows,
-privacy/local-first docs, decision memory, cross-platform install scripts, and a demo
-guide + [sanitized transcript](docs/demo-transcript.md).)
+**Recently shipped (v0.3.0 — local-first decision memory + curated project context):** the
+**redaction guard** (`vibe lint --redaction`), a **curated decision CLI** (`vibe decisions
+list/show/new/lint`), **draft extraction** (`vibe decisions new --from-run`) + **safe promotion**
+(`vibe decisions promote`), the **context-pack builder/check/export**
+(`vibe context build`/`check`/`export claude-code`), **operator status**
+(`vibe operator status`/`set`/`clear`), and the **license/provenance "Question 0"** checklist —
+all deterministic and local-first (no LLM summarization, no vector retrieval, no MCP, no hosted/sync).
+(v0.2.0 shipped the provider abstraction + local Ollama + `vibe doctor`; v0.1.0 shipped the first-run
+API-key guard, `vibe models`/`presets`/`--version`, CI, and decision memory.)
 
-**Release status:** **v0.2.0 — multi-provider (OpenRouter + local Ollama).** The repo
-reports `0.2.0`; the `v0.2.0` git tag and GitHub Release are cut by a maintainer right
-after the release PR merges. See [`CHANGELOG.md`](CHANGELOG.md) for the full notes and
-[`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an early
-`0.x` release — expect breaking changes between minor versions, and see the honest
-limitations below.
+**The v0.3 decision-memory / context loop:**
+
+```text
+vibe decisions new --from-run <local-review.md>   # extract a LOCAL draft (gitignored)
+# edit / review / redact the draft
+vibe decisions promote <draft.md>                 # promote into curated docs/decisions/
+vibe decisions lint                               # lint the curated records
+vibe context build                                # build a local context pack
+vibe context check                                # check pack quality (deterministic)
+vibe context export claude-code                   # wrap as a local Claude Code context file
+```
+
+```text
+vibe lint --redaction                             # scan public docs for leaks
+vibe operator status                              # show local workflow status
+```
+
+**Release status:** **v0.3.0 — local-first decision memory + curated project context.** The repo
+reports `0.3.0`; the `v0.3.0` git tag and GitHub Release are cut by a maintainer right
+after the release PR merges. See [`CHANGELOG.md`](CHANGELOG.md) and [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md)
+for the notes, and [`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an
+early `0.x` release — expect breaking changes between minor versions, and see the honest limitations
+below. **No commercial-clearance claim; license/provenance remains "Question 0".**
 
 **Near-term:**
 

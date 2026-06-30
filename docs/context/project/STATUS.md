@@ -22,13 +22,16 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #43 merged** — `vibe context build` (deterministic, local-first context-pack builder MVP).
 - **PR #44 merged** — `vibe context check` (deterministic context-quality harness, not an LLM eval).
 - **PR #45 merged** — `vibe operator status` (minimal local-first operator status MVP).
-- **Current focus:** `vibe context export claude-code` — local Claude Code context export MVP.
+- **PR #46 merged** — `vibe context export claude-code` (local Claude Code context export MVP).
+- **v0.3 decision-memory / context loop is implemented end-to-end** (extract → promote → lint →
+  build → check → export, plus redaction guard and operator status).
+- **Current focus:** **v0.3.0 release prep** — version bump to `0.3.0`, CHANGELOG, release notes.
 
 ## Next actions
 
-1. Land the Claude Code context export MVP (`vibe context export claude-code`).
-2. Then (later, prerequisite-gated) MCP read-only export of the pack.
-3. Then an append-only operator event log + a token-aware context budget.
+1. Merge the v0.3.0 release-prep PR; then (when requested) tag `v0.3.0` and publish the release notes.
+2. After release: consider MCP read-only export of the pack, or a token-aware budget / rolling summaries.
+3. License/provenance "Question 0" remains the gate before any commercial step.
 
 ## Blockers / open risks
 

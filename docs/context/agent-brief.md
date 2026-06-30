@@ -17,9 +17,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 
 ## Current released state
 
-- **v0.2.0** — the multi-provider milestone. 118 tests passing; default OpenRouter path
-  unchanged. See [v0.2.0 release decision](../decisions/2026-06-29-v0.2-release.md) and
-  [release notes](../releases/v0.2.0.md).
+- **v0.2.0** (tagged) — the multi-provider milestone (provider abstraction + local Ollama +
+  `vibe doctor`). See [v0.2.0 release decision](../decisions/2026-06-29-v0.2-release.md).
+- **v0.3.0** (prepared; next release target) — **local-first decision memory + curated project
+  context**. The v0.3 loop exists **end-to-end**: extract (`decisions new --from-run`) → review/redact
+  → `decisions promote` → `decisions lint` → `context build` → `context check` → `context export
+  claude-code`, plus `vibe lint --redaction` and `operator status`. All deterministic and local-first;
+  **generated context packs/exports stay local/gitignored**. See [v0.3.0 release notes](../releases/v0.3.0.md)
+  and [release-prep decision](../decisions/2026-06-30-v0.3-release-prep.md). No commercial-clearance
+  claim — license/provenance remains "Question 0".
 
 ## Provider architecture
 
