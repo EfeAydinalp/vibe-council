@@ -40,5 +40,6 @@ seed** for the linked decision-memory direction (see
 - [Operator status MVP](./2026-06-30-operator-status-mvp.md) — accepted
 - [Claude Code context export MVP](./2026-06-30-claude-code-context-export.md) — accepted
 - [Prepare v0.3.0 release](./2026-06-30-v0.3-release-prep.md) — accepted
+- [Decision CLI dogfood rough-edge fixes (v0.3.1)](./2026-06-30-decision-cli-dogfood-fixes.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

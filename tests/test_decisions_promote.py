@@ -52,7 +52,8 @@ class TestPromote(unittest.TestCase):
         self.assertTrue(res.ok)
         self.assertTrue(res.written)
         self.assertTrue(res.out_path.is_file())
-        self.assertEqual(res.out_path.name, "DEC-20260630-sample.md")
+        # curated convention: <date>-<slug>.md (date from frontmatter, slug from H1)
+        self.assertEqual(res.out_path.name, "2026-06-30-sample-decision.md")
         self.assertEqual(res.out_path.parent, self.ddir.resolve())
 
     def test_refuses_missing_headings(self):
@@ -119,7 +120,7 @@ class TestPromote(unittest.TestCase):
         # promote does not stage/commit/touch anything else: only the one record.
         dd.promote(_draft(self.drafts), self.ddir)
         self.assertEqual([p.name for p in self.ddir.iterdir()],
-                         ["DEC-20260630-sample.md"])
+                         ["2026-06-30-sample-decision.md"])
 
     def test_no_api_key_required(self):
         saved = os.environ.pop("OPENROUTER_API_KEY", None)
@@ -137,6 +138,77 @@ class TestPromote(unittest.TestCase):
         res = dd.promote(p, self.ddir)
         self.assertTrue(res.written)
         self.assertFalse(res.out_path.read_bytes().startswith(b"\xef\xbb\xbf"))
+
+
+    # --- content validation (placeholder-only drafts) ----------------------- #
+
+    def test_rejects_all_todo_skeleton(self):
+        # the `decisions new` template is an all-TODO scaffold: valid frontmatter
+        # and headings, but no real content -> must not be promotable.
+        skeleton = dd.template(title="Skeleton decision", on="2026-06-30")
+        res = dd.promote(_draft(self.drafts, skeleton), self.ddir)
+        self.assertFalse(res.ok)
+        self.assertFalse(res.written)
+        self.assertTrue(any("placeholder-only core sections" in e for e in res.errors))
+        self.assertEqual(list(self.ddir.iterdir()), [])  # nothing written
+
+    def test_accepts_draft_with_meaningful_content(self):
+        res = dd.promote(_draft(self.drafts), self.ddir)  # VALID_DRAFT has content
+        self.assertTrue(res.ok and res.written)
+
+    def test_rejects_when_only_decision_filled(self):
+        # Decision has content but Rationale + Consequences/Next actions are TODO.
+        secs = []
+        for h in dd.REQUIRED_HEADINGS:
+            secs.append(f"## {h}\n\n" + ("real decision text" if h == "Decision" else "_TODO_"))
+        body = "\n\n".join(secs) + "\n"
+        res = dd.promote(_draft(self.drafts, FM + body), self.ddir)
+        self.assertFalse(res.ok)
+        self.assertTrue(any("Rationale" in e for e in res.errors))
+
+    # --- filename convention ------------------------------------------------- #
+
+    def test_uses_frontmatter_date_not_today(self):
+        # date comes from frontmatter even when a different `on` is supplied
+        res = dd.promote(_draft(self.drafts), self.ddir, dry_run=True, on="2099-01-01")
+        self.assertTrue(res.ok)
+        self.assertEqual(res.out_path.name, "2026-06-30-sample-decision.md")
+
+    def test_does_not_emit_dec_filename(self):
+        res = dd.promote(_draft(self.drafts), self.ddir, dry_run=True)
+        self.assertFalse(res.out_path.name.startswith("DEC-"))
+
+    def test_caps_and_sanitizes_long_slug(self):
+        long_title = "# " + " ".join(["word"] * 40)  # ~200 chars of title
+        draft = FM.replace("# Sample decision", long_title) + BODY
+        res = dd.promote(_draft(self.drafts, draft), self.ddir, dry_run=True)
+        self.assertTrue(res.ok)
+        name = res.out_path.name
+        self.assertTrue(name.startswith("2026-06-30-"))
+        self.assertTrue(name.endswith(".md"))
+        slug = name[len("2026-06-30-"):-len(".md")]
+        self.assertLessEqual(len(slug), dd.SLUG_MAXLEN)
+        for bad in ("/", "\\", "..", " "):
+            self.assertNotIn(bad, name)
+
+    def test_id_fallback_slug_is_sanitized(self):
+        # no H1 -> slug derives from id; an unsafe id must still produce a safe name
+        no_h1 = (
+            "---\n"
+            "id: ../../../etc/pwned\n"
+            "status: proposed\n"
+            "date: 2026-06-30\n"
+            "tags: []\n"
+            "related: []\n"
+            "published: false\n"
+            "---\n\n" + BODY
+        )
+        res = dd.promote(_draft(self.drafts, no_h1), self.ddir)
+        self.assertTrue(res.ok and res.written)
+        self.assertNotIn("/", res.out_path.name)
+        self.assertNotIn("..", res.out_path.name)
+        self.assertEqual(res.out_path.parent, self.ddir.resolve())
+        self.assertFalse((self.root / "etc" / "pwned.md").exists())
 
 
 if __name__ == "__main__":

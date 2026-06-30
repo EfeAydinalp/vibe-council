@@ -148,8 +148,15 @@ def find_record(decisions_dir: Path, identifier: str) -> Optional[Path]:
 # new (template)
 # --------------------------------------------------------------------------- #
 
-def _slug(title: str) -> str:
+SLUG_MAXLEN = 60
+
+
+def _slug(title: str, maxlen: int = SLUG_MAXLEN) -> str:
     s = re.sub(r"[^a-z0-9]+", "-", (title or "untitled").lower()).strip("-")
+    if maxlen and len(s) > maxlen:
+        cut = s[:maxlen]
+        # prefer a clean word boundary when there is one in the kept prefix
+        s = (cut.rsplit("-", 1)[0] if "-" in cut else cut).strip("-")
     return s or "untitled"
 
 
@@ -279,6 +286,100 @@ def _sanitize_filename_stem(s: str) -> str:
     return s or "untitled"
 
 
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_LEADING_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-")
+
+
+def _h1(text: str) -> Optional[str]:
+    """First Markdown H1 (``# ...``) or None."""
+    for line in text.splitlines():
+        m = _TITLE_RE.match(line)
+        if m:
+            return m.group("text")
+    return None
+
+
+def _strip_leading_date(s: str) -> str:
+    """Drop a leading ``YYYY-MM-DD-`` so we never duplicate the date prefix."""
+    return _LEADING_DATE_RE.sub("", s or "")
+
+
+def _slug_from_id(rid: str) -> str:
+    """Slug from a record id, stripping a leading ``DEC-`` and/or date token so
+    ``DEC-20260630-foo`` / ``2026-06-30-foo`` both reduce to ``foo``."""
+    s = (rid or "").strip()
+    s = re.sub(r"^dec-", "", s, flags=re.I)
+    s = re.sub(r"^\d{8}-", "", s)
+    s = re.sub(r"^\d{4}-\d{2}-\d{2}-", "", s)
+    return _slug(s)
+
+
+def _date_for(fm: Dict[str, object], on: Optional[str]) -> str:
+    raw = str(fm.get("date") or "").strip().strip("'\"")
+    if _DATE_RE.match(raw):
+        return raw
+    return on or _date.today().isoformat()
+
+
+# Core sections a promoted record must actually fill in (not just scaffold).
+PROMOTE_REQUIRED_CONTENT = ("Decision", "Rationale")
+PLACEHOLDER_ERROR = ("Draft still contains placeholder-only core sections. "
+                     "Edit/review before promote.")
+
+_TODO_HEAD_RE = re.compile(r"^(?:todo|tbd)\b", re.I)
+
+
+def _is_placeholder_line(line: str) -> bool:
+    """A line with no real content: blank, pure decoration (no alphanumerics), or
+    a TODO/TBD/'fill (this) in' marker (optionally wrapped in ``_ * > # : . -``)."""
+    s = line.strip()
+    if not s:
+        return True
+    if not re.search(r"[A-Za-z0-9]", s):        # rule / emphasis-only line
+        return True
+    core = s.strip("_*>#-:. \t").lower()
+    if not core:
+        return True
+    if _TODO_HEAD_RE.match(core):
+        return True
+    return "fill this in" in core or "fill in" in core
+
+
+def _section_body(text: str, heading: str) -> str:
+    """Lines under the first heading whose text starts with ``heading`` (prefix
+    match), up to the next heading."""
+    h = heading.lower()
+    out: List[str] = []
+    capturing = False
+    for line in text.splitlines():
+        m = _HEADING_RE.match(line)
+        if m:
+            if capturing:
+                break
+            capturing = m.group("text").lower().startswith(h)
+            continue
+        if capturing:
+            out.append(line)
+    return "\n".join(out)
+
+
+def _section_is_placeholder(text: str, heading: str) -> bool:
+    """True if the section is absent/empty or holds only placeholder lines."""
+    return all(_is_placeholder_line(l) for l in _section_body(text, heading).splitlines())
+
+
+def placeholder_core_sections(text: str) -> List[str]:
+    """Core sections that still hold only placeholder/empty content. Promotion
+    requires meaningful content in Decision and Rationale, plus at least one of
+    Consequences / Next actions. Used by ``promote`` only (not ``decisions lint``,
+    which must stay lenient for existing curated records)."""
+    missing = [h for h in PROMOTE_REQUIRED_CONTENT if _section_is_placeholder(text, h)]
+    if (_section_is_placeholder(text, "Consequences")
+            and _section_is_placeholder(text, "Next actions")):
+        missing.append("Consequences/Next actions")
+    return missing
+
+
 def validate_draft(text: str, label: str = "<draft>") -> List[LintIssue]:
     """Lint a single draft's content: frontmatter completeness, stable headings,
     and redaction (reused). Used by promote and easy to unit-test."""
@@ -306,16 +407,25 @@ def validate_draft(text: str, label: str = "<draft>") -> List[LintIssue]:
 
 def derive_filename(text: str, fm: Dict[str, object], draft_path: Path,
                     on: Optional[str] = None) -> str:
-    """Output filename for a promoted draft. Prefer ``<id>.md`` (sanitized);
-    else ``<date>-<title-slug>.md``; else the draft stem."""
+    """Output filename for a promoted draft, matching the curated
+    ``<date>-<slug>.md`` convention used by every existing record.
+
+    Date comes from frontmatter ``date`` (else ``on``/today). Slug source, in
+    priority order: the H1 title, else the id (``DEC-``/date prefix stripped),
+    else the draft filename stem. The slug is sanitized + length-capped and the
+    date is never duplicated. Path-traversal can't occur: ``_slug``/``_slug_from_id``
+    emit only ``[a-z0-9-]``, and the result is a bare ``<date>-<slug>.md``."""
+    date = _date_for(fm, on)
+    h1 = _h1(text)
     rid = str(fm.get("id") or "").strip()
-    if rid:
-        return _sanitize_filename_stem(rid) + ".md"
-    title = _title_of(text, fm, draft_path.stem)
-    if title and title != draft_path.stem:
-        date = _sanitize_filename_stem(str(fm.get("date") or (on or _date.today().isoformat())))
-        return f"{date}-{_slug(title)}.md"
-    return _sanitize_filename_stem(draft_path.stem) + ".md"
+    if h1:
+        slug = _slug(h1)
+    elif rid:
+        slug = _slug_from_id(rid)
+    else:
+        slug = _slug(draft_path.stem)
+    slug = _strip_leading_date(slug) or "untitled"
+    return f"{date}-{slug}.md"
 
 
 def promote(draft_path: Path, decisions_dir: Path, force: bool = False,
@@ -338,6 +448,13 @@ def promote(draft_path: Path, decisions_dir: Path, force: bool = False,
     if blocking:
         return PromoteResult(False, None, False,
                              [f"{i.rule}: {i.message}" for i in blocking])
+
+    # minimal content validation: refuse to promote a scaffold whose core
+    # sections are still placeholder-only (TODO/TBD/empty).
+    ph = placeholder_core_sections(text)
+    if ph:
+        return PromoteResult(False, None, False,
+                             [f"{PLACEHOLDER_ERROR} (sections: {', '.join(ph)})"])
 
     fm, _ = _split_frontmatter(text)
     fname = derive_filename(text, fm, draft_path, on=on)
@@ -408,6 +525,9 @@ def _extract_verdict(text: str) -> Optional[str]:
 
 
 def _extract_section_items(text: str, keywords, max_items: int = 5) -> List[str]:
+    """Bullet/list items under any heading matching a keyword (used by the context
+    pack builder). Kept stable; ``_extract_section_lines`` is the newer, more
+    general collector used by draft extraction."""
     out: List[str] = []
     capturing = False
     for line in text.splitlines():
@@ -425,22 +545,51 @@ def _extract_section_items(text: str, keywords, max_items: int = 5) -> List[str]
     return out
 
 
+def _extract_section_lines(text: str, keywords, max_items: int = 5,
+                           cap: int = 200) -> List[str]:
+    """First few non-empty content lines (bullets or prose) under the first
+    heading whose text contains any keyword, up to the next heading. Bounded and
+    per-line capped — never pastes large raw sections."""
+    out: List[str] = []
+    capturing = False
+    for line in text.splitlines():
+        hm = _ANY_HEAD_RE.match(line)
+        if hm:
+            if capturing:
+                break
+            capturing = any(k in hm.group("v").lower() for k in keywords)
+            continue
+        if capturing:
+            s = line.strip()
+            if not s:
+                continue
+            im = _LIST_ITEM_RE.match(line)
+            out.append(_cap(im.group("v") if im else s, cap))
+            if len(out) >= max_items:
+                break
+    return out
+
+
 def _build_extract_draft(src: str, title: str, today: str,
                          tags: Optional[List[str]], source_name: str) -> str:
     rec_id = f"DEC-{today.replace('-', '')}-{_slug(title)}"
     tag_list = "[" + ", ".join(tags or []) + "]"
     verdict = _extract_verdict(src)
-    risks = _extract_section_items(src, ["risk"], 5)
-    actions = _extract_section_items(
+    rationale = _extract_section_lines(src, ["rationale", "why", "reasoning"], 5)
+    alternatives = _extract_section_lines(
+        src, ["alternative", "other option", "rejected"], 5)
+    cons = _extract_section_lines(
+        src, ["consequence", "risk", "tradeoff", "trade-off", "downside"], 5)
+    actions = _extract_section_lines(
         src, ["next action", "action item", "recommended next", "final action",
               "next step"], 5)
+
+    def _bullets(items: List[str], todo: str) -> str:
+        return "\n".join(f"- {i}" for i in items) if items else todo
+
     decision = _cap(verdict) if verdict else "_TODO: state the decision._"
-    cons = ("\n".join(f"- Risk (extracted, review): {_cap(r)}" for r in risks)
-            if risks else "_TODO: consequences._")
-    nexts = ("\n".join(f"- {_cap(a)}" for a in actions)
-             if actions else "_TODO: next actions._")
     src_note = ("_Draft extracted from local council output; review/redact before "
-                "promotion._\n"
+                "promotion (remove this note before promote)._\n"
                 f"Source: `{source_name}`")
     return (
         "---\n"
@@ -454,10 +603,10 @@ def _build_extract_draft(src: str, title: str, today: str,
         f"# {title}\n\n"
         f"## Context\n\n{src_note}\n\n_TODO: summarize the context._\n\n"
         f"## Decision\n\n{decision}\n\n"
-        "## Rationale\n\n_TODO: rationale._\n\n"
-        "## Alternatives considered\n\n_TODO._\n\n"
-        f"## Consequences\n\n{cons}\n\n"
-        f"## Next actions\n\n{nexts}\n\n"
+        f"## Rationale\n\n{_bullets(rationale, '_TODO: rationale._')}\n\n"
+        f"## Alternatives considered\n\n{_bullets(alternatives, '_TODO._')}\n\n"
+        f"## Consequences\n\n{_bullets(cons, '_TODO: consequences._')}\n\n"
+        f"## Next actions\n\n{_bullets(actions, '_TODO: next actions._')}\n\n"
         "## Related links\n\n_TODO._\n"
     )
 
