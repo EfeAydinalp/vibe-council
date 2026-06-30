@@ -1,6 +1,6 @@
 # Status
 
-_Snapshot date: **2026-06-29**._
+_Snapshot date: **2026-06-30**._
 
 A short, current snapshot of where vibe-council is. See [`README.md`](./README.md) for what this
 folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision records.
@@ -25,7 +25,9 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #46 merged** — `vibe context export claude-code` (local Claude Code context export MVP).
 - **v0.3 decision-memory / context loop is implemented end-to-end** (extract → promote → lint →
   build → check → export, plus redaction guard and operator status).
-- **Current focus:** **v0.3.0 release prep** — version bump to `0.3.0`, CHANGELOG, release notes.
+- **v0.3.0 released** (decision-memory + curated project context; 209 tests).
+- **Current focus:** **v0.3.1 hardening / dogfood** — exercise the v0.3 loop on real tasks and fix
+  rough edges before new features. See [`docs/dogfood/v0.3.1-notes.md`](../../dogfood/v0.3.1-notes.md).
 
 ## Next actions
 
