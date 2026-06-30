@@ -5,7 +5,7 @@ hand-written **dogfood seed**, not generated output — it distills the committe
 under [`docs/decisions/`](../decisions/). Future *generated* agent briefs should default to a
 local, gitignored location and be committed only by explicit, redacted opt-in.
 
-_Last curated: 2026-06-29 (vibe-council 0.2.0)._
+_Last curated: 2026-06-30 (vibe-council 0.3.1)._
 
 ## Project identity
 
@@ -19,12 +19,18 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 
 - **v0.2.0** (tagged) — the multi-provider milestone (provider abstraction + local Ollama +
   `vibe doctor`). See [v0.2.0 release decision](../decisions/2026-06-29-v0.2-release.md).
-- **v0.3.0** (prepared; next release target) — **local-first decision memory + curated project
-  context**. The v0.3 loop exists **end-to-end**: extract (`decisions new --from-run`) → review/redact
-  → `decisions promote` → `decisions lint` → `context build` → `context check` → `context export
-  claude-code`, plus `vibe lint --redaction` and `operator status`. All deterministic and local-first;
-  **generated context packs/exports stay local/gitignored**. See [v0.3.0 release notes](../releases/v0.3.0.md)
-  and [release-prep decision](../decisions/2026-06-30-v0.3-release-prep.md). No commercial-clearance
+- **v0.3.0** (released) — **local-first decision memory + curated project context**. The v0.3 loop
+  exists **end-to-end**: extract (`decisions new --from-run`) → review/redact → `decisions promote`
+  → `decisions lint` → `context build` → `context check` → `context export claude-code`, plus
+  `vibe lint --redaction` and `operator status`. All deterministic and local-first; **generated
+  context packs/exports stay local/gitignored**. See [v0.3.0 release notes](../releases/v0.3.0.md).
+- **v0.3.1** (prepared; next release target) — **dogfood hardening** of that loop, **no new command
+  surface**: `decisions promote` rejects placeholder-only drafts and writes curated
+  `YYYY-MM-DD-slug.md` records; `decisions new --from-run` maps review sections into the draft;
+  `context check` passes **21/21** on the real repo (explicit human-review signal in packs; default
+  char budget bumped to 14000); plus a CLI UX pass. **v0.4 / MCP remains deferred until after the
+  v0.3.1 release.** See [v0.3.1 release notes](../releases/v0.3.1.md) and
+  [release-prep decision](../decisions/2026-06-30-v0.3.1-release-prep.md). No commercial-clearance
   claim — license/provenance remains "Question 0".
 
 ## Provider architecture
