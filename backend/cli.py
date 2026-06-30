@@ -47,6 +47,7 @@ from . import decisions_docs
 from . import context_pack
 from . import operator as operator_mod
 from . import mcp_contract
+from . import mcp_server
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -1267,12 +1268,15 @@ def cmd_decisions_local(args) -> int:
 
 
 def cmd_mcp(args) -> int:
-    """Print the planned **read-only** MCP contract (v0.4 design skeleton).
+    """`mcp contract` | `mcp inspect`: the read-only MCP surface (v0.4).
 
-    DESIGN SKELETON ONLY: starts no server, opens no socket, needs no MCP
-    dependency, makes no model/provider/network call, and writes nothing.
-    Deterministic and stdlib-only. Exits non-zero only if the static contract
-    fails its own validation (a programming error), never from I/O."""
+    Both actions are read-only, deterministic, stdlib-only: they start no server,
+    open no socket, need no MCP dependency, make no model/provider/network call,
+    and write nothing. `contract` prints the planned surface; `inspect` runs a
+    bounded read-only smoke over the *implemented* surface (status + decisions)."""
+    if getattr(args, "action", None) == "inspect":
+        return _cmd_mcp_inspect(args)
+
     if getattr(args, "json", False):
         print(json.dumps(mcp_contract.contract_dict(), ensure_ascii=False, indent=2))
     else:
@@ -1283,6 +1287,62 @@ def cmd_mcp(args) -> int:
             _err(f"[mcp] contract violation: {v}")
         return EXIT_RUNTIME
     _err("[mcp] read-only contract (design skeleton); no server started, nothing written.")
+    return EXIT_OK
+
+
+def _cmd_mcp_inspect(args) -> int:
+    """Bounded read-only smoke over the implemented MCP read layer (status +
+    curated decisions). No server, no transport, no writes, no model/network."""
+    root = pw.caller_cwd()
+
+    violations = mcp_server.validate_server_contract()
+    if violations:
+        for v in violations:
+            _err(f"[mcp] server contract violation: {v}")
+        return EXIT_RUNTIME
+
+    decisions = mcp_server.list_decisions(root)
+    try:
+        status = mcp_server.get_project_status(root)
+        status_note = f"{len(status)} chars"
+    except mcp_server.ReadError:
+        status_note = "not found"
+
+    one_id = getattr(args, "id", None)
+
+    if getattr(args, "json", False):
+        out = {
+            "read_only": True,
+            "server_implemented": False,  # transport deferred; read layer only
+            "enabled_resources": list(mcp_server.ENABLED_RESOURCES),
+            "enabled_tools": list(mcp_server.ENABLED_TOOLS),
+            "deferred_tools": list(mcp_server.DEFERRED_TOOLS),
+            "status_chars": (len(status) if status_note != "not found" else 0),
+            "decision_count": len(decisions),
+        }
+        if one_id:
+            try:
+                rec = mcp_server.show_decision(root, one_id)
+                out["decision"] = {"id": rec["id"], "title": rec["title"],
+                                   "chars": len(rec["text"])}
+            except mcp_server.ReadError as e:
+                out["decision_error"] = str(e)
+        print(json.dumps(out, ensure_ascii=False, indent=2))
+    else:
+        print("MCP read-only inspect (status + decisions; no server/transport)")
+        print("  enabled resources: " + ", ".join(mcp_server.ENABLED_RESOURCES))
+        print("  enabled tools:     " + ", ".join(mcp_server.ENABLED_TOOLS))
+        print("  deferred tools:    " + ", ".join(mcp_server.DEFERRED_TOOLS))
+        print(f"  get_project_status: {status_note}")
+        print(f"  list_decisions: {len(decisions)} curated record(s)")
+        if one_id:
+            try:
+                rec = mcp_server.show_decision(root, one_id)
+                print(f"  show_decision({one_id}): {rec['title']} ({len(rec['text'])} chars)")
+            except mcp_server.ReadError as e:
+                print(f"  show_decision({one_id}): {e}")
+
+    _err("[mcp] read-only inspect; no server started, nothing written.")
     return EXIT_OK
 
 
@@ -1637,10 +1697,12 @@ def _build_parser() -> argparse.ArgumentParser:
                          help="Files/dirs to scan (default: tracked public docs).")
 
     sp_mcp = sub.add_parser(
-        "mcp", help="Print the planned read-only MCP contract (design skeleton; no server).")
-    sp_mcp.add_argument("action", choices=["contract"],
-                        help="contract: print the read-only MCP resources/tools + forbidden tools.")
-    sp_mcp.add_argument("--json", action="store_true", help="Print the contract as JSON.")
+        "mcp", help="Read-only MCP surface (no server): print the contract or inspect status+decisions.")
+    sp_mcp.add_argument("action", choices=["contract", "inspect"],
+                        help="contract: print read-only resources/tools + forbidden tools. "
+                             "inspect: read-only smoke over status + curated decisions.")
+    sp_mcp.add_argument("--id", help="inspect: also show one curated decision by id/stem.")
+    sp_mcp.add_argument("--json", action="store_true", help="Print output as JSON.")
 
     sp_last = sub.add_parser("last", parents=[p_proj], help="Print the latest saved artifact.")
     sp_last.add_argument("artifact_type", nargs="?", choices=["review", "decision", "diff", "run"])
