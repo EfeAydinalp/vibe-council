@@ -56,7 +56,10 @@ class LintIssue(NamedTuple):
 # --------------------------------------------------------------------------- #
 
 def _split_frontmatter(text: str):
-    """Return (frontmatter_dict, fm_line_count). Empty dict if no frontmatter."""
+    """Return (frontmatter_dict, fm_line_count). Empty dict if no frontmatter.
+    Tolerant of a leading UTF-8 BOM (drafts saved by some editors carry one)."""
+    if text.startswith("\ufeff"):
+        text = text[1:]
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
         return {}, 0
@@ -251,3 +254,108 @@ def lint(decisions_dir: Path) -> List[LintIssue]:
 
 def has_errors(issues: List[LintIssue]) -> bool:
     return any(i.severity == "error" for i in issues)
+
+
+# --------------------------------------------------------------------------- #
+# promote (draft Markdown -> curated docs/decisions/)
+# --------------------------------------------------------------------------- #
+
+class PromoteResult(NamedTuple):
+    ok: bool
+    out_path: Optional[Path]
+    written: bool
+    errors: List[str]
+
+
+def _sanitize_filename_stem(s: str) -> str:
+    """Reduce an id/title/stem to a safe filename stem (no path separators,
+    no traversal). Allowed: ``A-Za-z0-9._-``; everything else -> ``-``."""
+    s = (s or "").strip().replace("\\", "/")
+    s = s.split("/")[-1]                 # basename only -> kills traversal
+    if s.lower().endswith(".md"):
+        s = s[:-3]
+    s = re.sub(r"[^A-Za-z0-9._-]+", "-", s)
+    s = s.strip(".-")
+    return s or "untitled"
+
+
+def validate_draft(text: str, label: str = "<draft>") -> List[LintIssue]:
+    """Lint a single draft's content: frontmatter completeness, stable headings,
+    and redaction (reused). Used by promote and easy to unit-test."""
+    issues: List[LintIssue] = []
+    fm, _ = _split_frontmatter(text)
+    if not fm:
+        issues.append(LintIssue(label, 1, "frontmatter-missing",
+                                "no YAML frontmatter found", "error"))
+    else:
+        for field in REQUIRED_FRONTMATTER:
+            if field not in fm:
+                issues.append(LintIssue(label, 1, "frontmatter-field",
+                                        f"missing required field: {field}", "error"))
+    headings = _headings(text)
+    for req in REQUIRED_HEADINGS:
+        if not _has_heading(headings, req):
+            issues.append(LintIssue(label, 1, "heading-missing",
+                                    f"missing stable heading: {req}", "error"))
+    for f in redaction.scan_text(text, label):
+        sev = "error" if f.severity == redaction.CRITICAL else "warning"
+        issues.append(LintIssue(label, f.line, f"redaction:{f.rule_id}",
+                                f"{f.message} (match: {f.match})", sev))
+    return issues
+
+
+def derive_filename(text: str, fm: Dict[str, object], draft_path: Path,
+                    on: Optional[str] = None) -> str:
+    """Output filename for a promoted draft. Prefer ``<id>.md`` (sanitized);
+    else ``<date>-<title-slug>.md``; else the draft stem."""
+    rid = str(fm.get("id") or "").strip()
+    if rid:
+        return _sanitize_filename_stem(rid) + ".md"
+    title = _title_of(text, fm, draft_path.stem)
+    if title and title != draft_path.stem:
+        date = _sanitize_filename_stem(str(fm.get("date") or (on or _date.today().isoformat())))
+        return f"{date}-{_slug(title)}.md"
+    return _sanitize_filename_stem(draft_path.stem) + ".md"
+
+
+def promote(draft_path: Path, decisions_dir: Path, force: bool = False,
+            dry_run: bool = False, on: Optional[str] = None) -> PromoteResult:
+    """Promote a human-reviewed Markdown draft into ``decisions_dir``.
+
+    Blocks on: unreadable draft, missing frontmatter/headings, critical redaction
+    findings, an output path that escapes ``decisions_dir``, or an existing target
+    without ``force``. Never stages/commits; only reads the given draft path and
+    writes one curated record. Reading a draft under ``.council/`` is allowed only
+    because the caller passed that explicit path.
+    """
+    try:
+        # utf-8-sig drops a leading BOM so the promoted record is BOM-free.
+        text = draft_path.read_text(encoding="utf-8-sig")
+    except OSError as e:
+        return PromoteResult(False, None, False, [f"cannot read draft: {e}"])
+
+    blocking = [i for i in validate_draft(text, str(draft_path)) if i.severity == "error"]
+    if blocking:
+        return PromoteResult(False, None, False,
+                             [f"{i.rule}: {i.message}" for i in blocking])
+
+    fm, _ = _split_frontmatter(text)
+    fname = derive_filename(text, fm, draft_path, on=on)
+    decisions_dir = decisions_dir.resolve()
+    out_path = decisions_dir / fname
+    try:
+        rp = out_path.resolve()
+    except (OSError, RuntimeError):
+        return PromoteResult(False, None, False, ["could not resolve output path"])
+
+    # containment: must land directly inside decisions_dir, and not README
+    if rp.parent != decisions_dir or rp.name == README_NAME:
+        return PromoteResult(False, None, False, [f"unsafe output path: {fname}"])
+    if rp.exists() and not force:
+        return PromoteResult(False, rp, False, [f"output exists (use --force): {rp.name}"])
+    if dry_run:
+        return PromoteResult(True, rp, False, [])
+
+    decisions_dir.mkdir(parents=True, exist_ok=True)
+    rp.write_text(text, encoding="utf-8")
+    return PromoteResult(True, rp, True, [])

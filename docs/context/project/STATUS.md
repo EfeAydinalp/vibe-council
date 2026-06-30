@@ -16,13 +16,13 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #37 merged** — operator control loop / approval inbox spec.
 - **PR #38 merged** — redaction guard (`vibe lint --redaction` + redaction policy).
 - **PR #39 merged** — license/provenance "Question 0" checklist (commercial gate).
-- **Current focus:** v0.3 decision-memory CLI skeleton — `vibe decisions list/show/new/lint` over
-  curated `docs/decisions/`.
+- **PR #40 merged** — decision-memory CLI skeleton (`vibe decisions list/show/new/lint`).
+- **Current focus:** `vibe decisions promote` — safe draft → curated `docs/decisions/` promotion.
 
 ## Next actions
 
-1. Land the decision-memory CLI skeleton.
-2. Then `vibe decisions promote` (raw run → curated draft → human approve) + extract/promote.
+1. Land the decision-promote MVP.
+2. Then an optional, experimental `--from-run` (raw `.council/` run → draft) with its own guards.
 3. Then the context-pack builder MVP (deterministic, token-budgeted).
 
 ## Blockers / open risks
