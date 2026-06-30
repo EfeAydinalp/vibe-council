@@ -26,23 +26,22 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **v0.3 decision-memory / context loop is implemented end-to-end** (extract → promote → lint →
   build → check → export, plus redaction guard and operator status).
 - **v0.3.0 released** (decision-memory + curated project context; 209 tests).
-- **PR #49 (v0.3.1):** decision-CLI dogfood fixes — `promote` rejects placeholder-only drafts and
-  emits the curated `YYYY-MM-DD-slug.md` name; `new --from-run` maps review sections; slug length
-  capped. See [`decision-cli-dogfood-fixes`](../../decisions/2026-06-30-decision-cli-dogfood-fixes.md).
-- **PR #50 (v0.3.1):** context packs now carry the human-review promotion boundary and the char
-  budget was bumped to 14000; `vibe context check` passes **21/21** on the real repo. See
-  [`context-human-review-signal`](../../decisions/2026-06-30-context-human-review-signal.md).
-- **PR #51 (v0.3.1):** small CLI UX polish — clearer `lint --redaction` verdict, `context build`
-  budget note, `context check` advisory-miss summary, and `decisions` help boundary. See
-  [`v0.3.1-ux-consistency`](../../decisions/2026-06-30-v0.3.1-ux-consistency.md).
-- **Current focus:** **v0.3.1 hardening / dogfood** — exercise the v0.3 loop on real tasks and fix
-  rough edges before new features. See [`docs/dogfood/v0.3.1-notes.md`](../../dogfood/v0.3.1-notes.md).
+- **v0.3.1 dogfood hardening complete** (PRs #49–#51): `promote` rejects placeholder-only drafts and
+  writes `YYYY-MM-DD-slug.md`; `new --from-run` maps review sections; `context check` is **21/21**
+  (human-review signal in packs; budget 14000); plus a CLI UX pass. See
+  [`v0.3.1 release prep`](../../decisions/2026-06-30-v0.3.1-release-prep.md) and
+  [`dogfood notes`](../../dogfood/v0.3.1-notes.md).
+- **Current focus:** **v0.3.1 release prep** — version `0.3.1`, CHANGELOG `[0.3.1]`,
+  `docs/releases/v0.3.1.md`, README/STATUS/agent-brief aligned.
 
 ## Next actions
 
-1. Merge the v0.3.0 release-prep PR; then (when requested) tag `v0.3.0` and publish the release notes.
-2. After release: consider MCP read-only export of the pack, or a token-aware budget / rolling summaries.
-3. License/provenance "Question 0" remains the gate before any commercial step.
+1. Merge the v0.3.1 release-prep PR; then (when requested) tag `v0.3.1` and publish the release notes.
+2. After release: open a standalone **v0.4** design — likely read-only MCP / Claude Code workflow
+   improvements — but only once v0.3.1 is published.
+3. Later: token-aware budget / rolling summaries; vector retrieval only if plain retrieval proves
+   insufficient.
+4. License/provenance "Question 0" remains the gate before any commercial step.
 
 ## Blockers / open risks
 

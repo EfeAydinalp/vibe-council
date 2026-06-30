@@ -685,26 +685,28 @@ them.
 
 ## Roadmap / next ideas
 
-**Recently shipped (v0.3.0 — local-first decision memory + curated project context):** the
-**redaction guard** (`vibe lint --redaction`), a **curated decision CLI** (`vibe decisions
-list/show/new/lint`), **draft extraction** (`vibe decisions new --from-run`) + **safe promotion**
-(`vibe decisions promote`), the **context-pack builder/check/export**
-(`vibe context build`/`check`/`export claude-code`), **operator status**
-(`vibe operator status`/`set`/`clear`), and the **license/provenance "Question 0"** checklist —
-all deterministic and local-first (no LLM summarization, no vector retrieval, no MCP, no hosted/sync).
-(v0.2.0 shipped the provider abstraction + local Ollama + `vibe doctor`; v0.1.0 shipped the first-run
-API-key guard, `vibe models`/`presets`/`--version`, CI, and decision memory.)
+**Recently shipped (v0.3.1 — dogfood hardening):** the v0.3 decision-memory / context loop, used on
+real work and hardened — `decisions promote` refuses placeholder-only drafts and writes curated
+`YYYY-MM-DD-slug.md` records, `decisions new --from-run` maps review sections into the draft,
+`context check` passes **21/21** on the real repo (explicit human-review signal in packs), plus a
+CLI UX pass (clearer `lint --redaction` verdict, `context build` budget hint, `context check`
+advisory-miss count, clearer `decisions` help). No new command surface; still deterministic and
+local-first. (v0.3.0 shipped the redaction guard, the curated decision CLI, draft extraction + safe
+promotion, the context-pack builder/check/export, operator status, and the license/provenance
+"Question 0" checklist; v0.2.0 shipped the provider abstraction + local Ollama + `vibe doctor`;
+v0.1.0 shipped the first-run API-key guard, `vibe models`/`presets`/`--version`, CI, and decision
+memory.)
 
 **The v0.3 decision-memory / context loop:**
 
 ```text
 vibe decisions new --from-run <local-review.md>   # extract a LOCAL draft (gitignored)
 # edit / review / redact the draft
-vibe decisions promote <draft.md>                 # promote into curated docs/decisions/
+vibe decisions promote <draft.md>                 # promote into docs/decisions/ as YYYY-MM-DD-slug.md
 vibe decisions lint                               # lint the curated records
-vibe context build                                # build a local context pack
-vibe context check                                # check pack quality (deterministic)
-vibe context export claude-code                   # wrap as a local Claude Code context file
+vibe context build                                # build a local context pack (gitignored)
+vibe context check                                # check pack quality (deterministic; 21/21 on a curated repo)
+vibe context export claude-code                   # wrap as a local Claude Code context file (gitignored)
 ```
 
 ```text
@@ -712,10 +714,11 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.3.0 — local-first decision memory + curated project context.** The repo
-reports `0.3.0`; the `v0.3.0` git tag and GitHub Release are cut by a maintainer right
-after the release PR merges. See [`CHANGELOG.md`](CHANGELOG.md) and [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md)
-for the notes, and [`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an
+**Release status:** **v0.3.1 — dogfood hardening of the decision-memory / context loop.** The repo
+reports `0.3.1`; the `v0.3.1` git tag and GitHub Release are cut by a maintainer right
+after the release PR merges. See [`CHANGELOG.md`](CHANGELOG.md) and [`docs/releases/v0.3.1.md`](docs/releases/v0.3.1.md)
+for the notes (v0.3.0: [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md)), and
+[`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an
 early `0.x` release — expect breaking changes between minor versions, and see the honest limitations
 below. **No commercial-clearance claim; license/provenance remains "Question 0".**
 

@@ -5,14 +5,72 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.3.0` is prepared. The repo reports `0.3.0`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.3.0` git tag + GitHub Release are cut by a
+> **Status:** `0.3.1` is prepared. The repo reports `0.3.1`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.3.1` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.3.0 changes will be listed here as normal Keep-a-Changelog deltas
+_Nothing yet. Post-0.3.1 changes will be listed here as normal Keep-a-Changelog deltas
 (Added / Changed / Fixed / Removed)._
+
+## [0.3.1] - 2026-06-30
+
+**Dogfood hardening for the v0.3 decision-memory / context loop.** No new command surface — this
+release uses the v0.3 loop on real work and fixes the rough edges that surfaced. Still
+deterministic and local-first: no MCP, no rolling summaries, no token-aware tokenizer, no vector
+retrieval, no LLM eval, no dashboard/hosted layer. Raw `.council/` outputs and generated packs/
+exports/operator status stay gitignored; `docs/decisions/*.md` remain the curated source of truth.
+
+### Added
+
+- **v0.3.1 dogfood notes** (`docs/dogfood/v0.3.1-notes.md`) — public-safe findings from exercising
+  the full v0.3 loop on real work.
+- **Tests** for the decision-CLI rough edges and the CLI UX output (`tests/test_cli_ux.py`), plus a
+  real-repo `context check` guard that builds from the actual `docs/decisions/` + `STATUS.md` and
+  asserts a perfect, redaction-clean score.
+
+### Fixed
+
+- **`decisions promote` rejects placeholder-only drafts** — an all-`TODO` scaffold can no longer be
+  promoted; core sections (Decision, Rationale, and Consequences/Next actions) must carry meaningful
+  content. Scoped to `promote` (not `decisions lint`).
+- **`decisions promote` follows the curated `YYYY-MM-DD-slug.md` filename convention** (date from
+  frontmatter, slug from title → id → stem; no more `DEC-….md`).
+- **`decisions new --from-run` maps obvious review sections** into the draft (verdict → Decision,
+  rationale → Rationale, alternatives/rejected → Alternatives considered, risks/consequences →
+  Consequences, next actions → Next actions); unmatched sections keep `TODO` markers.
+- **Long extracted slugs are capped/sanitized.**
+- **Context packs include an explicit human-review promotion boundary**, so `vibe context check`
+  passes **21/21** on the real repo (the missed advisory was `memory:human-review`).
+- **Context-pack default char budget bumped 12000 → 14000** so the curated set keeps its core
+  signals (the trimmer was dropping the rejected-alternatives index).
+
+### Changed
+
+- **Clearer `vibe lint --redaction` verdict** — `redaction lint passed/FAILED: N critical,
+  M warning(s) (<scope>)`.
+- **Clearer `vibe context build` budget hint** — names the current budget and suggests `--max-chars`
+  when trimming.
+- **`vibe context check`** score line reports the advisory-miss count.
+- **`vibe decisions` help** clarifies the local-draft / human-review / no-auto-stage boundary.
+- **README** reflects the current v0.3.1 workflow (promoted filename convention, `--from-run`
+  mapping, placeholder-rejecting `promote`).
+
+### Safety
+
+- Generated `.council/` artifacts (reviews, drafts, context packs, Claude Code exports, operator
+  status) remain **gitignored** / local by default; none are committed.
+- Redaction lint remains **0 critical**; `decisions lint` passes.
+- Promotion into `docs/decisions/` remains **human-reviewed**; nothing auto-commits.
+- **License/provenance remains an unresolved commercial "Question 0"** — no commercial-clearance
+  claim, no `LICENSE` added.
+
+### Deferred
+
+- MCP read-only export · rolling summaries · a token-aware (real tokenizer) budget ·
+  vector/hybrid retrieval · LLM-based context eval · operator event log / notifications ·
+  dashboard / mobile / custom remote transport · hosted/team/sync layer.
 
 ## [0.3.0] - 2026-06-30
 

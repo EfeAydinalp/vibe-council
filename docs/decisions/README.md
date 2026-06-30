@@ -43,5 +43,6 @@ seed** for the linked decision-memory direction (see
 - [Decision CLI dogfood rough-edge fixes (v0.3.1)](./2026-06-30-decision-cli-dogfood-fixes.md) — accepted
 - [Context packs carry the human-review boundary (v0.3.1)](./2026-06-30-context-human-review-signal.md) — accepted
 - [v0.3.1 CLI UX consistency pass](./2026-06-30-v0.3.1-ux-consistency.md) — accepted
+- [Prepare v0.3.1 release](./2026-06-30-v0.3.1-release-prep.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.
