@@ -732,16 +732,14 @@ def cmd_lint(args) -> int:
               f"match: {f.match}")
 
     target_desc = "given paths" if paths else "tracked public docs"
-    _err(f"[lint] redaction scan of {target_desc}: "
-         f"{criticals} critical, {warnings} warning(s)")
+    blocking = redaction.has_blocking(findings, strict=getattr(args, "strict", False))
+    verdict = "FAILED" if blocking else "passed"
+    _err(f"[lint] redaction lint {verdict}: {criticals} critical, "
+         f"{warnings} warning(s) ({target_desc})")
     if warnings and not getattr(args, "strict", False):
         _err("[lint] warnings are advisory (use --strict to fail on them)")
 
-    if redaction.has_blocking(findings, strict=getattr(args, "strict", False)):
-        _err("[lint] redaction check FAILED")
-        return EXIT_RUNTIME
-    _err("[lint] redaction check passed")
-    return EXIT_OK
+    return EXIT_RUNTIME if blocking else EXIT_OK
 
 
 def _under_docs(p: Path) -> bool:
@@ -776,6 +774,9 @@ def cmd_context(args) -> int:
 
     for w in res.warnings:
         _err(f"[context] warning: {w}")
+    if any("budget" in w for w in res.warnings):
+        _err(f"[context] note: content exceeded the {max_chars}-char budget and was "
+             f"trimmed (see warnings above); pass --max-chars to allow more room.")
 
     crit = [f for f in res.redaction_findings if f.severity == redaction.CRITICAL]
     warns = [f for f in res.redaction_findings if f.severity == redaction.WARNING]
@@ -830,8 +831,12 @@ def _cmd_context_check(args) -> int:
             print(f"  [{mark}] {c.name} ({req})")
         crit = sum(1 for f in res.redaction_findings if f.severity == redaction.CRITICAL)
         warn = sum(1 for f in res.redaction_findings if f.severity == redaction.WARNING)
-        print(f"score: {res.passed}/{res.total} ({res.score:.0%}); "
-              f"redaction critical={crit} warning={warn}")
+        adv_miss = sum(1 for c in res.checks if not c.required and not c.ok)
+        score_line = (f"score: {res.passed}/{res.total} ({res.score:.0%}); "
+                      f"redaction critical={crit} warning={warn}")
+        if adv_miss:
+            score_line += f"; {adv_miss} advisory miss(es)"
+        print(score_line)
         for r in res.reasons:
             _err(f"[context-check] {r}")
 
@@ -1519,8 +1524,12 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("models", help="Show configured model IDs per preset (no model call).")
     sub.add_parser("presets", help="Show available presets and intended use (no model call).")
 
-    sp_dec = sub.add_parser("decisions", parents=[p_proj],
-                            help="Curated decision records + local search (no model calls).")
+    sp_dec = sub.add_parser(
+        "decisions", parents=[p_proj],
+        help="Curated decision records + local search (no model calls).",
+        epilog="Promotion boundary: `new --from-run` writes only a LOCAL gitignored "
+               "draft; `promote` requires meaningful reviewed content (not TODO "
+               "placeholders) and never auto-stages or commits.")
     sp_dec.add_argument(
         "action",
         choices=["list", "show", "new", "lint", "promote", "search", "context"])
@@ -1537,8 +1546,9 @@ def _build_parser() -> argparse.ArgumentParser:
     sp_dec.add_argument("--out",
                         help="Write the `new` template/draft to this path instead of stdout.")
     sp_dec.add_argument("--from-run",
-                        help="`new`: extract a LOCAL draft from a raw .council "
-                             "review/run output file (path).")
+                        help="`new`: extract a LOCAL (gitignored) draft from a raw "
+                             ".council review/run file; promotion is a separate, "
+                             "human-reviewed step.")
     sp_dec.add_argument("--out-dir",
                         help="Target dir for `promote` (default: docs/decisions).")
     sp_dec.add_argument("--force", action="store_true",
