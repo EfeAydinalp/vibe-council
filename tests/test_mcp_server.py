@@ -58,11 +58,13 @@ class TestReadLayer(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def test_enabled_surface_is_status_and_decisions_only(self):
+    def test_enabled_surface_is_status_decisions_and_context(self):
         self.assertEqual(set(ms.ENABLED_TOOLS),
-                         {"get_project_status", "list_decisions", "show_decision"})
+                         {"get_project_status", "list_decisions", "show_decision",
+                          "get_context_pack", "check_context_health"})
         self.assertEqual(set(ms.ENABLED_RESOURCES),
-                         {"vibe://status", "vibe://decisions", "vibe://decisions/{id}"})
+                         {"vibe://status", "vibe://decisions", "vibe://decisions/{id}",
+                          "vibe://context/latest"})
 
     def test_server_contract_valid(self):
         self.assertEqual(ms.validate_server_contract(), [])
@@ -73,11 +75,42 @@ class TestReadLayer(unittest.TestCase):
             with self.assertRaises(ms.ReadError):
                 ms.dispatch(n, self.root)
 
-    def test_deferred_tools_not_enabled_or_dispatchable(self):
-        for n in ("get_context_pack", "check_context_health", "list_rejected_alternatives"):
-            self.assertNotIn(n, ms.ENABLED_TOOLS)
-            with self.assertRaises(ms.ReadError):
-                ms.dispatch(n, self.root)
+    def test_deferred_tools_and_resources_remain_absent(self):
+        # only list_rejected_alternatives is still deferred (a tool); the three
+        # standalone resources are not exposed yet.
+        self.assertNotIn("list_rejected_alternatives", ms.ENABLED_TOOLS)
+        with self.assertRaises(ms.ReadError):
+            ms.dispatch("list_rejected_alternatives", self.root)
+        for r in ("vibe://rejected-alternatives", "vibe://release-notes",
+                  "vibe://constraints"):
+            self.assertNotIn(r, ms.ENABLED_RESOURCES)
+
+    def test_context_pack_enabled_and_carries_core_signals(self):
+        pack = ms.dispatch("get_context_pack", self.root)
+        self.assertIn("text", pack)
+        text = pack["text"]
+        self.assertIn("human-reviewed", text)                 # human-review signal
+        self.assertIn("## Rejected alternatives index", text)  # rejected signal
+        self.assertIn("curated", text.lower())                 # source-of-truth constraint
+        self.assertEqual(pack["redaction"]["critical"], 0)
+
+    def test_context_health_enabled_and_structured(self):
+        health = ms.dispatch("check_context_health", self.root)
+        for k in ("ok", "passed", "total", "score", "failed_checks", "redaction"):
+            self.assertIn(k, health)
+        self.assertIsInstance(health["failed_checks"], list)
+
+    def test_context_calls_write_no_council_files(self):
+        # building/checking the pack via MCP must not create any .council/ output
+        self.assertFalse((self.root / ".council" / "context").exists())
+        before = {p for p in self.root.rglob("*")}
+        ms.dispatch("get_context_pack", self.root)
+        ms.dispatch("check_context_health", self.root)
+        after = {p for p in self.root.rglob("*")}
+        self.assertEqual(after, before)  # no new files
+        self.assertFalse((self.root / ".council" / "context" / "pack-latest.md").exists())
+        self.assertFalse((self.root / ".council" / "context"
+                          / "claude-code-context.md").exists())
 
     def test_get_project_status_reads_curated_status(self):
         text = ms.get_project_status(self.root)
@@ -149,7 +182,8 @@ class TestMcpInspectCLI(unittest.TestCase):
             self.assertTrue(data["read_only"])
             self.assertFalse(data["server_implemented"])
             self.assertEqual(set(data["enabled_tools"]),
-                             {"get_project_status", "list_decisions", "show_decision"})
+                             {"get_project_status", "list_decisions", "show_decision",
+                              "get_context_pack", "check_context_health"})
             self.assertGreaterEqual(data["decision_count"], 1)
 
     def test_inspect_id_traversal_is_safe(self):
@@ -161,6 +195,44 @@ class TestMcpInspectCLI(unittest.TestCase):
             self.assertEqual(r.returncode, 0, r.stderr)
             self.assertIn("not found", r.stdout)
             self.assertNotIn("secret-ish", r.stdout)
+
+    def test_inspect_context_health_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            self._seed(root)
+            before = {p for p in root.rglob("*")}
+            r = run_cli(["mcp", "inspect", "--context", "--health"], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("get_context_pack", r.stdout)
+            self.assertIn("check_context_health", r.stdout)
+            self.assertEqual({p for p in root.rglob("*")}, before)  # nothing written
+            self.assertFalse((root / ".council" / "context").exists())
+
+
+class TestRealRepoMcpContext(unittest.TestCase):
+    def _repo(self) -> Path:
+        repo = Path(__file__).resolve().parents[1]
+        if not (repo / "docs" / "decisions").is_dir():
+            self.skipTest("real repo docs not present")
+        return repo
+
+    def test_health_is_21_of_21_on_real_repo(self):
+        h = ms.check_context_health(self._repo())
+        self.assertEqual((h["passed"], h["total"]), (21, 21), h["failed_checks"])
+        self.assertTrue(h["ok"])
+        self.assertEqual(h["redaction"]["critical"], 0)
+
+    def test_real_repo_context_calls_do_not_touch_council_context(self):
+        repo = self._repo()
+        cdir = repo / ".council" / "context"
+        names_before = set(os.listdir(cdir)) if cdir.exists() else set()
+        mtimes_before = {n: (cdir / n).stat().st_mtime for n in names_before}
+        ms.get_context_pack(repo)
+        ms.check_context_health(repo)
+        names_after = set(os.listdir(cdir)) if cdir.exists() else set()
+        self.assertEqual(names_after, names_before)  # no files added/removed
+        for n in names_before:
+            self.assertEqual((cdir / n).stat().st_mtime, mtimes_before[n])  # unmodified
 
 
 if __name__ == "__main__":

@@ -39,13 +39,15 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   [`budget headroom`](../../decisions/2026-07-01-context-pack-budget-headroom.md).
 - **v0.4 MCP contract skeleton** (PR #56): testable read-only contract (`backend/mcp_contract.py`) +
   `vibe mcp contract`.
-- **v0.4 MCP read-only server skeleton** (PR #57): dependency-free read layer
-  (`backend/mcp_server.py`) for status + curated decisions (`get_project_status` / `list_decisions` /
-  `show_decision`) + `vibe mcp inspect`; path-guarded, no `.council/`/private-plan reads. Transport
-  (MCP stdio + the `mcp` SDK decision) deferred. See
-  [`read-only MCP server skeleton`](../../decisions/2026-07-01-read-only-mcp-server-skeleton.md).
-- **Current focus:** **v0.4 read-only MCP** — next: context-pack + health resources, then MCP stdio
-  transport + Claude Code setup docs. See [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
+- **v0.4 MCP read-only read layer** (PRs #57–#58): dependency-free `backend/mcp_server.py` for status,
+  curated decisions, and the **context pack + health** (`get_project_status` / `list_decisions` /
+  `show_decision` / `get_context_pack` / `check_context_health`) + `vibe mcp inspect [--context]
+  [--health]`. Context reads are **in-memory — no `.council/` files written**; path-guarded; no
+  private-plan reads. MCP stdio transport (+ `mcp` SDK decision) deferred. See
+  [`MCP context pack health`](../../decisions/2026-07-01-mcp-context-pack-health.md).
+- **Current focus:** **v0.4 read-only MCP** — next: MCP stdio transport + Claude Code setup docs
+  (rejected/release/constraints standalone resources still deferred). See
+  [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
 
 ## Next actions
 
