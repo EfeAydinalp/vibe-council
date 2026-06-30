@@ -5,14 +5,67 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.2.0` is the current release. The repo reports `0.2.0`
-> (`backend/__init__.py`). The `v0.2.0` git tag + GitHub Release are cut by a maintainer
-> right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
+> **Status:** `0.3.0` is prepared. The repo reports `0.3.0`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.3.0` git tag + GitHub Release are cut by a
+> maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.2.0 changes will be listed here as normal Keep-a-Changelog deltas
+_Nothing yet. Post-0.3.0 changes will be listed here as normal Keep-a-Changelog deltas
 (Added / Changed / Fixed / Removed)._
+
+## [0.3.0] - 2026-06-30
+
+**Local-first decision memory + curated project context.** Builds the v0.3 decision-memory /
+context-pack loop on top of v0.2's multi-provider core. Everything is **deterministic and
+local-first** — no LLM summarization, no vector retrieval, no MCP, no hosted/sync. Raw `.council/`
+outputs and generated packs/exports stay gitignored; public `docs/decisions/*.md` remain the curated
+source of truth.
+
+### Added
+
+- **`vibe lint --redaction`** — a stdlib-only redaction guard for public docs (API keys, private
+  keys, secret assignments, per-user local paths, dated `.council/` artifact paths, `.obsidian/`
+  workspace), with `--strict` and masked output.
+- **Curated decision CLI** over `docs/decisions/*.md`: `vibe decisions list` (with `--tag`/`--status`),
+  `show` (path-traversal guarded), `new` (template), and `lint` (frontmatter, stable headings,
+  duplicate ids, broken links, redaction).
+- **`vibe decisions new --from-run`** — extract a **local** draft decision from a raw council/review
+  output (deterministic heuristics, no LLM) into gitignored `.council/decisions/drafts/`.
+- **`vibe decisions promote`** — safely promote a human-reviewed draft into `docs/decisions/`
+  (validates frontmatter/headings/redaction; sanitized filename; `--dry-run`/`--force`).
+- **`vibe context build`** — deterministic context-pack builder from curated decisions + `STATUS.md`
+  with a character budget; writes gitignored `.council/context/pack-latest.md`.
+- **`vibe context check`** — deterministic context-quality harness (not an LLM eval): required
+  sections/constraints + advisory facts/signals + redaction, scored `passed/total`.
+- **`vibe context export claude-code`** — wrap the pack as a Claude Code-friendly local context file
+  (gitignored; gated on check + redaction; never modifies `CLAUDE.md`).
+- **Operator status** — `vibe operator status` / `set` / `clear` over a gitignored
+  `.council/operator/status.json` (state/message/next_action/severity).
+- **License/provenance checklist** — an engineer's "Question 0" commercial gate
+  (`docs/plans/license-and-provenance-resolution.md`), with no commercial-clearance claim and no
+  `LICENSE` added.
+
+### Changed
+
+- **README** now documents the end-to-end decision-memory / context workflow.
+- **Project status and agent brief** reflect the v0.3 workflow.
+- Added `docs/redaction-policy.md` defining what must/should/may be redacted.
+
+### Safety
+
+- Generated `.council/` artifacts (reviews, decisions, drafts, context packs, Claude Code exports,
+  operator status) remain **gitignored** / local by default.
+- The redaction guard runs across the decision and context workflows (and blocks unsafe context
+  build/export).
+- Promotion into `docs/decisions/` remains **human-reviewed**; nothing auto-commits.
+- **License/provenance remains an unresolved commercial gate** — no commercial-clearance claim.
+
+### Deferred
+
+- MCP read-only export · rolling summaries · a token-aware (real tokenizer) budget ·
+  vector/hybrid retrieval · skill/council packs · hosted/team/sync layer ·
+  dashboard / mobile / custom remote transport · LLM-based context eval.
 
 ## [0.2.0] - 2026-06-29
 

@@ -39,5 +39,6 @@ seed** for the linked decision-memory direction (see
 - [Context quality harness MVP](./2026-06-30-context-quality-harness.md) — accepted
 - [Operator status MVP](./2026-06-30-operator-status-mvp.md) — accepted
 - [Claude Code context export MVP](./2026-06-30-claude-code-context-export.md) — accepted
+- [Prepare v0.3.0 release](./2026-06-30-v0.3-release-prep.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.
