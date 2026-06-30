@@ -1,0 +1,164 @@
+"""Tests for the context-pack builder (backend/context_pack.py) + the CLI.
+
+Stdlib-only (`unittest`). Deterministic, no model/API/network. The fake key below
+is a synthetic fixture, not a real key.
+"""
+
+import os
+import unittest
+import tempfile
+from pathlib import Path
+
+from backend import context_pack as cp
+from backend import redaction
+from tests.test_cli_smoke import run_cli
+
+FAKE_OR_KEY = "sk-or-v1-" + "a" * 40
+
+
+def _rec(d: Path, stem: str, date: str, status: str = "accepted", extra: str = "") -> Path:
+    content = (
+        "---\n"
+        f"id: DEC-{date.replace('-', '')}-{stem}\n"
+        f"status: {status}\n"
+        f"date: {date}\n"
+        "tags: [t]\n"
+        "related: []\n"
+        "published: true\n"
+        "---\n\n"
+        f"# {stem} title\n\n"
+        "## Context\n\nc\n\n"
+        "## Decision\n\ndec\n\n"
+        "## Rationale\n\nr\n\n"
+        f"## Alternatives considered\n\n- **Alt {stem}** rejected for reasons\n\n"
+        "## Consequences\n\nx\n\n"
+        "## Next actions\n\nn\n\n"
+        f"## Related links\n\nl\n{extra}"
+    )
+    p = d / f"{date}-{stem}.md"
+    p.write_text(content, encoding="utf-8")
+    return p
+
+
+class TestBuild(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.ddir = self.root / "docs" / "decisions"
+        self.ddir.mkdir(parents=True)
+        self.status = self.root / "STATUS.md"
+        self.status.write_text("# Status\n\nCurrent focus: testing.\n", encoding="utf-8")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _seed(self, n=8):
+        for i in range(n):
+            _rec(self.ddir, f"rec{i:02d}", f"2026-06-{10 + i:02d}")
+
+    def test_builds_pack_with_sections(self):
+        self._seed(8)
+        res = cp.build_pack(self.ddir, self.status, on="2026-06-30T00:00:00Z")
+        t = res.text
+        self.assertIn("## Metadata", t)
+        self.assertIn("pack_version: 1", t)
+        self.assertIn(cp.PROJECT_IDENTITY, t)
+        self.assertIn("Current focus: testing.", t)          # status content
+        self.assertIn("## Recent decisions (full)", t)
+        self.assertIn("## Decision index (older)", t)         # 8 recs -> some indexed
+        self.assertIn("## Constraints / safety notes", t)
+        self.assertIn("Question 0", t)
+
+    def test_respects_char_budget(self):
+        self._seed(8)
+        res = cp.build_pack(self.ddir, self.status, max_chars=2500,
+                            on="2026-06-30T00:00:00Z")
+        self.assertLessEqual(len(res.text), 2500)
+        self.assertTrue(res.warnings)  # trimming happened
+
+    def test_rejected_alternatives_index(self):
+        self._seed(3)
+        res = cp.build_pack(self.ddir, self.status, on="2026-06-30T00:00:00Z")
+        self.assertIn("## Rejected alternatives index", res.text)
+        self.assertIn("Alt rec00", res.text)
+
+    def test_pinned_decisions_first(self):
+        _rec(self.ddir, "normal", "2026-06-20")
+        _rec(self.ddir, "important", "2026-06-10",
+             extra="")  # older date, but pinned below
+        # mark one pinned via frontmatter
+        p = self.ddir / "2026-06-10-important.md"
+        p.write_text(p.read_text(encoding="utf-8").replace(
+            "tags: [t]", "tags: [t]\npinned: true"), encoding="utf-8")
+        res = cp.build_pack(self.ddir, self.status, on="2026-06-30T00:00:00Z")
+        self.assertIn("## Pinned / high-priority decisions", res.text)
+        # pinned section appears before the recent-decisions section
+        self.assertLess(res.text.index("## Pinned"), res.text.index("## Recent decisions"))
+
+    def test_redaction_blocks_via_findings(self):
+        _rec(self.ddir, "leak", "2026-06-20", extra=f"\nleaked {FAKE_OR_KEY}\n")
+        res = cp.build_pack(self.ddir, self.status, on="2026-06-30T00:00:00Z")
+        self.assertTrue(any(f.severity == redaction.CRITICAL
+                            for f in res.redaction_findings))
+
+    def test_clean_pack_passes_redaction(self):
+        self._seed(3)
+        res = cp.build_pack(self.ddir, self.status, on="2026-06-30T00:00:00Z")
+        crit = [f for f in res.redaction_findings if f.severity == redaction.CRITICAL]
+        self.assertEqual(crit, [])
+
+    def test_missing_status_handled(self):
+        self._seed(2)
+        res = cp.build_pack(self.ddir, self.root / "nope.md",
+                            on="2026-06-30T00:00:00Z")
+        self.assertTrue(any("STATUS" in w for w in res.warnings))
+        self.assertIn("_No STATUS.md found._", res.text)
+
+    def test_missing_decisions_handled(self):
+        empty = self.root / "empty"
+        empty.mkdir()
+        res = cp.build_pack(empty, self.status, on="2026-06-30T00:00:00Z")
+        self.assertTrue(any("no curated decision records" in w for w in res.warnings))
+        self.assertIn("## Metadata", res.text)
+        self.assertIn("Current focus: testing.", res.text)
+
+    def test_no_api_key_required(self):
+        self._seed(2)
+        saved = os.environ.pop("OPENROUTER_API_KEY", None)
+        try:
+            res = cp.build_pack(self.ddir, self.status, on="2026-06-30T00:00:00Z")
+            self.assertIn("## Metadata", res.text)
+        finally:
+            if saved is not None:
+                os.environ["OPENROUTER_API_KEY"] = saved
+
+
+class TestContextCLI(unittest.TestCase):
+    def test_default_output_path(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            ddir = root / "docs" / "decisions"
+            ddir.mkdir(parents=True)
+            _rec(ddir, "one", "2026-06-20")
+            status_dir = root / "docs" / "context" / "project"
+            status_dir.mkdir(parents=True)
+            (status_dir / "STATUS.md").write_text("# Status\n\nok\n", encoding="utf-8")
+            r = run_cli(["context", "build"], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            pack = root / ".council" / "context" / "pack-latest.md"
+            self.assertTrue(pack.is_file())
+            self.assertIn("## Metadata", pack.read_text(encoding="utf-8"))
+
+    def test_refuses_output_under_docs(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            (root / "docs" / "decisions").mkdir(parents=True)
+            r = run_cli(["context", "build", "--output", "docs/pack.md"],
+                        caller_cwd=root)
+            self.assertNotEqual(r.returncode, 0)
+            self.assertIn("refusing", r.stderr.lower())
+            self.assertFalse((root / "docs" / "pack.md").exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

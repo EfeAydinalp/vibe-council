@@ -18,13 +18,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #39 merged** — license/provenance "Question 0" checklist (commercial gate).
 - **PR #40 merged** — decision-memory CLI skeleton (`vibe decisions list/show/new/lint`).
 - **PR #41 merged** — `vibe decisions promote` (safe draft → curated `docs/decisions/`).
-- **Current focus:** `vibe decisions new --from-run` — extract a LOCAL draft from raw council output.
+- **PR #42 merged** — `vibe decisions new --from-run` (extract a LOCAL draft from raw council output).
+- **Current focus:** `vibe context build` — deterministic, local-first context-pack builder MVP.
 
 ## Next actions
 
-1. Land the decision draft-extraction MVP.
-2. Then optional run/review **id lookup** for `--from-run`.
-3. Then the context-pack builder MVP (deterministic, token-budgeted).
+1. Land the context-pack builder MVP (`vibe context build`).
+2. Then a token-aware budget + optional MCP read-only export of the pack.
+3. Then rolling summaries / context-quality measurement.
 
 ## Blockers / open risks
 

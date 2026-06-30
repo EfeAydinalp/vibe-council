@@ -395,6 +395,22 @@ vibe decisions context "agent workflow"
   SQLite yet**; `context` returns a compact block to read before planning.
 - All of these commands call **no model** and need **no API key**.
 
+## Context pack
+
+```powershell
+vibe context build                        # assemble a local context pack from curated memory
+vibe context build --max-chars 8000       # tighten the budget
+```
+
+- `vibe context build` **deterministically** assembles a compact agent context pack from
+  `docs/decisions/*.md` + `docs/context/project/STATUS.md` — metadata, project identity, current
+  status, pinned/recent decisions, a decision index, a rejected-alternatives index, and constraints.
+- **No LLM, no model/API/network, no vector retrieval.** It runs the redaction guard on the output
+  and **blocks on critical findings**.
+- Output defaults to **gitignored `.council/context/pack-latest.md`** (local-first); it **refuses to
+  write under `docs/` unless `--allow-docs`** and **never stages/commits**. A character budget
+  (`--max-chars`) trims recent decisions / indexes before status, never dropping metadata or status.
+
 ---
 
 ## Claude Code workflow

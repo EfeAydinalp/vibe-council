@@ -35,5 +35,6 @@ seed** for the linked decision-memory direction (see
 - [Decision memory CLI skeleton](./2026-06-30-decision-cli-skeleton.md) — accepted
 - [Curated decision promotion MVP](./2026-06-30-decision-promote.md) — accepted
 - [Decision draft extraction](./2026-06-30-decision-draft-extraction.md) — accepted
+- [Context pack builder MVP](./2026-06-30-context-pack-builder-mvp.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.
