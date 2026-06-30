@@ -37,10 +37,13 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   rejected-alternatives index is built from all curated records. Char budget stays naive;
   token-aware budget remains deferred. See
   [`budget headroom`](../../decisions/2026-07-01-context-pack-budget-headroom.md).
+- **v0.4 MCP design skeleton landed** (PR #56): a testable **read-only contract**
+  (`backend/mcp_contract.py`) + `vibe mcp contract` — read-only resources/tools + explicit forbidden
+  tools, validation helpers. **Contract-only: no server, no socket, no MCP dependency.** See
+  [`read-only MCP contract`](../../decisions/2026-07-01-read-only-mcp-contract-skeleton.md).
 - **Current focus:** **v0.4 read-only MCP** — query curated memory + context pack from Claude Code /
-  local agents with no write/action authority. See
-  [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md) and
-  [`v0.4 scope`](../../decisions/2026-07-01-v0.4-read-only-mcp-scope.md).
+  local agents with no write/action authority. Next: read-only server skeleton (status + decisions).
+  See [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
 
 ## Next actions
 
