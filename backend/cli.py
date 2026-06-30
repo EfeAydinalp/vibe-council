@@ -904,6 +904,9 @@ def cmd_decisions_docs(args) -> int:
         return EXIT_OK
 
     if action == "new":
+        from_run = getattr(args, "from_run", None)
+        if from_run:
+            return _cmd_decisions_extract(args, from_run)
         content = decisions_docs.template(
             title=getattr(args, "title", None),
             status=getattr(args, "status", None) or "proposed",
@@ -956,6 +959,40 @@ def cmd_decisions_docs(args) -> int:
         _err("[decisions lint] FAILED")
         return EXIT_RUNTIME
     _err("[decisions lint] passed")
+    return EXIT_OK
+
+
+def _cmd_decisions_extract(args, from_run: str) -> int:
+    """`decisions new --from-run <path>`: extract a LOCAL draft decision from a raw
+    council/review output. Writes to gitignored `.council/decisions/drafts/` (or
+    `--out`); never to docs/decisions/, never staged/committed."""
+    drafts_dir = pw.caller_cwd() / ".council" / "decisions" / "drafts"
+    out = getattr(args, "out", None)
+    res = decisions_docs.extract_draft(
+        Path(from_run), drafts_dir,
+        out_path=(Path(out) if out else None),
+        title=getattr(args, "title", None),
+        tags=getattr(args, "tag", None),
+        force=getattr(args, "force", False),
+        dry_run=getattr(args, "dry_run", False),
+    )
+    if not res.ok:
+        for e in res.errors:
+            _err(f"[extract] blocked: {e}")
+        _err("[extract] refused (nothing written)")
+        return EXIT_RUNTIME
+    if res.redaction_findings:
+        _err(f"[extract] redaction findings ({len(res.redaction_findings)}):")
+        for r in res.redaction_findings:
+            _err(f"  - {r}")
+        _err("[extract] This draft has redaction findings; fix before promote.")
+    if res.written:
+        print(str(res.out_path))
+        _err("[extract] wrote LOCAL draft (gitignored, NOT staged/committed)")
+        _err(f"[extract] next: review/redact {res.out_path}, then: "
+             f"vibe decisions promote {res.out_path}")
+    else:
+        print(f"[dry-run] would write: {res.out_path}")
     return EXIT_OK
 
 
@@ -1094,6 +1131,7 @@ Common commands:
   vibe decisions list                                 # list curated docs/decisions records
   vibe decisions show <id>                            # print a curated decision record
   vibe decisions new --title "..."                    # print a new decision-record template
+  vibe decisions new --from-run <review.md>           # extract a LOCAL draft (.council/, gitignored)
   vibe decisions promote <draft.md> [--dry-run]       # promote a reviewed draft into docs/decisions/
   vibe decisions lint                                 # lint curated decision records (reuses redaction)
   vibe decisions search "<query>"                     # search local .council decisions (no model)
@@ -1280,7 +1318,10 @@ def _build_parser() -> argparse.ArgumentParser:
     sp_dec.add_argument("--related", action="append",
                         help="Related id for `new` (repeatable).")
     sp_dec.add_argument("--out",
-                        help="Write the `new` template to this path instead of stdout.")
+                        help="Write the `new` template/draft to this path instead of stdout.")
+    sp_dec.add_argument("--from-run",
+                        help="`new`: extract a LOCAL draft from a raw .council "
+                             "review/run output file (path).")
     sp_dec.add_argument("--out-dir",
                         help="Target dir for `promote` (default: docs/decisions).")
     sp_dec.add_argument("--force", action="store_true",

@@ -17,12 +17,13 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **PR #38 merged** — redaction guard (`vibe lint --redaction` + redaction policy).
 - **PR #39 merged** — license/provenance "Question 0" checklist (commercial gate).
 - **PR #40 merged** — decision-memory CLI skeleton (`vibe decisions list/show/new/lint`).
-- **Current focus:** `vibe decisions promote` — safe draft → curated `docs/decisions/` promotion.
+- **PR #41 merged** — `vibe decisions promote` (safe draft → curated `docs/decisions/`).
+- **Current focus:** `vibe decisions new --from-run` — extract a LOCAL draft from raw council output.
 
 ## Next actions
 
-1. Land the decision-promote MVP.
-2. Then an optional, experimental `--from-run` (raw `.council/` run → draft) with its own guards.
+1. Land the decision draft-extraction MVP.
+2. Then optional run/review **id lookup** for `--from-run`.
 3. Then the context-pack builder MVP (deterministic, token-budgeted).
 
 ## Blockers / open risks

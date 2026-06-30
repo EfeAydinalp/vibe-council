@@ -359,3 +359,166 @@ def promote(draft_path: Path, decisions_dir: Path, force: bool = False,
     decisions_dir.mkdir(parents=True, exist_ok=True)
     rp.write_text(text, encoding="utf-8")
     return PromoteResult(True, rp, True, [])
+
+
+# --------------------------------------------------------------------------- #
+# extract (local raw council/review output -> a LOCAL draft decision)
+# --------------------------------------------------------------------------- #
+
+class ExtractResult(NamedTuple):
+    ok: bool
+    out_path: Optional[Path]
+    written: bool
+    redaction_findings: List[str]   # masked, advisory
+    errors: List[str]
+
+
+_VERDICT_HEAD_RE = re.compile(r"^#{1,6}\s+.*\b(?:verdict|recommendation)\b", re.I)
+_VERDICT_INLINE_RE = re.compile(r"^\s*(?:verdict|recommendation)\s*[:\-]\s*(?P<v>.+\S)\s*$", re.I)
+_LIST_ITEM_RE = re.compile(r"^\s*(?:[-*]|\d+[.)])\s+(?P<v>.*\S)\s*$")
+_ANY_HEAD_RE = re.compile(r"^#{1,6}\s+(?P<v>.*\S)\s*$")
+
+
+def _cap(s: str, n: int = 200) -> str:
+    s = s.strip()
+    return (s[:n] + "…") if len(s) > n else s
+
+
+def _extract_title(text: str, fallback: str) -> str:
+    for line in text.splitlines():
+        m = _TITLE_RE.match(line)
+        if m:
+            return m.group("text")
+    return fallback
+
+
+def _extract_verdict(text: str) -> Optional[str]:
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        mi = _VERDICT_INLINE_RE.match(line)
+        if mi:
+            return mi.group("v")
+        if _VERDICT_HEAD_RE.match(line):
+            for j in range(i + 1, min(i + 6, len(lines))):
+                s = lines[j].strip()
+                if s and not s.startswith("#"):
+                    li = _LIST_ITEM_RE.match(lines[j])
+                    return (li.group("v") if li else s)
+    return None
+
+
+def _extract_section_items(text: str, keywords, max_items: int = 5) -> List[str]:
+    out: List[str] = []
+    capturing = False
+    for line in text.splitlines():
+        hm = _ANY_HEAD_RE.match(line)
+        if hm:
+            head = hm.group("v").lower()
+            capturing = any(k in head for k in keywords)
+            continue
+        if capturing:
+            im = _LIST_ITEM_RE.match(line)
+            if im:
+                out.append(im.group("v"))
+                if len(out) >= max_items:
+                    break
+    return out
+
+
+def _build_extract_draft(src: str, title: str, today: str,
+                         tags: Optional[List[str]], source_name: str) -> str:
+    rec_id = f"DEC-{today.replace('-', '')}-{_slug(title)}"
+    tag_list = "[" + ", ".join(tags or []) + "]"
+    verdict = _extract_verdict(src)
+    risks = _extract_section_items(src, ["risk"], 5)
+    actions = _extract_section_items(
+        src, ["next action", "action item", "recommended next", "final action",
+              "next step"], 5)
+    decision = _cap(verdict) if verdict else "_TODO: state the decision._"
+    cons = ("\n".join(f"- Risk (extracted, review): {_cap(r)}" for r in risks)
+            if risks else "_TODO: consequences._")
+    nexts = ("\n".join(f"- {_cap(a)}" for a in actions)
+             if actions else "_TODO: next actions._")
+    src_note = ("_Draft extracted from local council output; review/redact before "
+                "promotion._\n"
+                f"Source: `{source_name}`")
+    return (
+        "---\n"
+        f"id: {rec_id}\n"
+        "status: proposed\n"
+        f"date: {today}\n"
+        f"tags: {tag_list}\n"
+        "related: []\n"
+        "published: false\n"
+        "---\n\n"
+        f"# {title}\n\n"
+        f"## Context\n\n{src_note}\n\n_TODO: summarize the context._\n\n"
+        f"## Decision\n\n{decision}\n\n"
+        "## Rationale\n\n_TODO: rationale._\n\n"
+        "## Alternatives considered\n\n_TODO._\n\n"
+        f"## Consequences\n\n{cons}\n\n"
+        f"## Next actions\n\n{nexts}\n\n"
+        "## Related links\n\n_TODO._\n"
+    )
+
+
+def _under_docs_decisions(p: Path) -> bool:
+    parts = [x.lower() for x in p.resolve().parts]
+    return any(parts[i] == "docs" and parts[i + 1] == "decisions"
+               for i in range(len(parts) - 1))
+
+
+def extract_draft(source_path: Path, drafts_dir: Path, out_path: Optional[Path] = None,
+                  title: Optional[str] = None, tags: Optional[List[str]] = None,
+                  force: bool = False, dry_run: bool = False,
+                  on: Optional[str] = None) -> ExtractResult:
+    """Extract a LOCAL draft decision from a raw council/review output file.
+
+    Deterministic (no LLM): pulls a title, a verdict-like line, and the first few
+    risk/next-action items if the source is sectioned; otherwise a mostly-blank
+    template with a source reference and TODO markers. Writes only under
+    ``drafts_dir`` (default ``.council/decisions/drafts/``, gitignored). Refuses to
+    write under ``docs/decisions/``. Runs a redaction scan and **reports** findings
+    (advisory — drafts are local); ``vibe decisions promote`` blocks unsafe records.
+    Never stages/commits. Reading a ``.council/`` source is allowed only because the
+    caller passed that explicit path.
+    """
+    try:
+        src = source_path.read_text(encoding="utf-8-sig")
+    except OSError as e:
+        return ExtractResult(False, None, False, [], [f"cannot read source: {e}"])
+
+    today = on or _date.today().isoformat()
+    ttl = (title or _extract_title(src, source_path.stem) or "untitled").strip()
+    content = _build_extract_draft(src, ttl, today, tags, source_path.name)
+
+    findings = [f"{f.rule_id} (line {f.line}, match {f.match})"
+                for f in redaction.scan_text(content, "<draft>")]
+
+    if out_path is not None:
+        parent = Path(out_path).parent
+        name = _sanitize_filename_stem(Path(out_path).name) + ".md"
+        target = parent / name
+    else:
+        target = drafts_dir / f"{_sanitize_filename_stem(today)}-{_slug(ttl)}.md"
+
+    if _under_docs_decisions(target):
+        return ExtractResult(False, None, False, findings,
+                             ["refusing to write under docs/decisions/ "
+                              "(use `vibe decisions promote` for that)"])
+    try:
+        rp = target.resolve()
+    except (OSError, RuntimeError):
+        return ExtractResult(False, None, False, findings,
+                             ["could not resolve output path"])
+    if rp.name == README_NAME:
+        return ExtractResult(False, None, False, findings, ["unsafe output name"])
+    if rp.exists() and not force:
+        return ExtractResult(False, rp, False, findings,
+                             [f"draft exists (use --force): {rp.name}"])
+    if dry_run:
+        return ExtractResult(True, rp, False, findings, [])
+
+    rp.parent.mkdir(parents=True, exist_ok=True)
+    rp.write_text(content, encoding="utf-8")
+    return ExtractResult(True, rp, True, findings, [])
