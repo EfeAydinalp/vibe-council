@@ -45,5 +45,6 @@ seed** for the linked decision-memory direction (see
 - [v0.3.1 CLI UX consistency pass](./2026-06-30-v0.3.1-ux-consistency.md) — accepted
 - [Prepare v0.3.1 release](./2026-06-30-v0.3.1-release-prep.md) — accepted
 - [v0.4 starts as read-only MCP / Claude Code workflow](./2026-07-01-v0.4-read-only-mcp-scope.md) — accepted
+- [Context packs keep core signals stable under the default budget](./2026-07-01-context-pack-budget-headroom.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

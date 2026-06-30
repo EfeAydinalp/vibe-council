@@ -70,7 +70,11 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 - `full` mode had a None-content ranking fragility (fixed in v0.2.0); prefer `review` for
   plan/diff critique.
 - License/provenance cleanup is **ongoing** — no `LICENSE` added yet.
-- MCP, personas/advisors, app/TUI, and community features are **future work**.
+- The context-pack budget is a **naive char budget** (default 14000); trim order now keeps the
+  rejected-alternatives index + human-review signal stable (a **token-aware budget** is deferred).
+  See [budget headroom decision](../decisions/2026-07-01-context-pack-budget-headroom.md).
+- MCP (read-only, planned for v0.4), personas/advisors, app/TUI, and community features are
+  **future work**.
 
 ## Accepted decisions (curated set)
 

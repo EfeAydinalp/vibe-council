@@ -105,7 +105,8 @@ def _rejected_index(records: List[dd.Record], cap: int = 12) -> List[str]:
 
 
 def _assemble(status_text: str, pinned: List[dd.Record], recent: List[dd.Record],
-              index: List[dd.Record], include_rejected: bool) -> str:
+              index: List[dd.Record], include_rejected: bool,
+              rejected_source: Optional[List[dd.Record]] = None) -> str:
     parts: List[str] = []
     parts.append("## Project identity\n\n" + PROJECT_IDENTITY)
     parts.append("## Current status\n\n" + (status_text or "_No STATUS.md found._"))
@@ -119,7 +120,10 @@ def _assemble(status_text: str, pinned: List[dd.Record], recent: List[dd.Record]
         parts.append("## Decision index (older)\n\n"
                      + "\n".join(_index_line(r) for r in index))
     if include_rejected:
-        rej = _rejected_index(pinned + recent + index)
+        # Drawn from ALL curated records (not just the bodies that survived
+        # trimming) so this critical signal stays stable under budget pressure.
+        rej = _rejected_index(rejected_source if rejected_source is not None
+                              else pinned + recent + index)
         if rej:
             parts.append("## Rejected alternatives index\n\n" + "\n".join(rej))
     parts.append("## Constraints / safety notes\n\n" + CONSTRAINTS)
@@ -150,31 +154,38 @@ def build_pack(decisions_dir: Path, status_path: Optional[Path],
     recent_n = recent
     index_cap: Optional[int] = None
     include_rejected = True
+    status_truncated = False
     status_use = status_text
 
+    # Trim order: shrink the largest, least-critical content first (recent full
+    # decision bodies, then the older decision index, then status) and keep the
+    # small critical-signal sections — the rejected-alternatives index and the
+    # always-present constraints/human-review notes — until the very last resort.
     while True:
         recent_recs = rest[:recent_n]
         index_recs = rest[recent_n:]
         if index_cap is not None:
             index_recs = index_recs[:index_cap]
-        body = _assemble(status_use, pinned, recent_recs, index_recs, include_rejected)
+        body = _assemble(status_use, pinned, recent_recs, index_recs,
+                         include_rejected, rejected_source=records)
         if len(body) <= body_budget:
             break
         if recent_n > 1:
             recent_n -= 1
             warnings.append("reduced recent full decisions to fit budget")
             continue
-        if include_rejected:
-            include_rejected = False
-            warnings.append("dropped rejected-alternatives index to fit budget")
-            continue
         if index_cap is None or index_cap > 0:
             index_cap = 10 if index_cap is None else max(0, index_cap - 10)
             warnings.append("truncated decision index to fit budget")
             continue
-        if len(status_use) > 600:
+        if not status_truncated and len(status_use) > 600:
             status_use = status_use[:600].rstrip() + "\n\n_…(status truncated to fit budget)_"
-            warnings.append("truncated status to fit budget")
+            status_truncated = True  # one-shot: don't re-truncate, so the loop can
+            warnings.append("truncated status to fit budget")  # reach the last resort
+            continue
+        if include_rejected:
+            include_rejected = False
+            warnings.append("dropped rejected-alternatives index to fit budget (last resort)")
             continue
         warnings.append("pack still exceeds budget after trimming")
         break
