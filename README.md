@@ -361,11 +361,17 @@ vibe decisions list                       # list curated records (date, status, 
 vibe decisions list --tag strategy        # filter by tag or --status
 vibe decisions show 2026-06-30-redaction-guard   # print a record (by stem or path)
 vibe decisions new --title "My decision"  # print a new record template (stdout)
+vibe decisions promote draft.md --dry-run # check a reviewed draft; drop --dry-run to write it
 vibe decisions lint                       # lint records (frontmatter, headings, links, redaction)
 ```
 
 - `vibe decisions new` prints a draft template (frontmatter + stable headings); it
   **never auto-commits or auto-promotes**. Pass `--out PATH` to write it somewhere.
+- `vibe decisions promote <draft.md>` validates a **human-reviewed** draft (frontmatter,
+  headings, redaction) and writes the curated record into `docs/decisions/`. It refuses
+  unsafe paths, refuses overwrite without `--force`, supports `--dry-run`, and **never
+  auto-stages, commits, or reads raw `.council/` run logs**. It prints the created path and
+  suggests `git diff` / `vibe decisions lint` as the next steps.
 - `vibe decisions lint` reuses the redaction guard ([`docs/redaction-policy.md`](docs/redaction-policy.md))
   and exits non-zero on serious errors. `show` is path-traversal guarded to
   `docs/decisions/` only.

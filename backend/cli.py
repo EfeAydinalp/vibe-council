@@ -852,7 +852,7 @@ def _matches(query: str, blob: str) -> bool:
     return all(t in blob for t in terms) if terms else False
 
 
-_DECISIONS_DOCS_ACTIONS = {"list", "show", "new", "lint"}
+_DECISIONS_DOCS_ACTIONS = {"list", "show", "new", "lint", "promote"}
 
 
 def cmd_decisions(args) -> int:
@@ -918,6 +918,31 @@ def cmd_decisions_docs(args) -> int:
             _err(f"[written] decision draft template -> {p}")
         else:
             print(content)
+        return EXIT_OK
+
+    if action == "promote":
+        draft = getattr(args, "query", None)
+        if not draft:
+            _err("Usage: vibe decisions promote <draft-path> [--dry-run] [--force]")
+            return EXIT_USAGE
+        out_dir = Path(getattr(args, "out_dir", None) or ddir)
+        res = decisions_docs.promote(
+            Path(draft), out_dir,
+            force=getattr(args, "force", False),
+            dry_run=getattr(args, "dry_run", False),
+        )
+        if not res.ok:
+            for e in res.errors:
+                _err(f"[promote] blocked: {e}")
+            _err("[promote] refused (nothing written)")
+            return EXIT_RUNTIME
+        if res.written:
+            print(str(res.out_path))
+            _err("[promote] wrote curated decision (NOT staged/committed)")
+            _err(f"[promote] next: git diff -- {res.out_path}")
+            _err("[promote] next: vibe decisions lint")
+        else:
+            print(f"[dry-run] would write: {res.out_path}")
         return EXIT_OK
 
     # action == "lint"
@@ -1069,6 +1094,7 @@ Common commands:
   vibe decisions list                                 # list curated docs/decisions records
   vibe decisions show <id>                            # print a curated decision record
   vibe decisions new --title "..."                    # print a new decision-record template
+  vibe decisions promote <draft.md> [--dry-run]       # promote a reviewed draft into docs/decisions/
   vibe decisions lint                                 # lint curated decision records (reuses redaction)
   vibe decisions search "<query>"                     # search local .council decisions (no model)
   vibe decisions context "<query>"                    # compact local context for planning
@@ -1240,10 +1266,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_dec = sub.add_parser("decisions", parents=[p_proj],
                             help="Curated decision records + local search (no model calls).")
-    sp_dec.add_argument("action",
-                        choices=["list", "show", "new", "lint", "search", "context"])
+    sp_dec.add_argument(
+        "action",
+        choices=["list", "show", "new", "lint", "promote", "search", "context"])
     sp_dec.add_argument("query", nargs="?",
-                        help="id/file for `show`; query for `search`/`context`.")
+                        help="id/file for `show`; draft path for `promote`; "
+                             "query for `search`/`context`.")
     sp_dec.add_argument("--title", help="Title for `new`.")
     sp_dec.add_argument("--status",
                         help="Status for `new`; or filter for `list`.")
@@ -1253,6 +1281,12 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="Related id for `new` (repeatable).")
     sp_dec.add_argument("--out",
                         help="Write the `new` template to this path instead of stdout.")
+    sp_dec.add_argument("--out-dir",
+                        help="Target dir for `promote` (default: docs/decisions).")
+    sp_dec.add_argument("--force", action="store_true",
+                        help="Allow `promote` to overwrite an existing record.")
+    sp_dec.add_argument("--dry-run", action="store_true",
+                        help="`promote`: validate + show target, but do not write.")
 
     sub.add_parser("status", parents=[p_proj], help="Show active workspace info.")
 
