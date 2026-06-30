@@ -146,6 +146,12 @@ class TestRealRepoPack(unittest.TestCase):
         res = self._build_real()
         self.assertIn("human-reviewed", res.text)
 
+    def test_real_repo_keeps_decision_index_section(self):
+        # the required `section:decision-index` must survive default builds —
+        # it is compacted under budget pressure, never dropped (PR #60).
+        res = self._build_real()
+        self.assertIn("## Decision index (older)", res.text)
+
 
 class TestCheckCLI(unittest.TestCase):
     def _seed(self, root: Path, n: int = 8):

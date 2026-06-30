@@ -70,9 +70,10 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 - `full` mode had a None-content ranking fragility (fixed in v0.2.0); prefer `review` for
   plan/diff critique.
 - License/provenance cleanup is **ongoing** — no `LICENSE` added yet.
-- The context-pack budget is a **naive char budget** (default 14000); trim order now keeps the
-  rejected-alternatives index + human-review signal stable (a **token-aware budget** is deferred).
-  See [budget headroom decision](../decisions/2026-07-01-context-pack-budget-headroom.md).
+- The context-pack budget is a **naive char budget** (default 14000). **Core sections** (decision
+  index, rejected-alternatives index, human-review/source-of-truth constraints, status) **compact —
+  never drop** — under budget pressure; full decision bodies trim first (a **token-aware budget** is
+  deferred). See [critical-section budget decision](../decisions/2026-07-01-context-pack-critical-section-budget.md).
 - MCP is **read-only for v0.4**: a tested contract (`backend/mcp_contract.py` + `vibe mcp contract`)
   and a dependency-free read layer (`backend/mcp_server.py` + `vibe mcp inspect`) for **status,
   curated decisions, and the context pack + health** (`get_project_status` / `list_decisions` /
