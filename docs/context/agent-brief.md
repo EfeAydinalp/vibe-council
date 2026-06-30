@@ -104,5 +104,6 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
    [license & provenance resolution](../plans/license-and-provenance-resolution.md).
 9. **Decision CLI:** `vibe decisions list/show/new/lint/promote` operate on curated `docs/decisions/`
    (source of truth); `search/context` stay on the local `.council/` index. `new` is template-only;
-   `promote <draft>` validates (frontmatter/headings/redaction) + writes into `docs/decisions/` with
-   no auto-stage/commit and no raw `.council/` reads; `lint` reuses the redaction guard.
+   `new --from-run <review>` extracts a **local** draft (gitignored `.council/decisions/drafts/`, no
+   LLM, never under `docs/decisions/`); `promote <draft>` validates (frontmatter/headings/redaction) +
+   writes into `docs/decisions/` with no auto-stage/commit; `lint` reuses the redaction guard.

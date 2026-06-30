@@ -361,12 +361,18 @@ vibe decisions list                       # list curated records (date, status, 
 vibe decisions list --tag strategy        # filter by tag or --status
 vibe decisions show 2026-06-30-redaction-guard   # print a record (by stem or path)
 vibe decisions new --title "My decision"  # print a new record template (stdout)
+vibe decisions new --from-run review.md   # extract a LOCAL draft from raw council output
 vibe decisions promote draft.md --dry-run # check a reviewed draft; drop --dry-run to write it
 vibe decisions lint                       # lint records (frontmatter, headings, links, redaction)
 ```
 
 - `vibe decisions new` prints a draft template (frontmatter + stable headings); it
   **never auto-commits or auto-promotes**. Pass `--out PATH` to write it somewhere.
+- `vibe decisions new --from-run <review.md>` extracts a **local** draft (verdict / risks /
+  next-actions heuristics, no LLM) into gitignored `.council/decisions/drafts/`. It runs a
+  redaction scan and **reports** findings (advisory — fix before promote), refuses to write
+  under `docs/decisions/`, and **never stages/commits**. Then review/redact the draft and run
+  `vibe decisions promote <draft>`.
 - `vibe decisions promote <draft.md>` validates a **human-reviewed** draft (frontmatter,
   headings, redaction) and writes the curated record into `docs/decisions/`. It refuses
   unsafe paths, refuses overwrite without `--force`, supports `--dry-run`, and **never
