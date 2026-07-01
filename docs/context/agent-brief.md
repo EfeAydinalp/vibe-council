@@ -43,11 +43,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   changes with approval", reusing the v0.2–v0.4 infra (MCP = read-only knowledge source;
   decisions/context = memory; operator status = the panel's status surface; `.council/` = local
   runtime). **Deterministic guards are the security boundary; the Approval Auditor is advisory.**
-  First implementation PR = runtime data models + a gitignored `.council/runtime/` JSON store.
+  First implementation landed: the **runtime store** (`backend/workbench_runtime.py` — `Task`/`Stage`/
+  `ApprovalRequest`/`ApprovalDecision`/`Action`/`AuditResult` + a gitignored `.council/runtime/` JSON
+  store, stdlib-only; runtime state is live/local, curated `docs/decisions/` stays long-term memory).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
-  [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md) and
-  [v0.5 roadmap decision](../decisions/2026-07-01-v0.5-workbench-roadmap.md).
+  [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
+  [v0.5 roadmap decision](../decisions/2026-07-01-v0.5-workbench-roadmap.md), and
+  [runtime store decision](../decisions/2026-07-01-workbench-runtime-store.md).
 
 ## Provider architecture
 

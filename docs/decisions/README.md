@@ -54,5 +54,6 @@ seed** for the linked decision-memory direction (see
 - [Document + dogfood the v0.4 read-only MCP workflow](./2026-07-01-claude-code-mcp-setup-dogfood.md) — accepted
 - [Prepare v0.4.0 release](./2026-07-01-v0.4.0-release-prep.md) — accepted
 - [Accept council correction: v0.5 is the AI Council Workbench MVP](./2026-07-01-v0.5-workbench-roadmap.md) — accepted
+- [`.council/runtime/` is the Workbench's live workflow state (JSON store)](./2026-07-01-workbench-runtime-store.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

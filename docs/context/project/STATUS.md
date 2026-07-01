@@ -51,9 +51,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   boundary; the Approval Auditor is advisory. "AI Council Workbench" is the near-term name; "AI
   project OS" stays long-term/internal. See [`v0.5 plan`](../../plans/v0.5-workbench-mvp.md) and
   [`v0.5 roadmap decision`](../../decisions/2026-07-01-v0.5-workbench-roadmap.md).
-- **Current focus:** **v0.5 Workbench MVP** — next implementation PR is the runtime data models
-  (`Task`/`Stage`/`ApprovalRequest`/`ApprovalDecision`/`Action`/`AuditResult`) + a gitignored
-  `.council/runtime/` JSON store (stdlib-only, no server). Mobile/voice/personalization deferred.
+- **v0.5 runtime store landed** (PR #64): `backend/workbench_runtime.py` — `Task`/`Stage`/
+  `ApprovalRequest`/`ApprovalDecision`/`Action`/`AuditResult` dataclasses + a gitignored
+  `.council/runtime/{tasks,approvals,audits,actions}/ + index.json` JSON store (stdlib-only,
+  atomic-ish, sorted-keys, id-sanitized/containment-guarded; no server/model/CLI). See
+  [`runtime store`](../../decisions/2026-07-01-workbench-runtime-store.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: task **orchestrator / 3-stage state machine**
+  over the runtime store (deterministic, single-model), then deterministic trust boundary → advisory
+  Approval Auditor → local panel. Mobile/voice/personalization deferred.
 
 ## Next actions
 
