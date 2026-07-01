@@ -56,9 +56,15 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   `.council/runtime/{tasks,approvals,audits,actions}/ + index.json` JSON store (stdlib-only,
   atomic-ish, sorted-keys, id-sanitized/containment-guarded; no server/model/CLI). See
   [`runtime store`](../../decisions/2026-07-01-workbench-runtime-store.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: task **orchestrator / 3-stage state machine**
-  over the runtime store (deterministic, single-model), then deterministic trust boundary → advisory
-  Approval Auditor → local panel. Mobile/voice/personalization deferred.
+- **v0.5 orchestrator landed** (PR #65): `backend/workbench_orchestrator.py` — deterministic task
+  lifecycle over the runtime store (`start_task`/`request_approval`/`decide_approval`
+  (approve/reject/hold)/`mark_executing`/`complete`/`fail`/`hold`) + `get_task_progress`
+  (panel-friendly) + `list_pending_approvals`. **No action execution** (approve records a `pending`
+  Action); no model/git/shell. See
+  [`orchestrator`](../../decisions/2026-07-01-workbench-orchestrator-state-machine.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: the **deterministic trust boundary** (path/command
+  allowlists, secret patterns, size limits, cloud-egress consent) that gates the pending Actions —
+  the real security boundary — then advisory Approval Auditor → local panel. Mobile/voice deferred.
 
 ## Next actions
 
