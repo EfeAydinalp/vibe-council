@@ -685,13 +685,15 @@ them.
 
 ## Roadmap / next ideas
 
-**Recently shipped (v0.3.1 — dogfood hardening):** the v0.3 decision-memory / context loop, used on
-real work and hardened — `decisions promote` refuses placeholder-only drafts and writes curated
+**Recently shipped (v0.4.0 — read-only MCP / Claude Code workflow):** a **read-only** MCP surface
+over curated project memory — `vibe mcp contract` / `inspect` / `serve --stdio` — exposing project
+status, curated decisions, and the context pack + health to Claude Code / local agents with **no
+write/action authority**. A minimal **stdlib** JSON-RPC stdio transport (**no `mcp` SDK**); context
+reads are **in-memory** (no `.council/` writes); forbidden write/git/shell/provider tools are
+unreachable. (v0.3.1 hardened the decision-memory / context loop —
+`decisions promote` refuses placeholder-only drafts and writes curated
 `YYYY-MM-DD-slug.md` records, `decisions new --from-run` maps review sections into the draft,
-`context check` passes **21/21** on the real repo (explicit human-review signal in packs), plus a
-CLI UX pass (clearer `lint --redaction` verdict, `context build` budget hint, `context check`
-advisory-miss count, clearer `decisions` help). No new command surface; still deterministic and
-local-first. (v0.3.0 shipped the redaction guard, the curated decision CLI, draft extraction + safe
+`context check` passes **21/21** on the real repo, plus a CLI UX pass. v0.3.0 shipped the redaction guard, the curated decision CLI, draft extraction + safe
 promotion, the context-pack builder/check/export, operator status, and the license/provenance
 "Question 0" checklist; v0.2.0 shipped the provider abstraction + local Ollama + `vibe doctor`;
 v0.1.0 shipped the first-run API-key guard, `vibe models`/`presets`/`--version`, CI, and decision
@@ -714,19 +716,23 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.3.1 — dogfood hardening of the decision-memory / context loop.** The repo
-reports `0.3.1`; the `v0.3.1` git tag and GitHub Release are cut by a maintainer right
-after the release PR merges. See [`CHANGELOG.md`](CHANGELOG.md) and [`docs/releases/v0.3.1.md`](docs/releases/v0.3.1.md)
-for the notes (v0.3.0: [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md)), and
+**Release status:** **v0.4.0 — read-only MCP / Claude Code workflow.** The repo reports `0.4.0`; the
+`v0.4.0` git tag and GitHub Release are cut by a maintainer right after the release PR merges. The
+read-only MCP surface (`vibe mcp contract` / `inspect` / `serve --stdio`) is a minimal **stdlib**
+JSON-RPC stdio server — **no `mcp` SDK dependency**; context reads are **in-memory** and write no
+generated `.council/` files; the generic MCP stdio client pattern is in
+[`docs/mcp/claude-code-setup.md`](docs/mcp/claude-code-setup.md). See
+[`CHANGELOG.md`](CHANGELOG.md) and [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md)
+for the notes (v0.3.1: [`docs/releases/v0.3.1.md`](docs/releases/v0.3.1.md)), and
 [`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an
 early `0.x` release — expect breaking changes between minor versions, and see the honest limitations
 below. **No commercial-clearance claim; license/provenance remains "Question 0".**
 
 **Near-term:**
 
-- **v0.4 read-only MCP / Claude Code workflow** *(in progress)* — query curated decisions, status,
-  and the context pack from Claude Code / local agents with **no write/action authority**. Browse the
-  planned contract with `vibe mcp contract`; run a read-only smoke with `vibe mcp inspect`
+- **v0.4 read-only MCP / Claude Code workflow** *(shipping in v0.4.0)* — query curated decisions,
+  status, and the context pack from Claude Code / local agents with **no write/action authority**.
+  Browse the contract with `vibe mcp contract`; run a read-only smoke with `vibe mcp inspect`
   (`--id <id>`, `--context`, `--health`, `--json` — context pack/health are built **in memory**, no
   `.council/` file written); and start the read-only MCP server for Claude Code / MCP clients with
   `vibe mcp serve --stdio` (a minimal stdlib JSON-RPC stdio transport — **no extra dependency**, no

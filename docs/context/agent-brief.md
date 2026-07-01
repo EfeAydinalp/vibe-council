@@ -5,7 +5,7 @@ hand-written **dogfood seed**, not generated output — it distills the committe
 under [`docs/decisions/`](../decisions/). Future *generated* agent briefs should default to a
 local, gitignored location and be committed only by explicit, redacted opt-in.
 
-_Last curated: 2026-06-30 (vibe-council 0.3.1)._
+_Last curated: 2026-07-01 (vibe-council 0.4.0)._
 
 ## Project identity
 
@@ -30,12 +30,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   **21/21** on the real repo (explicit human-review signal in packs; default char budget 14000);
   plus a CLI UX pass. See [v0.3.1 release notes](../releases/v0.3.1.md). No commercial-clearance
   claim — license/provenance remains "Question 0".
-- **v0.4** (planning) — a **read-only** MCP / Claude Code workflow: expose curated decisions, status,
-  rejected alternatives, constraints, and the generated context pack to Claude Code / local agents
-  **with no write/action authority** (no promotion, file, git, shell, or remote-approval tools).
+- **v0.4.0** (prepared; next release target) — the **read-only MCP / Claude Code workflow** release:
+  `vibe mcp contract` / `inspect` / `serve --stdio` expose curated decisions, status, and the context
+  pack + health to Claude Code / local agents **with no write/action authority** (no promotion,
+  file, git, shell, provider/model, or remote-approval tools). A minimal **stdlib** JSON-RPC stdio
+  transport — **no `mcp` SDK dependency**; context reads are **in-memory / no `.council/` writes**.
   Curated docs stay source-of-truth; generated/local/private artifacts excluded by default. See
-  [v0.4 read-only MCP plan](../plans/v0.4-read-only-mcp-workflow.md) and
-  [v0.4 scope decision](../decisions/2026-07-01-v0.4-read-only-mcp-scope.md).
+  [v0.4.0 release notes](../releases/v0.4.0.md) and
+  [v0.4.0 release prep](../decisions/2026-07-01-v0.4.0-release-prep.md). No commercial-clearance
+  claim — license/provenance remains "Question 0".
 
 ## Provider architecture
 
