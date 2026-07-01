@@ -49,8 +49,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   start → plan → request approval → decide (approve/reject/hold) → mark executing → complete/fail/hold,
   + `get_task_progress` / `list_pending_approvals`). **No action execution** (approve records a
   `pending` Action), no model/git/shell; runtime state is live/local, curated `docs/decisions/` stays
-  long-term memory. Next: the **deterministic trust boundary** (the real security gate), then the
-  advisory Approval Auditor, then the panel.
+  long-term memory. The **deterministic trust boundary** (`backend/workbench_trust.py`) is the **real
+  security gate**: it classifies proposed actions (allowed/blocked/requires-approval + risk +
+  cloud-egress consent) — unknown kinds + non-allowlisted/metachar commands blocked, writes require
+  approval, secrets/`.git`/`.council`/private plans / out-of-project paths blocked, cloud needs
+  consent — and **executes nothing**. Next: the **advisory** Approval Auditor (never relaxes this
+  gate), then the panel.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
