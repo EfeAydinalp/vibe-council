@@ -7,6 +7,12 @@ repository on your machine and from coding agents.
 > It also covers project-local decision memory (`vibe decisions list/search/context`)
 > and the token / cost / loop guards and usage tracking.
 
+> **New to using vibe-council from another project or an AI coding agent?** Read the short
+> [Agent Quickstart](agent-quickstart.md) first — a copy-paste-safe review → diff → decision recipe
+> with the safety rules front-loaded. `vibe guide claude` prints one reusable **Claude Code**
+> instruction block; the Agent Quickstart is the short **general-purpose** guide for *any* AI coding
+> agent, and this document is the full reference.
+
 ## Install the global `vibe` command (Windows)
 
 From the vibe-council repo:

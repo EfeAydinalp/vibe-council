@@ -68,6 +68,9 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   secrets/`.git`/`.council`/private plans / out-of-project paths blocked; cloud needs consent, never
   auto-runs. **The real security gate; executes nothing.** See
   [`trust boundary`](../../decisions/2026-07-01-workbench-trust-boundary.md).
+- **Agent quickstart added**: [`docs/agent-quickstart.md`](../../agent-quickstart.md) — a short,
+  copy-paste-safe review → diff → decision recipe for humans and AI coding agents (council is advice,
+  not authority; keep `.council/` gitignored; don't send secrets).
 - **Current focus:** **v0.5 Workbench MVP** — next: the **hybrid Approval Auditor** (advisory — the
   deterministic guard stays the boundary), then the local panel. Mobile/voice/personalization deferred.
 

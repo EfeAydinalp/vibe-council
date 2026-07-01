@@ -68,7 +68,9 @@ original author. Please credit the original project for the council concept.
   `--max-cost`, a loop guard, `--usage`, and `--save-stages`
 - **Claude Code workflow** — plan → review → implement → diff review → extract decision
 
-See [`docs/agent-integrations.md`](docs/agent-integrations.md) for the full agent guide.
+**Using vibe-council from another project or an AI coding agent?** Start with the short
+[`docs/agent-quickstart.md`](docs/agent-quickstart.md) (a copy-paste-safe review/diff/decision
+recipe). See [`docs/agent-integrations.md`](docs/agent-integrations.md) for the full agent guide.
 
 ---
 

@@ -77,6 +77,10 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 - Keep stdout machine-readable; diagnostics/usage go to stderr.
 - **Never commit** raw council outputs, secrets, `.env`, or local runtime state. Raw `.council/`
   runtime workspace stays **gitignored**.
+- For using vibe-council from another project or an AI coding agent, the short
+  [agent quickstart](agent-quickstart.md) is the front-door recipe (council is advice, not authority;
+  don't send secrets; `review` before coding, `diff` after; `extract`/promote only for durable
+  decisions). `vibe guide claude` is the Claude-Code-specific instruction block.
 
 ## Decision-memory boundary
 
