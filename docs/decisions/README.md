@@ -55,5 +55,6 @@ seed** for the linked decision-memory direction (see
 - [Prepare v0.4.0 release](./2026-07-01-v0.4.0-release-prep.md) — accepted
 - [Accept council correction: v0.5 is the AI Council Workbench MVP](./2026-07-01-v0.5-workbench-roadmap.md) — accepted
 - [`.council/runtime/` is the Workbench's live workflow state (JSON store)](./2026-07-01-workbench-runtime-store.md) — accepted
+- [Deterministic Workbench task lifecycle / state machine (no execution)](./2026-07-01-workbench-orchestrator-state-machine.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

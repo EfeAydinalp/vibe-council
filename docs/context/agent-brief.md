@@ -43,9 +43,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   changes with approval", reusing the v0.2–v0.4 infra (MCP = read-only knowledge source;
   decisions/context = memory; operator status = the panel's status surface; `.council/` = local
   runtime). **Deterministic guards are the security boundary; the Approval Auditor is advisory.**
-  First implementation landed: the **runtime store** (`backend/workbench_runtime.py` — `Task`/`Stage`/
+  Landed so far: the **runtime store** (`backend/workbench_runtime.py` — `Task`/`Stage`/
   `ApprovalRequest`/`ApprovalDecision`/`Action`/`AuditResult` + a gitignored `.council/runtime/` JSON
-  store, stdlib-only; runtime state is live/local, curated `docs/decisions/` stays long-term memory).
+  store) and the **deterministic orchestrator** (`backend/workbench_orchestrator.py` — task lifecycle:
+  start → plan → request approval → decide (approve/reject/hold) → mark executing → complete/fail/hold,
+  + `get_task_progress` / `list_pending_approvals`). **No action execution** (approve records a
+  `pending` Action), no model/git/shell; runtime state is live/local, curated `docs/decisions/` stays
+  long-term memory. Next: the **deterministic trust boundary** (the real security gate), then the
+  advisory Approval Auditor, then the panel.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
