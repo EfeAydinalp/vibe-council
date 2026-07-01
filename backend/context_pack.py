@@ -34,6 +34,11 @@ PACK_VERSION = "1"
 DEFAULT_MAX_CHARS = 14000
 DEFAULT_RECENT = 5
 _METADATA_RESERVE = 800  # chars kept aside for the metadata header
+# Floors so core sections compact instead of vanishing under budget pressure:
+# keep at least this many decision-index entries (when that many older records
+# exist) and this many rejected-alternatives entries.
+_INDEX_FLOOR = 8
+_REJECTED_FLOOR = 3
 
 CONSTRAINTS = (
     "- Raw `.council/` outputs stay local and gitignored; never committed.\n"
@@ -87,9 +92,11 @@ def _record_full(rec: dd.Record) -> str:
     return f"### {rec.title} ({_status(rec)}, {_date(rec)})\n\n{body}"
 
 
-def _index_line(rec: dd.Record) -> str:
-    tags = ", ".join(rec.frontmatter.get("tags") or [])
+def _index_line(rec: dd.Record, compact: bool = False) -> str:
     base = f"- {_date(rec)} · {_status(rec)} · {rec.stem} — {rec.title}"
+    if compact:
+        return base  # drop tags to shrink the index without losing the section
+    tags = ", ".join(rec.frontmatter.get("tags") or [])
     return base + (f"  [{tags}]" if tags else "")
 
 
@@ -106,7 +113,8 @@ def _rejected_index(records: List[dd.Record], cap: int = 12) -> List[str]:
 
 def _assemble(status_text: str, pinned: List[dd.Record], recent: List[dd.Record],
               index: List[dd.Record], include_rejected: bool,
-              rejected_source: Optional[List[dd.Record]] = None) -> str:
+              rejected_source: Optional[List[dd.Record]] = None,
+              index_compact: bool = False, rejected_cap: int = 12) -> str:
     parts: List[str] = []
     parts.append("## Project identity\n\n" + PROJECT_IDENTITY)
     parts.append("## Current status\n\n" + (status_text or "_No STATUS.md found._"))
@@ -116,14 +124,17 @@ def _assemble(status_text: str, pinned: List[dd.Record], recent: List[dd.Record]
     if recent:
         parts.append("## Recent decisions (full)\n\n"
                      + "\n\n".join(_record_full(r) for r in recent))
+    # Decision index is a CORE section: it is compacted/capped under budget
+    # pressure but never emptied while older records exist (the required
+    # `section:decision-index` check must keep passing).
     if index:
         parts.append("## Decision index (older)\n\n"
-                     + "\n".join(_index_line(r) for r in index))
+                     + "\n".join(_index_line(r, compact=index_compact) for r in index))
     if include_rejected:
         # Drawn from ALL curated records (not just the bodies that survived
         # trimming) so this critical signal stays stable under budget pressure.
         rej = _rejected_index(rejected_source if rejected_source is not None
-                              else pinned + recent + index)
+                              else pinned + recent + index, cap=rejected_cap)
         if rej:
             parts.append("## Rejected alternatives index\n\n" + "\n".join(rej))
     parts.append("## Constraints / safety notes\n\n" + CONSTRAINTS)
@@ -152,42 +163,65 @@ def build_pack(decisions_dir: Path, status_path: Optional[Path],
 
     body_budget = max(1000, max_chars - _METADATA_RESERVE)
     recent_n = recent
-    index_cap: Optional[int] = None
-    include_rejected = True
+    index_cap: Optional[int] = None      # None = all older records
+    index_compact = False
+    rejected_cap = 12
     status_truncated = False
     status_use = status_text
 
-    # Trim order: shrink the largest, least-critical content first (recent full
-    # decision bodies, then the older decision index, then status) and keep the
-    # small critical-signal sections — the rejected-alternatives index and the
-    # always-present constraints/human-review notes — until the very last resort.
+    # CORE sections (never dropped; only compacted): project identity, current
+    # status, the decision index, the rejected-alternatives index, and the
+    # constraints/human-review/source-of-truth notes. EXPANDABLE content (the full
+    # recent decision bodies) is trimmed FIRST. The trimmer compacts core sections
+    # toward small floors rather than dropping them, so the required sections and
+    # key advisory signals survive normal repo growth; if compaction still can't
+    # fit, we accept a marginally over-budget pack instead of dropping a core
+    # section. Each step makes monotonic progress, so the loop always terminates.
     while True:
         recent_recs = rest[:recent_n]
         index_recs = rest[recent_n:]
         if index_cap is not None:
             index_recs = index_recs[:index_cap]
         body = _assemble(status_use, pinned, recent_recs, index_recs,
-                         include_rejected, rejected_source=records)
+                         include_rejected=True, rejected_source=records,
+                         index_compact=index_compact, rejected_cap=rejected_cap)
         if len(body) <= body_budget:
             break
+        # 1. EXPANDABLE: reduce recent full decision bodies (biggest lever, floor 1
+        #    so the required recent/pinned section survives).
         if recent_n > 1:
             recent_n -= 1
             warnings.append("reduced recent full decisions to fit budget")
             continue
-        if index_cap is None or index_cap > 0:
-            index_cap = 10 if index_cap is None else max(0, index_cap - 10)
-            warnings.append("truncated decision index to fit budget")
+        # 2. CORE-compact: drop tags from the decision index (keeps the section).
+        if not index_compact:
+            index_compact = True
+            warnings.append("compacted decision index (dropped tags) to fit budget")
             continue
+        # 3. CORE-compact: truncate status once (never removed).
         if not status_truncated and len(status_use) > 600:
             status_use = status_use[:600].rstrip() + "\n\n_…(status truncated to fit budget)_"
-            status_truncated = True  # one-shot: don't re-truncate, so the loop can
-            warnings.append("truncated status to fit budget")  # reach the last resort
+            status_truncated = True
+            warnings.append("truncated status to fit budget")
             continue
-        if include_rejected:
-            include_rejected = False
-            warnings.append("dropped rejected-alternatives index to fit budget (last resort)")
+        # 4. CORE-compact: cap decision-index entries toward a floor (never to 0
+        #    while older records exist, so the required section persists).
+        older = len(rest) - recent_n
+        floor = min(_INDEX_FLOOR, older)
+        cur = index_cap if index_cap is not None else older
+        if cur > floor:
+            index_cap = max(floor, cur - 10)
+            warnings.append("capped decision index entries to fit budget")
             continue
-        warnings.append("pack still exceeds budget after trimming")
+        # 5. CORE-compact: shrink the rejected-alternatives index toward a floor
+        #    (compact, not dropped).
+        if rejected_cap > _REJECTED_FLOOR:
+            rejected_cap = max(_REJECTED_FLOOR, rejected_cap // 2)
+            warnings.append("compacted rejected-alternatives index to fit budget")
+            continue
+        # 6. Terminal: keep all core sections; accept a marginally over-budget pack
+        #    rather than drop a required/core section.
+        warnings.append("pack slightly over budget after compaction; core sections kept")
         break
 
     findings = redaction.scan_text(body, "<context-pack>")

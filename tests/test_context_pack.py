@@ -113,22 +113,34 @@ class TestBuild(unittest.TestCase):
         self.assertIn("Alt rec00", res.text)  # oldest record, not in the single body
         self.assertEqual(res.text.count("### rec00 title"), 0)  # its body isn't included
 
-    def test_rejected_index_dropped_only_as_last_resort(self):
-        # with a punishing budget the rejected index is the LAST thing dropped —
-        # only after recent/index/status have already been trimmed.
-        self._seed_big(10)
+    def test_core_sections_survive_punishing_budget(self):
+        # under a punishing budget the core sections are COMPACTED, not dropped:
+        # the decision index and the rejected-alternatives index both persist, and
+        # full recent bodies are trimmed first.
+        self._seed_big(12)
         long_status = self.root / "LONGSTATUS.md"
         long_status.write_text("# Status\n\n" + ("status detail line.\n" * 80),
                                encoding="utf-8")
         res = cp.build_pack(self.ddir, long_status, max_chars=1300,
                             on="2026-06-30T00:00:00Z")
-        ws = res.warnings
-        self.assertTrue(any("dropped rejected-alternatives index" in w
-                            and "last resort" in w for w in ws))
-        status_i = next(i for i, w in enumerate(ws) if "truncated status" in w)
-        rej_i = next(i for i, w in enumerate(ws)
-                     if "dropped rejected-alternatives" in w)
-        self.assertLess(status_i, rej_i)  # status trimmed before rejected dropped
+        self.assertIn("## Decision index (older)", res.text)         # core kept
+        self.assertIn("## Rejected alternatives index", res.text)    # core kept
+        self.assertIn("human-reviewed", res.text)                    # constraints kept
+        ws = " ".join(res.warnings)
+        self.assertIn("reduced recent full decisions", ws)           # expandable first
+        self.assertNotIn("dropped rejected-alternatives", ws)        # never dropped now
+
+    def test_decision_index_compacted_not_emptied(self):
+        # under tight budget the index is compacted (tags dropped / entries capped)
+        # but the section stays present and non-empty while older records exist.
+        self._seed_big(14)
+        res = cp.build_pack(self.ddir, self.status, max_chars=2200,
+                            on="2026-06-30T00:00:00Z")
+        self.assertIn("## Decision index (older)", res.text)
+        idx = res.text.split("## Decision index (older)", 1)[1]
+        self.assertIn("- 2026-", idx)  # at least one index entry remains
+        ws = " ".join(res.warnings)
+        self.assertTrue("compacted decision index" in ws or "capped decision index" in ws)
 
     def test_status_truncation_is_one_shot(self):
         # status truncation must not loop forever (it would block the last resort)

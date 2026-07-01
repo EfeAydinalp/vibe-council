@@ -35,6 +35,11 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   `show_decision` / `get_context_pack` / `check_context_health`); **read-only, no `mcp` SDK, no
   `.council/` writes, no write/git/shell/provider tools**. See
   [`minimal MCP stdio transport`](../../decisions/2026-07-01-minimal-mcp-stdio-transport.md).
+- **Context-pack core sections stabilized** (PR #60): core sections (decision index,
+  rejected-alternatives index, human-review/source-of-truth constraints, status) are **compacted, not
+  dropped** under budget pressure; full decision bodies are trimmed first. The required
+  `section:decision-index` no longer falls off the 14000-char cliff. See
+  [`critical-section budget`](../../decisions/2026-07-01-context-pack-critical-section-budget.md).
 - **Current focus:** **v0.4 read-only MCP** — next: Claude Code setup docs, then v0.4 dogfood +
   release prep (rejected/release/constraints standalone resources still deferred). See
   [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
