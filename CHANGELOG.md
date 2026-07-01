@@ -5,14 +5,75 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.3.1` is prepared. The repo reports `0.3.1`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.3.1` git tag + GitHub Release are cut by a
+> **Status:** `0.4.0` is prepared. The repo reports `0.4.0`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.4.0` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.3.1 changes will be listed here as normal Keep-a-Changelog deltas
+_Nothing yet. Post-0.4.0 changes will be listed here as normal Keep-a-Changelog deltas
 (Added / Changed / Fixed / Removed)._
+
+## [0.4.0] - 2026-07-01
+
+**Read-only MCP / Claude Code workflow.** Exposes vibe-council's curated project memory — project
+status, curated decisions, and the generated context pack + health — to Claude Code / local MCP
+clients over a **read-only** stdio server, without granting any write/action authority. Still
+deterministic and local-first: no `mcp` SDK dependency (the transport is a minimal stdlib
+JSON-RPC-over-stdio server), no write-capable tools, no provider/model calls, no hosted/sync.
+
+### Added
+
+- **`vibe mcp contract`** — prints the read-only MCP contract: read-only resources/tools and the
+  explicit forbidden mutation/action tools (`backend/mcp_contract.py`).
+- **`vibe mcp inspect`** — a dependency-free read-only smoke over the read layer (status + curated
+  decisions; `--context`/`--health` also build the context pack + health **in memory**, writing no
+  `.council/` files; `--id`, `--json`).
+- **`vibe mcp serve --stdio`** — a read-only MCP **stdio transport** (newline-delimited JSON-RPC
+  2.0: `initialize`/`tools/list`/`tools/call`/`resources/list`/`resources/read`/`ping`) wrapping the
+  read layer (`backend/mcp_stdio.py`). No `mcp` SDK, no HTTP/socket/daemon.
+- **MCP read layer** (`backend/mcp_server.py`): tools `get_project_status`, `list_decisions`,
+  `show_decision` (path-guarded to `docs/decisions/`), `get_context_pack`, `check_context_health`;
+  resources `vibe://status`, `vibe://decisions`, `vibe://decisions/{id}`, `vibe://context/latest`.
+- **Claude Code / MCP setup docs** (`docs/mcp/claude-code-setup.md`, a generic MCP stdio client
+  pattern) and **v0.4 MCP dogfood notes** (`docs/dogfood/v0.4-mcp-local-dogfood.md`).
+- **Tests** for the MCP contract, read layer, stdio transport, and the no-write/path/forbidden-tool
+  boundaries.
+
+### Changed
+
+- **Context-pack budget protects core sections.** Under budget pressure the builder now **compacts**
+  core sections instead of dropping them — the decision index and the rejected-alternatives index
+  survive (compacted), and full decision bodies are trimmed **first**. This fixes the recurring
+  14000-char cliff that previously dropped the required `section:decision-index`.
+- **README** documents the read-only MCP workflow and commands.
+- **Project status / agent brief** reflect the read-only MCP release.
+
+### Safety
+
+- MCP exposes **read-only** status, decisions, context pack, and context health **only**.
+- **No** write/git/shell/provider/model tools; **no** decision promotion through MCP; `git_status` is
+  forbidden for v0.4.
+- **No raw `.council/` exposure** and **no private/untracked plans** exposed; `show_decision` is
+  path-traversal guarded to `docs/decisions/`.
+- **MCP context reads do not write `.council/`** (built in memory); the forbidden `write_file` tool
+  is tested to return a JSON-RPC error.
+- Redaction lint remains **0 critical**; `context check` remains **21/21**.
+- **License/provenance remains an unresolved commercial "Question 0"** — no clearance claim, no
+  `LICENSE`.
+
+### Verification
+
+- 287 tests pass; redaction lint 0 critical; decisions lint passes; `context check` 21/21; MCP
+  contract/inspect/serve-help pass; bounded MCP stdio smoke passes; no-write and privacy audits clean.
+
+### Deferred
+
+- MCP SDK / full protocol compliance · write-capable MCP tools · remote approval transport ·
+  hosted/team/sync · dashboard / mobile / custom transport · standalone
+  `vibe://rejected-alternatives` / `vibe://release-notes` / `vibe://constraints` resources ·
+  token-aware budget · vector/hybrid retrieval · LLM-based context eval · rolling summaries ·
+  operator notifications / event log.
 
 ## [0.3.1] - 2026-06-30
 

@@ -40,11 +40,15 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   dropped** under budget pressure; full decision bodies are trimmed first. The required
   `section:decision-index` no longer falls off the 14000-char cliff. See
   [`critical-section budget`](../../decisions/2026-07-01-context-pack-critical-section-budget.md).
-- **v0.4 MCP setup docs + dogfood** (this PR): [`Claude Code / MCP setup`](../../mcp/claude-code-setup.md)
-  (generic stdio pattern) + [`v0.4 MCP dogfood`](../../dogfood/v0.4-mcp-local-dogfood.md) — stdio smoke,
-  no-write audit, privacy audit all pass; health 21/21.
-- **Current focus:** **v0.4 read-only MCP** — next: **v0.4 release prep** (rejected/release/constraints
-  standalone resources still deferred). See [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
+- **v0.4 read-only MCP track implemented + dogfooded:** setup docs
+  ([`Claude Code / MCP setup`](../../mcp/claude-code-setup.md)) + dogfood
+  ([`v0.4 MCP dogfood`](../../dogfood/v0.4-mcp-local-dogfood.md)) — stdio smoke, no-write + privacy
+  audits pass; health 21/21.
+- **Current focus:** **v0.4.0 release prep** — version `0.4.0`, CHANGELOG `[0.4.0]`,
+  `docs/releases/v0.4.0.md`, README/STATUS/agent-brief aligned. Next: merge, then (when requested)
+  tag `v0.4.0` + publish. After release: verify exact Claude Code config; optional standalone
+  resources / broader MCP protocol compliance. See
+  [`v0.4.0 release prep`](../../decisions/2026-07-01-v0.4.0-release-prep.md).
 
 ## Next actions
 
