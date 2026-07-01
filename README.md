@@ -739,6 +739,10 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
   vibe mcp inspect --context --health   # read-only smoke (in memory; nothing written)
   vibe mcp serve --stdio            # read-only MCP server over stdio (no write tools)
   ```
+
+  Local setup for Claude Code / MCP clients: see
+  [`docs/mcp/claude-code-setup.md`](docs/mcp/claude-code-setup.md) (generic MCP stdio pattern +
+  safety checklist).
 - Record the real demo GIF / asciinema of the review → diff → extract loop *(follow-up)*
 - Provider-specific preset/model config (so Ollama doesn't need `VIBE_OLLAMA_MODEL` per run)
 

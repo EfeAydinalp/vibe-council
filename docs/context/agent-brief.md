@@ -80,7 +80,8 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   `show_decision` / `get_context_pack` / `check_context_health`). Context reads are **in-memory — no
   `.council/` files written**. A minimal **stdlib stdio transport** (`backend/mcp_stdio.py` + `vibe
   mcp serve --stdio`, newline-delimited JSON-RPC) exposes exactly that surface — **no `mcp` SDK
-  dependency**. Standalone rejected/release/constraints resources are deferred. Write/action MCP,
+  dependency**. Local setup + dogfood: [Claude Code / MCP setup](mcp/claude-code-setup.md) (generic
+  stdio pattern). Standalone rejected/release/constraints resources are deferred. Write/action MCP,
   personas/advisors, app/TUI, and community features are **future work**. See
   [minimal MCP stdio transport](../decisions/2026-07-01-minimal-mcp-stdio-transport.md).
 
