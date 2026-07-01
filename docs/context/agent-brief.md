@@ -30,15 +30,24 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   **21/21** on the real repo (explicit human-review signal in packs; default char budget 14000);
   plus a CLI UX pass. See [v0.3.1 release notes](../releases/v0.3.1.md). No commercial-clearance
   claim — license/provenance remains "Question 0".
-- **v0.4.0** (prepared; next release target) — the **read-only MCP / Claude Code workflow** release:
+- **v0.4.0** (released) — the **read-only MCP / Claude Code workflow** release:
   `vibe mcp contract` / `inspect` / `serve --stdio` expose curated decisions, status, and the context
   pack + health to Claude Code / local agents **with no write/action authority** (no promotion,
   file, git, shell, provider/model, or remote-approval tools). A minimal **stdlib** JSON-RPC stdio
   transport — **no `mcp` SDK dependency**; context reads are **in-memory / no `.council/` writes**.
   Curated docs stay source-of-truth; generated/local/private artifacts excluded by default. See
-  [v0.4.0 release notes](../releases/v0.4.0.md) and
-  [v0.4.0 release prep](../decisions/2026-07-01-v0.4.0-release-prep.md). No commercial-clearance
-  claim — license/provenance remains "Question 0".
+  [v0.4.0 release notes](../releases/v0.4.0.md). No commercial-clearance claim — license/provenance
+  remains "Question 0".
+- **v0.5** (next; roadmap corrected) — the **AI Council Workbench MVP**: a user-visible **vertical
+  slice** (task → visible stages → **audited approval** → safe execution → logged) for "safe repo
+  changes with approval", reusing the v0.2–v0.4 infra (MCP = read-only knowledge source;
+  decisions/context = memory; operator status = the panel's status surface; `.council/` = local
+  runtime). **Deterministic guards are the security boundary; the Approval Auditor is advisory.**
+  First implementation PR = runtime data models + a gitignored `.council/runtime/` JSON store.
+  **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
+  internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
+  [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md) and
+  [v0.5 roadmap decision](../decisions/2026-07-01-v0.5-workbench-roadmap.md).
 
 ## Provider architecture
 

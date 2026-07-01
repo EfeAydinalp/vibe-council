@@ -730,7 +730,15 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
 
 **Near-term:**
 
-- **v0.4 read-only MCP / Claude Code workflow** *(shipping in v0.4.0)* — query curated decisions,
+- **v0.5 — AI Council Workbench MVP** *(next; roadmap corrected)* — a user-visible **vertical slice**:
+  a task moves through **visible stages**, an AI proposes a plan/diff, an **audited approval** step
+  (deterministic guards are the boundary; the Approval Auditor is advisory) gates it, and only
+  approved actions run — everything logged. Reuses the v0.2–v0.4 infrastructure (MCP = read-only
+  knowledge source; decisions/context = memory; `.council/` = local runtime). Near-term product name
+  is **"AI Council Workbench"**; a broader **local-first AI project OS** is a **long-term / internal**
+  direction, not near-term external messaging. See
+  [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md).
+- **v0.4 read-only MCP / Claude Code workflow** *(shipped in v0.4.0)* — query curated decisions,
   status, and the context pack from Claude Code / local agents with **no write/action authority**.
   Browse the contract with `vibe mcp contract`; run a read-only smoke with `vibe mcp inspect`
   (`--id <id>`, `--context`, `--health`, `--json` — context pack/health are built **in memory**, no

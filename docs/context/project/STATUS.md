@@ -44,11 +44,16 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   ([`Claude Code / MCP setup`](../../mcp/claude-code-setup.md)) + dogfood
   ([`v0.4 MCP dogfood`](../../dogfood/v0.4-mcp-local-dogfood.md)) — stdio smoke, no-write + privacy
   audits pass; health 21/21.
-- **Current focus:** **v0.4.0 release prep** — version `0.4.0`, CHANGELOG `[0.4.0]`,
-  `docs/releases/v0.4.0.md`, README/STATUS/agent-brief aligned. Next: merge, then (when requested)
-  tag `v0.4.0` + publish. After release: verify exact Claude Code config; optional standalone
-  resources / broader MCP protocol compliance. See
-  [`v0.4.0 release prep`](../../decisions/2026-07-01-v0.4.0-release-prep.md).
+- **v0.4.0 released** (tag `v0.4.0`) — read-only MCP / Claude Code workflow.
+- **Roadmap corrected → v0.5 = AI Council Workbench MVP** (council pass accepted): build a **vertical
+  slice** (task → visible stages → **audited approval** → safe execution → logged) for "safe repo
+  changes with approval", reusing the v0.2–v0.4 infra. Deterministic guards are the security
+  boundary; the Approval Auditor is advisory. "AI Council Workbench" is the near-term name; "AI
+  project OS" stays long-term/internal. See [`v0.5 plan`](../../plans/v0.5-workbench-mvp.md) and
+  [`v0.5 roadmap decision`](../../decisions/2026-07-01-v0.5-workbench-roadmap.md).
+- **Current focus:** **v0.5 Workbench MVP** — next implementation PR is the runtime data models
+  (`Task`/`Stage`/`ApprovalRequest`/`ApprovalDecision`/`Action`/`AuditResult`) + a gitignored
+  `.council/runtime/` JSON store (stdlib-only, no server). Mobile/voice/personalization deferred.
 
 ## Next actions
 
