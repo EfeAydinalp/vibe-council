@@ -51,5 +51,6 @@ seed** for the linked decision-memory direction (see
 - [MCP context pack + health are read-only in-memory reads](./2026-07-01-mcp-context-pack-health.md) — accepted
 - [Minimal read-only MCP stdio transport (stdlib, no SDK)](./2026-07-01-minimal-mcp-stdio-transport.md) — accepted
 - [Context-pack core sections compact instead of disappearing](./2026-07-01-context-pack-critical-section-budget.md) — accepted
+- [Document + dogfood the v0.4 read-only MCP workflow](./2026-07-01-claude-code-mcp-setup-dogfood.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

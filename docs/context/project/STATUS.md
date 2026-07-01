@@ -40,9 +40,11 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   dropped** under budget pressure; full decision bodies are trimmed first. The required
   `section:decision-index` no longer falls off the 14000-char cliff. See
   [`critical-section budget`](../../decisions/2026-07-01-context-pack-critical-section-budget.md).
-- **Current focus:** **v0.4 read-only MCP** — next: Claude Code setup docs, then v0.4 dogfood +
-  release prep (rejected/release/constraints standalone resources still deferred). See
-  [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
+- **v0.4 MCP setup docs + dogfood** (this PR): [`Claude Code / MCP setup`](../../mcp/claude-code-setup.md)
+  (generic stdio pattern) + [`v0.4 MCP dogfood`](../../dogfood/v0.4-mcp-local-dogfood.md) — stdio smoke,
+  no-write audit, privacy audit all pass; health 21/21.
+- **Current focus:** **v0.4 read-only MCP** — next: **v0.4 release prep** (rejected/release/constraints
+  standalone resources still deferred). See [`v0.4 plan`](../../plans/v0.4-read-only-mcp-workflow.md).
 
 ## Next actions
 
