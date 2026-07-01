@@ -62,9 +62,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   (panel-friendly) + `list_pending_approvals`. **No action execution** (approve records a `pending`
   Action); no model/git/shell. See
   [`orchestrator`](../../decisions/2026-07-01-workbench-orchestrator-state-machine.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: the **deterministic trust boundary** (path/command
-  allowlists, secret patterns, size limits, cloud-egress consent) that gates the pending Actions —
-  the real security boundary — then advisory Approval Auditor → local panel. Mobile/voice deferred.
+- **v0.5 trust boundary landed** (PR #66): `backend/workbench_trust.py` — deterministic action
+  evaluation (allowed / blocked / requires-approval + risk + findings + cloud-egress consent).
+  Unknown kinds + non-allowlisted/metachar commands blocked; writes require approval;
+  secrets/`.git`/`.council`/private plans / out-of-project paths blocked; cloud needs consent, never
+  auto-runs. **The real security gate; executes nothing.** See
+  [`trust boundary`](../../decisions/2026-07-01-workbench-trust-boundary.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: the **hybrid Approval Auditor** (advisory — the
+  deterministic guard stays the boundary), then the local panel. Mobile/voice/personalization deferred.
 
 ## Next actions
 
