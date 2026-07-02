@@ -67,9 +67,13 @@ Add real execution for **`write_file` and `edit_file` only**, via
 
 ## Next actions
 
-- PR #75 (optional): exact allowlisted `run_command` execution (`shell=False`, no metacharacters,
+- PR #75: execution payload bridge design — the `Action` model has no durable payload field, so the
+  panel/CLI have nothing to execute against yet. See
+  [payload bridge decision](./2026-07-02-workbench-payload-bridge.md).
+- PR #76: payload artifact store + executor hash re-check (implements PR #75's design).
+- PR #77: panel "Execute approved action" button + result display (dry-run preview first).
+- PR #78 (optional): exact allowlisted `run_command` execution (`shell=False`, no metacharacters,
   timeout, captured output), re-checked at run time — only if still needed.
-- PR #76: panel "Execute approved action" button + result display (dry-run preview first).
 
 ## Related links
 

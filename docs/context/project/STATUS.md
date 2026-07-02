@@ -101,9 +101,17 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   ≤100 KB / ≤200-line-delta limits, fs-level path/symlink guard, existing-file needs explicit
   overwrite, edit needs exact match, logs carry no content. **`run_command` real execution still
   rejected**; dry-run unchanged. See [`bounded file executor`](../../decisions/2026-07-01-workbench-bounded-file-executor.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: PR #75 (optional) exact **allowlisted command**
-  execution, then PR #76 panel **execute button** + result display. Execution stays separate from
-  approval; the guard re-runs at execution time; mobile/voice deferred.
+- **PR #75 (docs-only) — payload bridge design landed.** The `Action` model has no durable payload
+  field, so the panel/CLI have nothing to execute against yet. Designed a separate, local, gitignored
+  `.council/runtime/payloads/<action_id>.json` artifact (hashed at/before approval, write-once after
+  approval, hash + scope re-checked at execution time), plus panel-display and redaction-at-write-time
+  requirements. **No code/schema/helper/executor/panel/`run_command` changes.** See
+  [`payload bridge plan`](../../plans/v0.5-payload-bridge.md) and
+  [`decision`](../../decisions/2026-07-02-workbench-payload-bridge.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: PR #76 implements the payload store + hash/scope
+  verification designed in PR #75, then PR #77 panel **execute button** + result display, then PR #78
+  (optional) exact **allowlisted command** execution. Execution stays separate from approval; the guard
+  re-runs at execution time; mobile/voice deferred.
 
 ## Next actions
 
