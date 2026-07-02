@@ -66,5 +66,6 @@ seed** for the linked decision-memory direction (see
 - [Payload artifacts are verified by hash + scope before real file execution](./2026-07-02-workbench-payload-store.md) — accepted
 - [The panel can execute an approved bounded file action, but only by action id](./2026-07-02-workbench-panel-execute.md) — accepted
 - [Plan real command execution as exact allowlisted verification commands only](./2026-07-02-workbench-command-execution-plan.md) — accepted
+- [Command labels resolve to fixed argv — dry-run preview only](./2026-07-02-workbench-command-preview.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

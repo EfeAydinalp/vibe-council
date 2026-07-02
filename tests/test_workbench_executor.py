@@ -192,5 +192,92 @@ class TestDryRunExecutor(unittest.TestCase):
         self.assertIn("BLOCKED", we.summarize_execution_result(blocked))
 
 
+class TestCommandPreviewIntegration(unittest.TestCase):
+    """PR #79: run_command dry-run previews go through the command resolver
+    (backend/workbench_commands.py) IN ADDITION to the trust boundary — both must
+    pass. Real execution stays fail-closed regardless (REAL_EXEC_KINDS unchanged)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.policy = wt.default_policy(self.root)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _dry(self, action_id):
+        return we.dry_run_action(action_id, project_root=self.root, policy=self.policy)
+
+    def test_allowlisted_command_preview_has_resolved_argv(self):
+        _t, _ap, act = _setup(self.root, kind="run_command", target="git status --short")
+        r = self._dry(act.id)
+        self.assertTrue(r.would_execute)
+        self.assertFalse(r.blocked)
+        self.assertFalse(r.executed)
+        self.assertEqual(r.command_label, "git status --short")
+        self.assertEqual(r.command_argv, ["git", "status", "--short"])
+        self.assertGreater(r.command_timeout_seconds, 0)
+        self.assertGreater(r.command_output_limit_bytes, 0)
+        self.assertEqual(r.command_cwd, str(self.root))
+        self.assertFalse(r.command_shell)
+
+    def test_vibe_label_resolves_to_module_invocation(self):
+        _t, _ap, act = _setup(self.root, kind="run_command", target="vibe lint --redaction")
+        r = self._dry(act.id)
+        self.assertTrue(r.would_execute)
+        self.assertEqual(r.command_argv[1:4], ["-m", "backend.cli", "lint"])
+
+    def test_trust_allowed_but_resolver_unknown_blocks(self):
+        # "git diff --stat" is trust-allowlisted but NOT on the (smaller) resolver
+        # allowlist in this PR -> both gates must pass, so this stays blocked.
+        _t, _ap, act = _setup(self.root, kind="run_command", target="git diff --stat")
+        r = self._dry(act.id)
+        self.assertTrue(r.blocked)
+        self.assertFalse(r.would_execute)
+
+    def test_resolver_known_but_trust_blocked_blocks(self):
+        # a command resolvable by the resolver but not trust-allowlisted (hypothetical
+        # mismatch) must still block -- simulated by removing it from trust's policy.
+        policy = wt.TrustPolicy(project_root=str(self.root), allowed_read_roots=[str(self.root)],
+                                allowed_write_roots=[str(self.root)], allowed_commands=())
+        _t, _ap, act = _setup(self.root, kind="run_command", target="git status --short")
+        r = we.dry_run_action(act.id, project_root=self.root, policy=policy)
+        self.assertTrue(r.blocked)
+        self.assertFalse(r.would_execute)
+
+    def test_non_allowlisted_command_preview_has_no_argv(self):
+        _t, _ap, act = _setup(self.root, kind="run_command", target="pip install evil")
+        r = self._dry(act.id)
+        self.assertTrue(r.blocked)
+        self.assertEqual(r.command_argv, [])
+
+    def test_real_run_command_still_fails_closed_when_resolvable(self):
+        _t, _ap, act = _setup(self.root, kind="run_command", target="git status --short")
+        with self.assertRaises(we.ExecutorError):
+            we.execute_action(act.id, project_root=self.root, policy=self.policy, dry_run=False)
+
+    def test_dry_run_never_calls_subprocess_run(self):
+        import subprocess
+
+        def _boom(*a, **k):
+            raise AssertionError("subprocess.run must not be called by a dry-run preview")
+
+        orig = subprocess.run
+        subprocess.run = _boom
+        try:
+            _t, _ap, act = _setup(self.root, kind="run_command", target="git status --short")
+            r = self._dry(act.id)
+            self.assertTrue(r.would_execute)
+        finally:
+            subprocess.run = orig
+
+    def test_file_action_dry_run_unaffected_by_command_fields(self):
+        _t, _ap, act = _setup(self.root, kind="write_file", target="docs/x.md")
+        r = self._dry(act.id)
+        self.assertTrue(r.would_execute)
+        self.assertEqual(r.command_label, "")
+        self.assertEqual(r.command_argv, [])
+
+
 if __name__ == "__main__":
     unittest.main()
