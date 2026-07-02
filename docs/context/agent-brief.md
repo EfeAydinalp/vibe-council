@@ -56,8 +56,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   consent — and **executes nothing**. The **advisory** Approval Auditor
   (`backend/workbench_auditor.py`) wraps that guard into a panel-ready `AuditResult` (risk + findings
   + a short readable approval prompt); it copies risk/blocked/findings verbatim from the guard, so it
-  **can never relax** a blocked/high-risk decision (`model="deterministic"`, no LLM yet). Next: the
-  **local panel** (stages + approval inbox); execution stays behind the guard.
+  **can never relax** a blocked/high-risk decision (`model="deterministic"`, no LLM yet). A first
+  **localhost-only panel** (`backend/workbench_panel.py` + `vibe workbench serve`) renders task
+  progress + approval cards and records approve/reject/hold — **decisions only, no action execution,
+  no provider calls, no LAN/mobile** (binds 127.0.0.1, POSTs token-gated). Next: a **guarded
+  executor** (runs an approved action only if the deterministic guard allows), then LAN/mobile behind
+  auth, then voice.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
