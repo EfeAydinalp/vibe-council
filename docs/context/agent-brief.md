@@ -61,8 +61,11 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   progress + approval cards and records approve/reject/hold — **decisions only, no action execution,
   no provider calls, no LAN/mobile** (binds 127.0.0.1, POSTs token-gated). The panel starts empty and
   has a **"Create demo task"** button (`POST /api/tasks/demo`) that seeds a safe local approval
-  (runtime-only, executes nothing) for first-time dogfood. Next: a **guarded executor** (runs an
-  approved action only if the deterministic guard allows), then LAN/mobile behind auth, then voice.
+  (runtime-only, executes nothing) for first-time dogfood. The **guarded executor** is **planned in
+  docs only** ([plan](../plans/v0.5-guarded-executor.md)): execution stays **separate from approval**,
+  the deterministic guard is **re-run at execution time** (the advisory Auditor never authorizes), and
+  the first executor is **tiny + dry-run-first**. No execution exists yet. Next: PR #73 executor
+  skeleton (dry-run only), then bounded write/edit; LAN/mobile + voice remain deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
