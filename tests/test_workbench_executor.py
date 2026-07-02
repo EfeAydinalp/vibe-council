@@ -83,8 +83,10 @@ class TestDryRunExecutor(unittest.TestCase):
 
     # --- fail-closed --------------------------------------------------------- #
 
-    def test_real_execution_fails_closed(self):
-        _t, _ap, act = _setup(self.root)
+    def test_real_command_execution_fails_closed(self):
+        # bounded file execution exists (PR #74), but run_command real execution does
+        # not — dry_run=False for a command still fails closed.
+        _t, _ap, act = _setup(self.root, kind="run_command", target="git status --short")
         with self.assertRaises(we.ExecutorError):
             we.execute_action(act.id, project_root=self.root, policy=self.policy, dry_run=False)
 
