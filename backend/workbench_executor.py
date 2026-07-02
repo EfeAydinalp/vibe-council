@@ -13,6 +13,14 @@ Approval and execution stay separate; the panel does not auto-execute. By defaul
 executor mutates nothing (optional ``record=True`` writes only a non-final result
 summary to the runtime action; it never marks the action/task completed or runs
 anything).
+
+**Payload source (PR #76):** real execution needs `write_file`/`edit_file` content. A
+caller may still pass ``payload=`` explicitly (unchanged from PR #74, kept for tests/
+direct callers). If ``payload`` is omitted, the executor loads the matching
+:mod:`backend.workbench_payloads` artifact for the action, verifies its hash and its
+agreement with the live action/approval/task, and uses its stored payload. A payload
+hash check is **additional** to, never a replacement for, the deterministic trust
+re-check performed by ``validate_execution_invariant``.
 """
 
 from __future__ import annotations
@@ -26,9 +34,10 @@ from typing import Dict, List, Optional
 
 from . import workbench_runtime as wr
 from . import workbench_trust as wt
+from . import workbench_payloads as wp
 
 EXECUTOR = "workbench-executor"
-EXECUTOR_VERSION = 2
+EXECUTOR_VERSION = 3
 SUPPORTED_KINDS = ("write_file", "edit_file", "run_command")  # accepted by the invariant
 REAL_EXEC_KINDS = ("write_file", "edit_file")  # kinds that can ACTUALLY run (this PR)
 
@@ -226,7 +235,7 @@ def _fail(action, status: str, reason: str, result: ExecutionResult,
     return result
 
 
-def _real_execute(action_id: str, payload: Dict, project_root: Optional[Path],
+def _real_execute(action_id: str, payload: Optional[Dict], project_root: Optional[Path],
                   policy: Optional[wt.TrustPolicy]) -> ExecutionResult:
     action = wr.load_action(action_id, project_root)
     approval = (wr.load_approval(action.approval_id, project_root)
@@ -244,8 +253,24 @@ def _real_execute(action_id: str, payload: Dict, project_root: Optional[Path],
 
     kind = result.kind
     if kind not in REAL_EXEC_KINDS:
-        # e.g. run_command — accepted by the invariant but NOT executable in this PR
+        # e.g. run_command — accepted by the invariant but NOT executable in this PR.
+        # Checked before any payload lookup: non-file kinds never need/get a payload.
         raise ExecutorError(f"real execution not implemented for kind '{kind}'")
+
+    effective_payload = payload
+    if effective_payload is None:
+        # No explicit payload: load + verify the runtime payload artifact (PR #76).
+        # Hash + kind/target/approval/task agreement is an ADDITIONAL check on top of
+        # (never a replacement for) the trust re-check already run above.
+        artifact = wp.load_payload_artifact(action_id, project_root)
+        if artifact is None:
+            return _fail(action, "blocked", "no payload artifact found for action",
+                         result, project_root)
+        pv = wp.verify_payload_against_action(artifact, action, approval, task)
+        if not pv.ok:
+            return _fail(action, "blocked",
+                         f"payload verification failed: {pv.reason}", result, project_root)
+        effective_payload = artifact.payload
 
     target = action.command_or_path
     try:
@@ -256,8 +281,8 @@ def _real_execute(action_id: str, payload: Dict, project_root: Optional[Path],
 
     result.started_at = _now()
     if kind == "write_file":
-        return _do_write(action, safe, payload, result, project_root)
-    return _do_edit(action, safe, payload, result, project_root)
+        return _do_write(action, safe, effective_payload, result, project_root)
+    return _do_edit(action, safe, effective_payload, result, project_root)
 
 
 def _do_write(action, path: Path, payload: Dict, result: ExecutionResult,
@@ -354,10 +379,11 @@ def execute_action(action_id: str, project_root: Optional[Path] = None,
     performs **real, bounded** execution for ``write_file`` / ``edit_file`` only, behind
     the full invariant + a fresh deterministic trust re-check. Any other kind (e.g.
     ``run_command``) **fails closed** with an ExecutorError. ``payload`` carries the
-    content/patch explicitly (never overloaded into runtime strings)."""
+    content/patch explicitly (never overloaded into runtime strings); if omitted, the
+    matching :mod:`backend.workbench_payloads` artifact is loaded and verified instead."""
     if dry_run:
         return dry_run_action(action_id, project_root=project_root, policy=policy, record=record)
-    return _real_execute(action_id, payload or {}, project_root, policy)
+    return _real_execute(action_id, payload, project_root, policy)
 
 
 def summarize_execution_result(result: ExecutionResult) -> str:

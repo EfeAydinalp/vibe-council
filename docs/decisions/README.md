@@ -63,5 +63,6 @@ seed** for the linked decision-memory direction (see
 - [Guarded executor skeleton: dry-run only, invariant-validated](./2026-07-01-workbench-executor-dry-run.md) — accepted
 - [First real execution is bounded file write/edit only (commands deferred)](./2026-07-01-workbench-bounded-file-executor.md) — accepted
 - [Execution payload lives in a separate, hashed, gitignored runtime artifact](./2026-07-02-workbench-payload-bridge.md) — accepted
+- [Payload artifacts are verified by hash + scope before real file execution](./2026-07-02-workbench-payload-store.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

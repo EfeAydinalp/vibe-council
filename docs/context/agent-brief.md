@@ -71,14 +71,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   exists for **bounded `write_file`/`edit_file` only** (`execute_action(dry_run=False, payload=...)`):
   atomic, ≤100 KB / ≤200-line-delta, fs-level path/symlink guard, existing-file needs explicit
   overwrite, edit needs an exact match, logs carry no content. **`run_command` real execution is
-  still rejected** (fail-closed). The **execution payload bridge is now planned in docs only**
-  (PR #75): the `Action` model has no durable payload field, so a local, gitignored
-  `.council/runtime/payloads/<action_id>.json` artifact — hashed at/before approval, write-once,
-  re-checked at execution time — is designed to carry `write_file`/`edit_file` content/patch; **no
-  code/schema/executor/panel changes yet**. See
-  [payload bridge plan](../plans/v0.5-payload-bridge.md). Next: PR #76 implements that store + hash
-  re-check, then a panel execute button, then optional allowlisted-command execution; LAN/mobile +
-  voice remain deferred.
+  still rejected** (fail-closed). The **execution payload bridge is now implemented**
+  (`backend/workbench_payloads.py`, PR #76): a local, gitignored, write-once, hashed
+  `.council/runtime/payloads/<action_id>.json` artifact carries `write_file`/`edit_file` content, and
+  the executor verifies its hash + kind/target/approval/task agreement before real execution —
+  **additional to**, never instead of, the fresh trust re-check. **No panel execute button, no
+  `run_command` execution.** See [payload store decision](../decisions/2026-07-02-workbench-payload-store.md).
+  Next: a panel execute button, then optional allowlisted-command execution; LAN/mobile + voice
+  remain deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
