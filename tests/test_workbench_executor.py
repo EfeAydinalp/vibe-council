@@ -83,12 +83,15 @@ class TestDryRunExecutor(unittest.TestCase):
 
     # --- fail-closed --------------------------------------------------------- #
 
-    def test_real_command_execution_fails_closed(self):
-        # bounded file execution exists (PR #74), but run_command real execution does
-        # not — dry_run=False for a command still fails closed.
-        _t, _ap, act = _setup(self.root, kind="run_command", target="git status --short")
-        with self.assertRaises(we.ExecutorError):
-            we.execute_action(act.id, project_root=self.root, policy=self.policy, dry_run=False)
+    def test_non_allowlisted_real_command_execution_blocks_not_raises(self):
+        # PR #80: real run_command execution exists for resolver-allowlisted commands
+        # only; a non-allowlisted command still fails closed (blocked, not raised —
+        # the invariant blocks it before the kind/REAL_EXEC_KINDS check is reached).
+        _t, _ap, act = _setup(self.root, kind="run_command", target="pip install evil")
+        r = we.execute_action(act.id, project_root=self.root, policy=self.policy,
+                              dry_run=False)
+        self.assertTrue(r.blocked)
+        self.assertFalse(r.executed)
 
     def test_execute_action_dry_run_delegates(self):
         _t, _ap, act = _setup(self.root)
@@ -251,10 +254,8 @@ class TestCommandPreviewIntegration(unittest.TestCase):
         self.assertTrue(r.blocked)
         self.assertEqual(r.command_argv, [])
 
-    def test_real_run_command_still_fails_closed_when_resolvable(self):
-        _t, _ap, act = _setup(self.root, kind="run_command", target="git status --short")
-        with self.assertRaises(we.ExecutorError):
-            we.execute_action(act.id, project_root=self.root, policy=self.policy, dry_run=False)
+    # NOTE: real execution for a resolvable, allowlisted run_command is now possible
+    # (PR #80) — see TestRealCommandExecutor below for that coverage.
 
     def test_dry_run_never_calls_subprocess_run(self):
         import subprocess

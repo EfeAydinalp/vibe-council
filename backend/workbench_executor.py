@@ -25,35 +25,49 @@ re-check performed by ``validate_execution_invariant``.
 **Command preview (PR #79):** for ``run_command`` dry-run previews, the executor also
 consults :mod:`backend.workbench_commands` — a label must resolve to a fixed,
 allowlisted argv **and** pass the deterministic trust boundary before a preview reports
-``would_execute=True``; either gate failing blocks it. This module still never imports
-``subprocess``, and ``REAL_EXEC_KINDS`` still excludes ``run_command`` — real command
-execution stays fail-closed (``ExecutorError``) exactly as before.
+``would_execute=True``; either gate failing blocks it.
+
+**Real command execution (PR #80):** ``run_command`` is now in ``REAL_EXEC_KINDS``.
+Real execution uses ``subprocess.run(argv, shell=False, ...)`` with the **exact fixed
+argv** the PR #79 resolver produced — never a shell, never a re-derived/parsed string —
+under a fixed project-root ``cwd``, a **sanitized, allowlist-built** environment (no
+inherited secrets/API keys), a timeout (kills + marks ``failed`` on expiry, no retry),
+and a bounded, redaction-checked output capture (a critical finding blocks the result
+rather than storing it). ``resolve_command_label``/the fresh trust re-check still gate
+every real run exactly as they gate the dry-run preview — nothing here relaxes either
+check. No panel/CLI wiring is added; this is executor-level only.
 """
 
 from __future__ import annotations
 
 import os
+import subprocess
 import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from . import redaction
 from . import workbench_runtime as wr
 from . import workbench_trust as wt
 from . import workbench_payloads as wp
 from . import workbench_commands as wc
 
 EXECUTOR = "workbench-executor"
-EXECUTOR_VERSION = 3
+EXECUTOR_VERSION = 4
 SUPPORTED_KINDS = ("write_file", "edit_file", "run_command")  # accepted by the invariant
-REAL_EXEC_KINDS = ("write_file", "edit_file")  # kinds that can ACTUALLY run (this PR)
+REAL_EXEC_KINDS = ("write_file", "edit_file", "run_command")  # kinds that can ACTUALLY run
 
 # Conservative bounded-execution limits.
 MAX_WRITE_BYTES = 100_000       # ~100 KB max file content written
 MAX_EDIT_BYTES = 100_000        # ~100 KB max file size to edit
 MAX_REPLACEMENTS_DEFAULT = 1    # edit_file replaces one occurrence by default
 MAX_LINES_CHANGED = 200         # max net line delta for an edit
+
+# cwd is always the project root (never derived from an action/approval/payload); this
+# is a belt-and-suspenders check that the resolved root itself isn't a denied dir.
+_DENIED_CWD_SEGMENTS = (".council", ".venv", ".git", "data", "node_modules")
 
 
 class ExecutorError(Exception):
@@ -86,6 +100,12 @@ class ExecutionResult:
     command_output_limit_bytes: int = 0
     command_cwd: str = ""
     command_shell: bool = False
+    # PR #80: populated only after a real run_command execution attempt.
+    exit_code: Optional[int] = None
+    stdout_summary: str = ""
+    stderr_summary: str = ""
+    timed_out: bool = False
+    output_truncated: bool = False
 
 
 def _now() -> str:
@@ -291,9 +311,17 @@ def _real_execute(action_id: str, payload: Optional[Dict], project_root: Optiona
 
     kind = result.kind
     if kind not in REAL_EXEC_KINDS:
-        # e.g. run_command — accepted by the invariant but NOT executable in this PR.
-        # Checked before any payload lookup: non-file kinds never need/get a payload.
+        # any kind SUPPORTED_KINDS accepts but REAL_EXEC_KINDS doesn't (none currently) —
+        # kept as the fail-closed default for any future kind added to SUPPORTED_KINDS
+        # without also being wired for real execution.
         raise ExecutorError(f"real execution not implemented for kind '{kind}'")
+
+    if kind == "run_command":
+        # run_command never needs/gets a file payload; the fixed argv came from the
+        # PR #79 resolver via `result` (already re-validated by validate_execution_invariant
+        # above, in this same call — not a stale/cached value).
+        result.started_at = _now()
+        return _do_run_command(action, result, project_root)
 
     effective_payload = payload
     if effective_payload is None:
@@ -321,6 +349,130 @@ def _real_execute(action_id: str, payload: Optional[Dict], project_root: Optiona
     if kind == "write_file":
         return _do_write(action, safe, effective_payload, result, project_root)
     return _do_edit(action, safe, effective_payload, result, project_root)
+
+
+def _cwd_is_safe(cwd: str) -> bool:
+    """cwd is always the project root, never derived from the action/approval/payload —
+    this is a belt-and-suspenders check that the resolved root itself doesn't land in a
+    denied directory (should never trip in normal deployment)."""
+    try:
+        parts = Path(cwd).resolve().parts
+    except OSError:
+        return False
+    return not any(seg in _DENIED_CWD_SEGMENTS for seg in parts)
+
+
+def _sanitized_env() -> Dict[str, str]:
+    """Minimal, explicit subprocess environment (allowlist, not blocklist): no
+    inherited secrets/API keys/provider credentials, no `.env` loading (there is no
+    shell to load it), no shell startup files (there is no shell). Only what real
+    commands on the resolver allowlist actually need:
+
+    - ``PATH`` — to resolve ``git``/the Python interpreter's supporting tools.
+    - ``PYTHONIOENCODING=utf-8`` — stable, encoding-safe subprocess output cross-platform.
+    - On Windows only: ``SystemRoot`` (and ``SystemDrive`` if set) — required for many
+      Windows API calls (including some the Python interpreter itself makes on
+      startup, e.g. socket/DNS initialization); neither is a secret."""
+    env: Dict[str, str] = {}
+    path_val = os.environ.get("PATH") or os.environ.get("Path")
+    if path_val:
+        env["PATH"] = path_val
+    env["PYTHONIOENCODING"] = "utf-8"
+    if os.name == "nt":
+        for key in ("SystemRoot", "SystemDrive"):
+            val = os.environ.get(key)
+            if val:
+                env[key] = val
+    return env
+
+
+def _bound_output(stdout: str, stderr: str, limit_bytes: int) -> tuple:
+    """Bound combined stdout+stderr to `limit_bytes` total (stdout gets priority; the
+    remaining budget, if any, goes to stderr). Returns (stdout, stderr, truncated)."""
+    out_b = (stdout or "").encode("utf-8", errors="replace")
+    err_b = (stderr or "").encode("utf-8", errors="replace")
+    if len(out_b) + len(err_b) <= limit_bytes:
+        return stdout or "", stderr or "", False
+    out_budget = min(len(out_b), limit_bytes)
+    err_budget = max(0, limit_bytes - out_budget)
+    out_capped = out_b[:out_budget].decode("utf-8", errors="ignore")
+    err_capped = err_b[:err_budget].decode("utf-8", errors="ignore")
+    if len(out_b) > out_budget:
+        out_capped += "\n…(truncated)"
+    if len(err_b) > err_budget:
+        err_capped += "\n…(truncated)"
+    return out_capped, err_capped, True
+
+
+def _do_run_command(action, result: ExecutionResult,
+                    project_root: Optional[Path]) -> ExecutionResult:
+    """Real execution for an already-validated ``run_command`` action: fixed argv from
+    the PR #79 resolver, ``shell=False``, sanitized env, project-root cwd, a timeout
+    (kill + mark ``failed`` on expiry, no retry), and bounded/redaction-checked output
+    capture. Never parses a string into argv; never widens what the resolver/trust
+    boundary already decided in ``validate_execution_invariant``."""
+    argv = list(result.command_argv)
+    cwd = result.command_cwd
+    timeout = result.command_timeout_seconds
+    cap = result.command_output_limit_bytes
+
+    if not _cwd_is_safe(cwd):
+        return _fail(action, "blocked", "cwd resolves to a denied directory", result,
+                     project_root)
+
+    try:
+        proc = subprocess.run(argv, shell=False, cwd=cwd, env=_sanitized_env(),
+                              timeout=timeout, capture_output=True, text=True)
+    except subprocess.TimeoutExpired:
+        action.status = "failed"
+        action.result_summary = f"command timed out after {timeout}s: {result.command_label}"[:2000]
+        wr.save_action(action, project_root)
+        result.executed = False
+        result.blocked = False
+        result.timed_out = True
+        result.reason = f"timed out after {timeout}s (no retry)"
+        result.preview = f"[execute] TIMEOUT after {timeout}s: {result.command_label} (no retry)."
+        result.completed_at = _now()
+        return result
+    except OSError as e:
+        return _fail(action, "failed", f"command error: {type(e).__name__}", result,
+                     project_root)
+
+    stdout_capped, stderr_capped, truncated = _bound_output(proc.stdout, proc.stderr, cap)
+    findings = redaction.scan_text(stdout_capped + "\n" + stderr_capped,
+                                   path="<command-output>")
+    critical = [f for f in findings if f.severity == redaction.CRITICAL]
+    if critical:
+        reason = (f"command output blocked by redaction guard "
+                  f"({len(critical)} critical finding(s)); output not stored")
+        action.status = "blocked"
+        action.result_summary = reason[:2000]
+        wr.save_action(action, project_root)
+        result.executed = False
+        result.blocked = True
+        result.reason = reason
+        result.preview = f"[execute] BLOCKED: {reason}"
+        result.completed_at = _now()
+        return result
+
+    exit_code = proc.returncode
+    result.exit_code = exit_code
+    result.stdout_summary = stdout_capped
+    result.stderr_summary = stderr_capped
+    result.output_truncated = truncated
+    action.completed_at = _now()
+    result.completed_at = action.completed_at
+    summary = (f"ran `{result.command_label}` exit={exit_code}"
+              + (" (output truncated)" if truncated else ""))
+    action.result_summary = summary[:2000]
+    action.status = "completed" if exit_code == 0 else "failed"
+    wr.save_action(action, project_root)
+    result.executed = True
+    result.blocked = False
+    result.reason = ("run_command executed" if exit_code == 0
+                     else f"command exited {exit_code}")
+    result.preview = f"[execute] {summary}"
+    return result
 
 
 def _do_write(action, path: Path, payload: Dict, result: ExecutionResult,
@@ -414,11 +566,14 @@ def execute_action(action_id: str, project_root: Optional[Path] = None,
     """Single entry point.
 
     ``dry_run=True`` (default) returns a preview and executes nothing. ``dry_run=False``
-    performs **real, bounded** execution for ``write_file`` / ``edit_file`` only, behind
-    the full invariant + a fresh deterministic trust re-check. Any other kind (e.g.
-    ``run_command``) **fails closed** with an ExecutorError. ``payload`` carries the
-    content/patch explicitly (never overloaded into runtime strings); if omitted, the
-    matching :mod:`backend.workbench_payloads` artifact is loaded and verified instead."""
+    performs **real, bounded** execution behind the full invariant + a fresh
+    deterministic trust re-check: ``write_file``/``edit_file`` (PR #74) write/edit a
+    file; ``run_command`` (PR #80) runs the PR #79 resolver's fixed, allowlisted argv
+    via ``subprocess.run(shell=False)`` under a sanitized environment and a timeout.
+    Any other kind **fails closed** with an ExecutorError. ``payload`` carries file
+    content/patch explicitly (never overloaded into runtime strings; unused for
+    ``run_command``); if omitted, the matching :mod:`backend.workbench_payloads`
+    artifact is loaded and verified instead."""
     if dry_run:
         return dry_run_action(action_id, project_root=project_root, policy=policy, record=record)
     return _real_execute(action_id, payload, project_root, policy)

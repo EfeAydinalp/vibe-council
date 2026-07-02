@@ -130,8 +130,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   the trust boundary and this resolver to pass before `would_execute=True`. Real execution still
   absent — `run_command` still fails closed. See
   [`command preview`](../../decisions/2026-07-02-workbench-command-preview.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: PR #80 real allowlisted execution, then PR #81
-  panel display. Execution stays separate from approval; mobile/voice deferred.
+- **PR #80 — real allowlisted command execution landed.** `run_command` joined
+  `REAL_EXEC_KINDS`: `subprocess.run(shell=False)` with the PR #79 resolver's exact fixed argv,
+  allowlist-built sanitized environment (no inherited API keys/credentials), project-root cwd, a
+  timeout (fail-closed, no retry), and bounded/redaction-checked output capture. Every existing gate
+  (approval/linkage/scope/fresh trust re-check/resolver) still applies unchanged. No panel/CLI change.
+  See [`command executor`](../../decisions/2026-07-02-workbench-command-executor.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: PR #81 panel display for command results.
+  Execution stays separate from approval; mobile/voice deferred.
 
 ## Next actions
 

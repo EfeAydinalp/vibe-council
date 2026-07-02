@@ -166,10 +166,15 @@ class TestExecutorLoadsPayloadFromStore(unittest.TestCase):
         self.assertTrue(r.blocked)  # fresh deterministic guard still wins
         self.assertFalse((self.root / "secrets" / "app.key").exists())
 
-    def test_run_command_still_has_no_real_execution(self):
-        task, ap, act = _setup(self.root, kind="run_command", target="git status --short")
-        with self.assertRaises(we.ExecutorError):
-            self._exec(act.id)
+    def test_non_allowlisted_run_command_still_blocked(self):
+        # PR #80: real run_command execution exists for resolver-allowlisted commands
+        # (see test_workbench_command_executor.py); a non-allowlisted command still
+        # fails closed (blocked, no subprocess started) — payload verification is
+        # irrelevant to run_command anyway (no payload artifact involved).
+        task, ap, act = _setup(self.root, kind="run_command", target="pip install evil")
+        r = self._exec(act.id)
+        self.assertTrue(r.blocked)
+        self.assertFalse(r.executed)
 
     def test_explicit_payload_path_still_works_and_ignores_store(self):
         # Backward-compatible PR #74 path: explicit payload bypasses the store entirely,

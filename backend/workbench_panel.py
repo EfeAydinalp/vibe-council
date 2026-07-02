@@ -14,9 +14,11 @@ id — it never sends file content or patch text. The executor
 (`backend/workbench_executor.py`) loads and verifies the local payload artifact
 (`backend/workbench_payloads.py`), re-runs the deterministic trust boundary, and only
 then performs bounded real execution; any mismatch/missing artifact/blocked kind fails
-closed. `run_command` execution is not wired here and stays rejected by the executor.
-The panel binds to `127.0.0.1` only (no `0.0.0.0`/LAN/mobile), and POSTs require a
-startup token.
+closed. The panel offers **no UI/affordance for `run_command`** — the `executable` flag
+in `build_state()` requires a verified payload artifact, and `run_command` actions never
+have one (payloads are file-only, PR #76), regardless of PR #80 adding real allowlisted
+command execution at the executor level. The panel binds to `127.0.0.1` only (no
+`0.0.0.0`/LAN/mobile), and POSTs require a startup token.
 
 Pure functions (`build_state`, `handle_decision`, `handle_execute`, `render_html`) hold
 the logic and are tested directly; the HTTP handler is a thin router over them.
@@ -315,7 +317,7 @@ def render_html(state: Dict, token: str = "") -> str:
  <b>Execute</b> click below and a confirmation prompt.</div>
 <div class="muted">Workflow: task &rarr; approval card &rarr; approve/reject/hold &rarr; (if a bounded
  file action with a verified payload exists) explicit Execute.</div>
-<div class="muted">`run_command` execution is not offered by this panel and stays rejected by the executor.</div>
+<div class="muted">This panel offers no `run_command` UI — only bounded file actions with a verified payload can be executed here.</div>
 <div class="controls"><button onclick="createDemo()">Create demo task</button>
  <span class="muted">Seeds a safe local approval (runtime-only; executes nothing).</span></div>
 <h2>Tasks</h2>{tasks_html}
