@@ -107,8 +107,11 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   manually seeded temp-project fixture), and smoke/security/release-blocker checklists before a
   v0.5.0 tag. It also flags that the context pack is nearing its budget (PR #81 needed one more
   fallback step than earlier PRs to stay 21/21) — keep future decision records concise. See
-  [release readiness decision](../decisions/2026-07-02-v0.5-release-readiness.md). v0.5 is not yet
-  tagged. LAN/mobile + voice remain deferred.
+  [release readiness decision](../decisions/2026-07-02-v0.5-release-readiness.md). **PR #83** prepares
+  `docs/releases/v0.5.0.md` ahead of tagging (mirroring the v0.3.1/v0.4.0 pattern) — **no version bump,
+  no `CHANGELOG.md` dated section, no git tag, no GitHub Release** in that PR; the repo still reports
+  `0.4.0` until real-repo dogfood clears PR #82's checklist and a maintainer runs
+  `docs/release-checklist.md`. v0.5 is not yet tagged. LAN/mobile + voice remain deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
