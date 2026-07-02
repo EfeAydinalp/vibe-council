@@ -1,18 +1,25 @@
 """AI Council Workbench — local panel (v0.5, stdlib-only).
 
 The first user-visible Workbench slice: a **localhost-only** HTML panel that renders
-task progress and pending approval cards from `.council/runtime/`, and lets a human
-**approve / reject / hold** an approval. Built on `http.server` + `json` + stdlib —
-no framework, no npm, no external assets/CDN, no network egress.
+task progress and pending approval cards from `.council/runtime/`, lets a human
+**approve / reject / hold** an approval, and — for an already-approved, bounded
+`write_file`/`edit_file` action with a verified local payload artifact — lets them
+explicitly **execute** it via the guarded executor (PR #77). Built on `http.server` +
+`json` + stdlib — no framework, no npm, no external assets/CDN, no network egress.
 
-**Non-executing.** Approving here records an `ApprovalDecision` and advances the task
-lifecycle via the orchestrator; it **never** runs a command, edits a file, touches
-git, promotes a decision, or calls a provider/model. Execution stays behind the
-deterministic trust boundary in a later executor PR. The panel binds to `127.0.0.1`
-only (no `0.0.0.0`/LAN/mobile), and POSTs require a startup token.
+**Approval and execution stay separate.** Approving here only records an
+`ApprovalDecision`; it never executes anything. Execution is a **distinct, explicit**
+POST (`/api/actions/<action_id>/execute`) that the browser can only trigger by action
+id — it never sends file content or patch text. The executor
+(`backend/workbench_executor.py`) loads and verifies the local payload artifact
+(`backend/workbench_payloads.py`), re-runs the deterministic trust boundary, and only
+then performs bounded real execution; any mismatch/missing artifact/blocked kind fails
+closed. `run_command` execution is not wired here and stays rejected by the executor.
+The panel binds to `127.0.0.1` only (no `0.0.0.0`/LAN/mobile), and POSTs require a
+startup token.
 
-Pure functions (`build_state`, `handle_decision`, `render_html`) hold the logic and
-are tested directly; the HTTP handler is a thin router over them.
+Pure functions (`build_state`, `handle_decision`, `handle_execute`, `render_html`) hold
+the logic and are tested directly; the HTTP handler is a thin router over them.
 """
 
 from __future__ import annotations
@@ -21,12 +28,14 @@ import json
 import secrets
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlsplit, parse_qs
 
 from . import workbench_runtime as wr
 from . import workbench_orchestrator as wo
 from . import workbench_auditor as wa
+from . import workbench_executor as we
+from . import workbench_payloads as wpay
 
 _LOCAL_HOSTS = ("127.0.0.1", "localhost", "::1")
 DECISIONS = ("approve", "reject", "hold")
@@ -53,10 +62,56 @@ def _task_view(task, project_root: Optional[Path]) -> Dict:
     }
 
 
+def _action_view(action, project_root: Optional[Path]) -> Dict:
+    """Read-only, content-free view of one runtime ``Action`` for the panel: status,
+    payload verification, a fresh (dry-run) risk/trust preview for still-pending
+    actions, and whether the panel may offer to execute it. Never includes raw
+    ``content``/``old_text``/``new_text`` — only the payload artifact's redacted
+    summary (byte counts / flags / kind), matching the executor's own log style."""
+    approval = (wr.load_approval(action.approval_id, project_root)
+                if action.approval_id else None)
+    task = wr.load_task(action.task_id, project_root)
+
+    artifact = wpay.load_payload_artifact(action.id, project_root)
+    payload_verified = False
+    payload_summary: Optional[Dict] = None
+    if artifact is not None:
+        payload_summary = artifact.redacted_summary
+        payload_verified = wpay.verify_payload_against_action(
+            artifact, action, approval, task).ok
+
+    risk_level, findings, would_execute = "blocked", [], False
+    if action.status == "pending":
+        # Dry-run only — re-runs the deterministic trust boundary, mutates nothing.
+        preview = we.preview_action(action, approval, task, project_root)
+        risk_level, findings, would_execute = (
+            preview.risk_level, preview.findings, preview.would_execute)
+
+    executable = (
+        action.status == "pending"
+        and action.kind in we.REAL_EXEC_KINDS
+        and artifact is not None
+        and payload_verified
+        and would_execute
+    )
+    return {
+        "id": action.id, "task_id": action.task_id, "approval_id": action.approval_id,
+        "kind": action.kind, "target": action.command_or_path, "status": action.status,
+        "result_summary": action.result_summary,
+        "payload_exists": artifact is not None,
+        "payload_verified": payload_verified,
+        "payload_summary": payload_summary,
+        "risk_level": risk_level, "findings": findings,
+        "executable": executable,
+    }
+
+
 def build_state(project_root: Optional[Path] = None) -> Dict:
     """Read-only snapshot for the panel. Advisory-audits each pending approval
-    (``save=False`` — no writes). Never mutates runtime state."""
-    tasks = [_task_view(t, project_root) for t in wr.list_tasks(project_root=project_root)]
+    (``save=False`` — no writes); action views are dry-run previews only. Never
+    mutates runtime state."""
+    all_tasks = wr.list_tasks(project_root=project_root)
+    tasks = [_task_view(t, project_root) for t in all_tasks]
     approvals = []
     for ap in wo.list_pending_approvals(project_root):
         audit = wa.audit_approval_request(ap.id, project_root=project_root, save=False)
@@ -66,13 +121,20 @@ def build_state(project_root: Optional[Path] = None) -> Dict:
             "rewritten_prompt": audit.rewritten_prompt, "findings": audit.findings,
             "requested_action": ap.requested_action or "", "scope": ap.scope,
         })
+    actions: List[Dict] = []
+    for t in all_tasks:
+        for aid in t.action_ids:
+            act = wr.load_action(aid, project_root)
+            if act is not None:
+                actions.append(_action_view(act, project_root))
     return {
         "product": "AI Council Workbench",
         "project": _project_name(project_root),
         "localhost_only": True,
-        "executes_actions": False,       # panel records decisions only
+        "executes_actions": True,        # PR #77: explicit execute is now possible
         "tasks": tasks,
         "pending_approvals": approvals,
+        "actions": actions,
     }
 
 
@@ -97,9 +159,41 @@ def handle_decision(approval_id: str, decision: str,
                  "executed": False, "state": build_state(project_root)}
 
 
+def handle_execute(action_id: str, project_root: Optional[Path] = None) -> Tuple[int, Dict]:
+    """Execute an already-approved, bounded ``write_file``/``edit_file`` action via the
+    guarded executor. The caller supplies **only** the action id — never file content
+    or patch text; the executor loads and verifies the local payload artifact itself
+    (``backend/workbench_payloads.py``) and re-runs the deterministic trust boundary
+    before any real write/edit. Fails closed (``blocked``/error, no mutation) on a
+    missing action, an unsupported kind (e.g. ``run_command``), an unapproved/
+    rejected/held approval, a non-pending action, or a missing/tampered/mismatched
+    payload artifact — all handled by the executor's existing invariant, not
+    re-implemented here. Returns (http_status, body); body carries no raw content."""
+    action = wr.load_action(action_id, project_root)
+    if action is None:
+        return 404, {"error": "action not found", "action_id": action_id}
+    try:
+        result = we.execute_action(action_id, project_root=project_root, dry_run=False)
+    except we.ExecutorError as e:
+        return 400, {"error": str(e), "action_id": action_id, "executed": False}
+    return 200, {
+        "executed": result.executed, "dry_run": result.dry_run, "allowed": result.allowed,
+        "blocked": result.blocked, "action_id": result.action_id, "kind": result.kind,
+        "risk_level": result.risk_level, "findings": result.findings,
+        "preview": result.preview, "reason": result.reason,
+    }
+
+
 def create_demo_task(project_root: Optional[Path] = None) -> Dict:
     """Create a local demo task + pending approval for dogfooding the panel. Local
-    only, no external effects, no execution."""
+    only, no external effects, no execution.
+
+    Deliberately creates **no Action and no payload artifact** (PR #77): the panel's
+    ``project_root`` is normally the user's real project, and there is no path that is
+    both a real, writable target the trust boundary would allow *and* guaranteed
+    harmless to write to by reflex-clicking a demo button. The full approve-then-
+    execute path is proven by temp-dir tests instead (``tests/test_workbench_panel.py``,
+    ``TestExecuteAction``), not by this live demo."""
     task = wo.start_task("Demo: safe repo change", summary="a demo task for the panel",
                          source="panel-demo", project_root=project_root)
     wo.add_planning_stage(task.id, message="drafting the change", worker="claude",
@@ -169,6 +263,34 @@ def render_html(state: Dict, token: str = "") -> str:
     if not state["pending_approvals"]:
         appr_html = "<div class='muted'>No pending approvals.</div>"
 
+    actions_html = ""
+    for act in state.get("actions", []):
+        findings = "".join(f"<li>{_esc(f)}</li>" for f in act["findings"]) or "<li>none</li>"
+        payload_label = ("verified" if act["payload_verified"]
+                          else ("present but NOT verified" if act["payload_exists"]
+                                else "no payload artifact"))
+        summary = act.get("payload_summary") or {}
+        summary_html = (f"<div class='muted'>payload: {_esc(json.dumps(summary))}</div>"
+                         if summary else "")
+        result_html = (f"<div class='muted'>result: {_esc(act['result_summary'])}</div>"
+                        if act["result_summary"] else "")
+        btn_html = (
+            f"<button onclick=\"execAction('{_esc(act['id'])}')\">"
+            "Execute approved file action</button>"
+            if act["executable"] else "")
+        actions_html += (
+            f"<div class='card action'>"
+            f"<div class='row'><b>{_esc(act['kind'])}: {_esc(act['target'])}</b>"
+            f"<span class='pill risk-{_esc(act['risk_level'])}'>"
+            f"status: {_esc(act['status'])}</span></div>"
+            f"<div class='muted'>payload: {payload_label} &middot; "
+            f"executable: {_esc(act['executable'])}</div>"
+            f"{summary_html}{result_html}"
+            f"<ul class='findings'>{findings}</ul>"
+            f"<div class='btns'>{btn_html}</div></div>")
+    if not state.get("actions"):
+        actions_html = "<div class='muted'>No actions yet.</div>"
+
     return f"""<!doctype html>
 <html><head><meta charset="utf-8"><title>AI Council Workbench</title>
 <style>
@@ -177,6 +299,7 @@ def render_html(state: Dict, token: str = "") -> str:
  .banner{{background:#fff7e6;border:1px solid #ffd591;padding:.5rem .75rem;border-radius:6px;margin:.5rem 0}}
  .card{{border:1px solid #ddd;border-radius:8px;padding:.75rem;margin:.5rem 0}}
  .appr{{border-color:#91caff}} .appr.blocked{{border-color:#ff7875;background:#fff1f0}}
+ .action{{border-color:#b7eb8f}}
  .row{{display:flex;justify-content:space-between;align-items:center}}
  .pill{{font-size:.75rem;padding:.1rem .5rem;border-radius:999px;background:#eee}}
  .risk-low{{background:#f6ffed}} .risk-medium{{background:#fff7e6}} .risk-high{{background:#fff1f0}} .risk-blocked{{background:#ffccc7}}
@@ -187,13 +310,17 @@ def render_html(state: Dict, token: str = "") -> str:
 </style></head><body>
 <h1>AI Council Workbench</h1>
 <div class="muted">Local-only Workbench panel &middot; project: {_esc(state['project'])} &middot; 127.0.0.1</div>
-<div class="banner">This panel <b>records approval decisions only. It does not execute actions.</b></div>
-<div class="muted">Current workflow: task &rarr; approval card &rarr; approve/reject/hold decision.</div>
-<div class="muted">Future workflow: task &rarr; review &rarr; approval &rarr; <i>guarded</i> execution.</div>
+<div class="banner">Approving <b>only records a decision — it never executes anything.</b>
+ Execution of an approved, bounded file action requires a separate, explicit
+ <b>Execute</b> click below and a confirmation prompt.</div>
+<div class="muted">Workflow: task &rarr; approval card &rarr; approve/reject/hold &rarr; (if a bounded
+ file action with a verified payload exists) explicit Execute.</div>
+<div class="muted">`run_command` execution is not offered by this panel and stays rejected by the executor.</div>
 <div class="controls"><button onclick="createDemo()">Create demo task</button>
  <span class="muted">Seeds a safe local approval (runtime-only; executes nothing).</span></div>
 <h2>Tasks</h2>{tasks_html}
 <h2>Pending approvals</h2>{appr_html}
+<h2>Actions</h2>{actions_html}
 <script>
  const TOKEN={json.dumps(token)};
  async function decide(id, decision){{
@@ -206,6 +333,15 @@ def render_html(state: Dict, token: str = "") -> str:
    const r=await fetch('/api/tasks/demo',{{method:'POST',
      headers:{{'X-Workbench-Token':TOKEN}}}});
    if(!r.ok){{alert('demo failed: '+r.status);return;}}
+   location.reload();
+ }}
+ async function execAction(id){{
+   if(!confirm('This will apply an approved bounded file change. Continue?'))return;
+   const r=await fetch(`/api/actions/${{id}}/execute`,{{method:'POST',
+     headers:{{'X-Workbench-Token':TOKEN}}}});
+   const body=await r.json();
+   if(!r.ok){{alert('execute failed: '+(body.error||r.status));return;}}
+   if(body.blocked){{alert('blocked: '+(body.reason||'blocked by guard'));}}
    location.reload();
  }}
 </script>
@@ -262,6 +398,10 @@ class _Handler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "approvals":
             code, body = handle_decision(parts[2], parts[3], self._root())
             self._json(code, body)
+        elif (len(parts) == 4 and parts[0] == "api" and parts[1] == "actions"
+              and parts[3] == "execute"):
+            code, body = handle_execute(parts[2], self._root())
+            self._json(code, body)
         elif path == "/api/tasks/demo":
             self._json(200, create_demo_task(self._root()))
         else:
@@ -283,15 +423,18 @@ def make_server(project_root: Optional[Path] = None, host: str = "127.0.0.1",
 def serve(project_root: Optional[Path] = None, port: int = 8765,
           use_token: bool = True) -> int:
     """Blocking CLI entry point: bind localhost, print the URL (+ token), serve until
-    Ctrl-C. Non-executing; localhost-only."""
+    Ctrl-C. Localhost-only; approve/reject/hold never execute; execution of an
+    approved, bounded write_file/edit_file action with a verified payload artifact
+    requires a separate, explicit Execute click (PR #77)."""
     token = secrets.token_urlsafe(16) if use_token else ""
     httpd = make_server(project_root, host="127.0.0.1", port=port, token=token)
     host, bound = httpd.server_address[0], httpd.server_address[1]
     url = f"http://{host}:{bound}/"
     print(url + (f"?token={token}" if token else ""))
-    print(f"[workbench] localhost-only panel; decisions only, NO action execution.")
+    print(f"[workbench] localhost-only panel; approving never executes. Executing an "
+          f"approved bounded file action requires an explicit Execute click.")
     print(f"[workbench] the panel starts empty; use the 'Create demo task' button to seed a "
-          f"safe local approval.")
+          f"safe local approval (demo does not create an executable action).")
     if token:
         print(f"[workbench] POST token: {token}")
     try:
