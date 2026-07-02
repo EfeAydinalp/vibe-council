@@ -108,7 +108,10 @@ def create_demo_task(project_root: Optional[Path] = None) -> Dict:
                              prompt="Apply a small doc edit.",
                              requested_action="write_file:docs/example.md",
                              risk_level="medium", project_root=project_root)
-    return {"ok": True, "task_id": task.id, "approval_id": ap.id}
+    # save one advisory audit result (deterministic; no execution, no provider call)
+    audit = wa.audit_approval_request(ap.id, project_root=project_root, save=True)
+    return {"ok": True, "task_id": task.id, "approval_id": ap.id, "audit_id": audit.id,
+            "executed": False}
 
 
 # --------------------------------------------------------------------------- #
@@ -133,19 +136,31 @@ def render_html(state: Dict, token: str = "") -> str:
             f"<div class='muted'>next: {_esc(t['next_action'] or '-')}</div>"
             "</div>")
     if not state["tasks"]:
-        tasks_html = "<div class='muted'>No tasks. Use the runtime/orchestrator to create one.</div>"
+        tasks_html = (
+            "<div class='empty'>"
+            "<b>No tasks yet.</b><br>"
+            "Create a safe demo approval to test the Workbench loop - "
+            "the demo creates <b>local runtime state only</b> and <b>executes nothing</b>."
+            "<div class='btns'><button onclick=\"createDemo()\">Create demo task</button></div>"
+            "</div>")
 
     appr_html = ""
     for a in state["pending_approvals"]:
         findings = "".join(f"<li>{_esc(f)}</li>" for f in a["findings"]) or "<li>none</li>"
         blocked = " blocked" if a["blocked"] else ""
+        block_label = "BLOCKED by trust boundary" if a["blocked"] else "not blocked"
+        scope = a.get("scope")
+        scope_html = (f"<div class='muted'>scope: {_esc(json.dumps(scope))}</div>"
+                      if scope else "")
         appr_html += (
             f"<div class='card appr{blocked}'>"
             f"<div class='row'><b>{_esc(a['title'] or a['id'])}</b>"
-            f"<span class='pill risk-{_esc(a['risk_level'])}'>{_esc(a['risk_level'])}</span></div>"
+            f"<span class='pill risk-{_esc(a['risk_level'])}'>risk: {_esc(a['risk_level'])}</span></div>"
             f"<div class='prompt'>{_esc(a['rewritten_prompt'])}</div>"
-            f"<div class='muted'>action: {_esc(a['requested_action'] or '-')}</div>"
+            f"<div class='muted'>action: {_esc(a['requested_action'] or '-')} &middot; {block_label}</div>"
+            f"{scope_html}"
             f"<ul class='findings'>{findings}</ul>"
+            "<div class='muted'>No action will run from this panel (executed: false).</div>"
             f"<div class='btns'>"
             f"<button onclick=\"decide('{_esc(a['id'])}','approve')\">Approve</button>"
             f"<button onclick=\"decide('{_esc(a['id'])}','reject')\">Reject</button>"
@@ -167,10 +182,16 @@ def render_html(state: Dict, token: str = "") -> str:
  .risk-low{{background:#f6ffed}} .risk-medium{{background:#fff7e6}} .risk-high{{background:#fff1f0}} .risk-blocked{{background:#ffccc7}}
  .prompt{{margin:.4rem 0}} .findings{{margin:.2rem 0;padding-left:1.1rem;color:#555;font-size:.85rem}}
  .btns button{{margin-right:.4rem;padding:.3rem .7rem;cursor:pointer}}
+ .empty{{border:1px dashed #bbb;border-radius:8px;padding:.9rem;color:#444}}
+ .controls{{margin:.5rem 0}}
 </style></head><body>
 <h1>AI Council Workbench</h1>
-<div class="muted">project: {_esc(state['project'])} · localhost only</div>
-<div class="banner">Decisions are recorded only - <b>no action execution</b> happens here yet.</div>
+<div class="muted">Local-only Workbench panel &middot; project: {_esc(state['project'])} &middot; 127.0.0.1</div>
+<div class="banner">This panel <b>records approval decisions only. It does not execute actions.</b></div>
+<div class="muted">Current workflow: task &rarr; approval card &rarr; approve/reject/hold decision.</div>
+<div class="muted">Future workflow: task &rarr; review &rarr; approval &rarr; <i>guarded</i> execution.</div>
+<div class="controls"><button onclick="createDemo()">Create demo task</button>
+ <span class="muted">Seeds a safe local approval (runtime-only; executes nothing).</span></div>
 <h2>Tasks</h2>{tasks_html}
 <h2>Pending approvals</h2>{appr_html}
 <script>
@@ -179,6 +200,12 @@ def render_html(state: Dict, token: str = "") -> str:
    const r=await fetch(`/api/approvals/${{id}}/${{decision}}`,{{method:'POST',
      headers:{{'X-Workbench-Token':TOKEN}}}});
    if(!r.ok){{alert('decision failed: '+r.status);return;}}
+   location.reload();
+ }}
+ async function createDemo(){{
+   const r=await fetch('/api/tasks/demo',{{method:'POST',
+     headers:{{'X-Workbench-Token':TOKEN}}}});
+   if(!r.ok){{alert('demo failed: '+r.status);return;}}
    location.reload();
  }}
 </script>
@@ -263,6 +290,8 @@ def serve(project_root: Optional[Path] = None, port: int = 8765,
     url = f"http://{host}:{bound}/"
     print(url + (f"?token={token}" if token else ""))
     print(f"[workbench] localhost-only panel; decisions only, NO action execution.")
+    print(f"[workbench] the panel starts empty; use the 'Create demo task' button to seed a "
+          f"safe local approval.")
     if token:
         print(f"[workbench] POST token: {token}")
     try:

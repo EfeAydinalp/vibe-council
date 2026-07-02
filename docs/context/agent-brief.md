@@ -59,9 +59,10 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   **can never relax** a blocked/high-risk decision (`model="deterministic"`, no LLM yet). A first
   **localhost-only panel** (`backend/workbench_panel.py` + `vibe workbench serve`) renders task
   progress + approval cards and records approve/reject/hold — **decisions only, no action execution,
-  no provider calls, no LAN/mobile** (binds 127.0.0.1, POSTs token-gated). Next: a **guarded
-  executor** (runs an approved action only if the deterministic guard allows), then LAN/mobile behind
-  auth, then voice.
+  no provider calls, no LAN/mobile** (binds 127.0.0.1, POSTs token-gated). The panel starts empty and
+  has a **"Create demo task"** button (`POST /api/tasks/demo`) that seeds a safe local approval
+  (runtime-only, executes nothing) for first-time dogfood. Next: a **guarded executor** (runs an
+  approved action only if the deterministic guard allows), then LAN/mobile behind auth, then voice.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

@@ -742,7 +742,8 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
   store, a deterministic task orchestrator, the deterministic trust boundary, the advisory Approval
   Auditor, and a **localhost-only panel** (`vibe workbench serve`) that shows task progress + approval
   cards and records approve/reject/hold — **decisions only, no action execution yet** (curated
-  `docs/decisions/` stays long-term memory). See
+  `docs/decisions/` stays long-term memory). `vibe workbench serve` opens the localhost panel; it
+  starts empty — use the **"Create demo task"** button to seed a safe local approval. See
   [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md).
 - **v0.4 read-only MCP / Claude Code workflow** *(shipped in v0.4.0)* — query curated decisions,
   status, and the context pack from Claude Code / local agents with **no write/action authority**.
