@@ -107,11 +107,16 @@ Copy-Item .env.example .env
 - Get a key at [openrouter.ai](https://openrouter.ai/) and add credits.
 - **Never commit `.env`** — it is gitignored.
 
-You can now use the CLI directly:
+You can now use the CLI directly. If you installed with `uv sync`, run it through `uv run` so it
+uses the synced `.venv` (a bare `python -m backend.cli ...` will fail with `ModuleNotFoundError` if
+your shell's `python` isn't that `.venv`'s interpreter):
 
 ```powershell
-python -m backend.cli review --preset cheap --prompt "Review this tiny plan."
+uv run python -m backend.cli review --preset cheap --prompt "Review this tiny plan."
 ```
+
+If you installed with the manual `venv` + `pip install` path above and activated it in this shell,
+`python -m backend.cli ...` (no `uv run` prefix) works directly.
 
 ---
 
@@ -202,7 +207,8 @@ vibe models
 
 ### Using the CLI directly (no global command)
 
-Run any mode from the repo root with `python -m backend.cli`:
+Run any mode from the repo root with `python -m backend.cli` (prefix with `uv run` if you installed
+via `uv sync` and haven't activated `.venv` in this shell — see the Quick start note above):
 
 ```powershell
 python -m backend.cli extract --preset cheap --file plan.md --save
