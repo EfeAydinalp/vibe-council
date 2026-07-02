@@ -749,7 +749,9 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
   id. `vibe workbench serve` opens the localhost panel; it starts empty — use the **"Create demo
   task"** button to seed a safe local approval (the demo intentionally seeds no executable action; see
   [`docs/plans/v0.5-release-readiness.md`](docs/plans/v0.5-release-readiness.md) for the manual
-  dogfood recipe that does exercise real execution). See
+  dogfood recipe that does exercise real execution). Prepared (not yet tagged) release notes are in
+  [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md); the repo still reports `0.4.0` until the
+  readiness checklist is clean on a real repo and a maintainer cuts the tag. See
   [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md) and
   [`docs/plans/v0.5-guarded-executor.md`](docs/plans/v0.5-guarded-executor.md).
 - **v0.4 read-only MCP / Claude Code workflow** *(shipped in v0.4.0)* — query curated decisions,

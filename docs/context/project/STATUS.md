@@ -148,9 +148,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   temp-project fixture), and smoke/security/release-blocker checklists before a v0.5.0 tag. Flags
   rising context-pack budget pressure — future decision records should stay concise. See
   [`release readiness`](../../decisions/2026-07-02-v0.5-release-readiness.md).
-- **Current focus:** **v0.5 Workbench MVP** — the guarded executor track (PR #72–#81) is complete and
-  readiness-checked (PR #82); not yet tagged. Next: dogfood on a real small repo, fix rough edges,
-  then release notes. Execution stays separate from approval; mobile/voice deferred.
+- **PR #83 — v0.5.0 release notes prepared (not tagged).** `docs/releases/v0.5.0.md` written ahead of
+  tagging, following the same pattern as prior releases. **No version bump, no `CHANGELOG.md` dated
+  section, no git tag, no GitHub Release yet** — the repo still reports `0.4.0`; those steps follow
+  `docs/release-checklist.md` once the readiness checklist (PR #82) is clean on a real repo.
+- **Current focus:** **v0.5 Workbench MVP** — the guarded executor track (PR #72–#81) is complete,
+  readiness-checked (PR #82), and its release notes are drafted (PR #83); not yet tagged. Next:
+  dogfood on a real small repo, fix rough edges, then cut the actual v0.5.0 release. Execution stays
+  separate from approval; mobile/voice deferred.
 
 ## Next actions
 
