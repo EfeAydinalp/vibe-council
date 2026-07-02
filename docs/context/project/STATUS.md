@@ -118,8 +118,15 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   (token-gated, action id only — never content/patch) calls the executor, which loads/verifies the
   local payload artifact itself. Approve/reject/hold still never execute; `run_command` not offered.
   See [`panel execute`](../../decisions/2026-07-02-workbench-panel-execute.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: PR #78 (optional) allowlisted commands. Execution
-  stays separate from approval; mobile/voice deferred.
+- **PR #78 (docs-only) — allowlisted command execution planned.** No-shell, fixed-argv allowlist
+  model for narrow verification commands only; extends the existing invariant (not a duplicate);
+  conservative timeout/output/env/cwd defaults; explicit Windows/Linux-safe resolution.
+  **No execution/executor/panel/CLI change — `run_command` still fails closed.** See
+  [`command execution plan`](../../plans/v0.5-command-execution.md) and
+  [`decision`](../../decisions/2026-07-02-workbench-command-execution-plan.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: PR #79 allowlist/argv model (dry-run only), then
+  PR #80 real allowlisted execution, then PR #81 panel display. Execution stays separate from
+  approval; mobile/voice deferred.
 
 ## Next actions
 
