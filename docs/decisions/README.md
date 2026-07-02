@@ -58,5 +58,6 @@ seed** for the linked decision-memory direction (see
 - [Deterministic Workbench task lifecycle / state machine (no execution)](./2026-07-01-workbench-orchestrator-state-machine.md) — accepted
 - [Deterministic trust boundary is the Workbench's real security gate](./2026-07-01-workbench-trust-boundary.md) — accepted
 - [Approval Auditor is advisory (summarizes the deterministic guard)](./2026-07-01-workbench-approval-auditor.md) — accepted
+- [First Workbench panel is localhost-only and records decisions (no execution)](./2026-07-01-workbench-local-panel.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

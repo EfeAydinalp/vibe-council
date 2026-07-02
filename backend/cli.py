@@ -48,6 +48,7 @@ from . import context_pack
 from . import operator as operator_mod
 from . import mcp_contract
 from . import mcp_server
+from . import workbench_panel
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -1267,6 +1268,22 @@ def cmd_decisions_local(args) -> int:
     return EXIT_OK
 
 
+def cmd_workbench(args) -> int:
+    """`workbench serve`: start the localhost-only Workbench panel (v0.5).
+
+    Renders task progress + pending approval cards from `.council/runtime/` and lets a
+    human approve/reject/hold. **Records decisions only — no action execution, no
+    provider/model calls, no LAN/mobile.** Binds 127.0.0.1; POSTs require a token."""
+    action = getattr(args, "action", None)
+    if action != "serve":
+        _err("Usage: vibe workbench serve [--port N] [--no-token]")
+        return EXIT_USAGE
+    root = pw.caller_cwd()
+    port = getattr(args, "port", None)
+    return workbench_panel.serve(root, port=(port if port is not None else 8765),
+                                 use_token=not getattr(args, "no_token", False))
+
+
 def cmd_mcp(args) -> int:
     """`mcp contract` | `mcp inspect`: the read-only MCP surface (v0.4).
 
@@ -1750,6 +1767,16 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="serve: use the stdio transport (newline-delimited JSON-RPC).")
     sp_mcp.add_argument("--json", action="store_true", help="Print output as JSON.")
 
+    sp_wb = sub.add_parser(
+        "workbench",
+        help="Local Workbench panel (localhost-only; records decisions, no action execution).")
+    sp_wb.add_argument("action", choices=["serve"],
+                       help="serve: start the localhost-only progress/approval panel.")
+    sp_wb.add_argument("--port", type=int, default=8765,
+                       help="serve: localhost port (default 8765).")
+    sp_wb.add_argument("--no-token", action="store_true",
+                       help="serve: skip the POST token (localhost-only; default requires a token).")
+
     sp_last = sub.add_parser("last", parents=[p_proj], help="Print the latest saved artifact.")
     sp_last.add_argument("artifact_type", nargs="?", choices=["review", "decision", "diff", "run"])
 
@@ -1802,6 +1829,8 @@ def main(argv=None) -> int:
         return cmd_operator(args)
     if cmd == "mcp":
         return cmd_mcp(args)
+    if cmd == "workbench":
+        return cmd_workbench(args)
     if cmd == "last":
         return cmd_last(args)
     if cmd == "help":

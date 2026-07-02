@@ -738,9 +738,11 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
   approved actions run — everything logged. Reuses the v0.2–v0.4 infrastructure (MCP = read-only
   knowledge source; decisions/context = memory; `.council/` = local runtime). Near-term product name
   is **"AI Council Workbench"**; a broader **local-first AI project OS** is a **long-term / internal**
-  direction, not near-term external messaging. First step landed: a local, gitignored
-  `.council/runtime/` JSON store for the Workbench's live workflow state
-  (`backend/workbench_runtime.py`; curated `docs/decisions/` stays long-term memory). See
+  direction, not near-term external messaging. Landed so far: the gitignored `.council/runtime/` JSON
+  store, a deterministic task orchestrator, the deterministic trust boundary, the advisory Approval
+  Auditor, and a **localhost-only panel** (`vibe workbench serve`) that shows task progress + approval
+  cards and records approve/reject/hold — **decisions only, no action execution yet** (curated
+  `docs/decisions/` stays long-term memory). See
   [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md).
 - **v0.4 read-only MCP / Claude Code workflow** *(shipped in v0.4.0)* — query curated decisions,
   status, and the context pack from Claude Code / local agents with **no write/action authority**.
