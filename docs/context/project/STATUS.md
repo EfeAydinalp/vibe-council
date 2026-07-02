@@ -85,9 +85,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   (`POST /api/tasks/demo`, token-gated) that seeds a task + pending approval + saved advisory audit
   (local runtime only, executes nothing); clearer approval cards ("No action will run from this
   panel"). Still localhost-only and non-executing.
-- **Current focus:** **v0.5 Workbench MVP** — the see→decide loop is now user-visible end-to-end.
-  Next: a **guarded executor** (runs an approved action only if the deterministic guard allows), then
-  LAN/mobile behind token/QR auth, then voice. Mobile/voice/personalization still deferred.
+- **Guarded executor plan** (PR #72, docs-only): a design/safety plan gates the first execution layer
+  — execution **separate from approval**, deterministic guard **re-run at execution time** (advisory
+  Auditor never gates), first executor **tiny + dry-run-first**, with a stop-condition list. No
+  execution added. See [`guarded executor plan`](../../plans/v0.5-guarded-executor.md) and
+  [`decision`](../../decisions/2026-07-01-workbench-guarded-executor-plan.md).
+- **Current focus:** **v0.5 Workbench MVP** — the see→decide loop is user-visible end-to-end and
+  non-executing. Next: **PR #73 executor skeleton (dry-run only)** per the plan, then bounded
+  write/edit → allowlisted commands → panel execute button. Mobile/voice/personalization deferred.
 
 ## Next actions
 
