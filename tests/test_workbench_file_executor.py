@@ -200,11 +200,15 @@ class TestBoundedFileExecutor(unittest.TestCase):
 
     # --- invariant / fail-closed still hold --------------------------------- #
 
-    def test_run_command_real_execution_rejected(self):
-        act = _setup(self.root, kind="run_command", target="git status --short")
-        with self.assertRaises(we.ExecutorError):
-            we.execute_action(act.id, project_root=self.root, policy=self.policy,
+    def test_non_allowlisted_run_command_real_execution_blocked(self):
+        # PR #80: real run_command execution exists for resolver-allowlisted commands
+        # (see test_workbench_command_executor.py); a non-allowlisted command still
+        # fails closed (blocked, no subprocess started).
+        act = _setup(self.root, kind="run_command", target="pip install evil")
+        r = we.execute_action(act.id, project_root=self.root, policy=self.policy,
                               dry_run=False, payload={})
+        self.assertTrue(r.blocked)
+        self.assertFalse(r.executed)
 
     def test_unsupported_kind_dry_run_false_fails_closed(self):
         act = _setup(self.root, kind="cloud_call", target="api")

@@ -242,7 +242,11 @@ class TestExecuteAction(unittest.TestCase):
                                           target="git status --short")
         st = wp.build_state(self.root)
         a = next(x for x in st["actions"] if x["id"] == act.id)
-        self.assertFalse(a["executable"])  # kind not in REAL_EXEC_KINDS, even if allowlisted
+        # PR #80 put run_command in REAL_EXEC_KINDS, but the panel's `executable` flag
+        # also requires a verified payload artifact, and run_command actions never
+        # have one (payloads are file-only, PR #76) — so the panel offers no new
+        # execute affordance for commands, even though the executor could now run one.
+        self.assertFalse(a["executable"])
 
     def test_state_no_raw_content_exposed(self):
         _seed_action(self.root, target="docs/secretcontent.md",
@@ -329,11 +333,18 @@ class TestExecuteAction(unittest.TestCase):
         self.assertFalse((self.root / "docs" / "real.md").exists())
         self.assertFalse((self.root / "docs" / "other.md").exists())
 
-    def test_execute_run_command_fails_closed(self):
+    def test_execute_non_allowlisted_command_fails_closed(self):
+        # PR #80 added real run_command execution for resolver-allowlisted commands
+        # (see test_workbench_command_executor.py) — the panel gains no new UI/button
+        # for it (no payload artifact ever exists for run_command, so `executable`
+        # stays False; see test_state_action_not_executable_for_run_command), but the
+        # shared execute_action() invariant still fail-closes a non-allowlisted command
+        # even if called directly.
         _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
-                                          target="git status --short")
+                                          target="pip install evil")
         code, body = wp.handle_execute(act.id, self.root)
-        self.assertEqual(code, 400)
+        self.assertEqual(code, 200)
+        self.assertTrue(body["blocked"])
         self.assertFalse(body["executed"])
 
     # --- happy path ----------------------------------------------------------- #

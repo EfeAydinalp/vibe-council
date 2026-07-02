@@ -80,18 +80,21 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   execute** an approved bounded file action (`backend/workbench_panel.py`, PR #77): the browser sends
   only an action id to `POST /api/actions/<action_id>/execute` (token-gated) — never file content or
   patch text — and the executor loads/verifies the local payload artifact itself. Approving still
-  never executes; a browser `confirm()` adds friction only, not a security boundary. `run_command` is
-  not offered by the panel and stays rejected. See
+  never executes; a browser `confirm()` adds friction only, not a security boundary. See
   [panel execute decision](../decisions/2026-07-02-workbench-panel-execute.md). The **command
-  allowlist → fixed-argv resolver now exists** (`backend/workbench_commands.py`, PR #79): a label
-  (e.g. `"vibe lint --redaction"`) resolves only to a hardcoded, `sys.executable`-based argv — never
-  parsed from a string, never OS-launcher-dependent. `run_command` dry-run previews now require
-  **both** the deterministic trust boundary *and* this resolver to pass before `would_execute=True`.
-  **Real command execution still does not exist** — `REAL_EXEC_KINDS` excludes `run_command`, so
-  `execute_action(..., dry_run=False)` for a command still raises `ExecutorError`. See
-  [command preview decision](../decisions/2026-07-02-workbench-command-preview.md). Next: real
-  allowlisted execution behind the full invariant, then panel display; LAN/mobile + voice remain
-  deferred.
+  allowlist → fixed-argv resolver** (`backend/workbench_commands.py`, PR #79): a label (e.g.
+  `"vibe lint --redaction"`) resolves only to a hardcoded, `sys.executable`-based argv — never parsed
+  from a string, never OS-launcher-dependent. **Real `run_command` execution now exists** (PR #80):
+  `run_command` joined `REAL_EXEC_KINDS`; `subprocess.run(argv, shell=False, cwd=project_root,
+  env=sanitized_env, timeout=..., capture_output=True, text=True)` runs the resolver's exact fixed
+  argv, gated by the same approval/linkage/scope/fresh-trust-re-check/resolver invariant as every
+  other kind. Timeout fails closed with no retry; output is captured, byte-bounded, and
+  redaction-scanned before any storage (a critical finding blocks the result instead of storing it);
+  environment is allowlist-built (`PATH`/`PYTHONIOENCODING`, plus `SystemRoot`/`SystemDrive` on
+  Windows only) — no inherited API keys/credentials, no `.env`. **The panel still offers no UI for
+  it** — `executable` requires a payload artifact, and `run_command` actions never have one. See
+  [command executor decision](../decisions/2026-07-02-workbench-command-executor.md). Next: panel
+  display for command results; LAN/mobile + voice remain deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
