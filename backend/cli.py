@@ -1769,7 +1769,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_wb = sub.add_parser(
         "workbench",
-        help="Local Workbench panel (localhost-only; records decisions, no action execution).")
+        help="Local Workbench panel (localhost-only; records decisions, no action execution).",
+        epilog="serve: the panel starts empty; use the 'Create demo task' button in the UI to seed "
+               "a safe local approval (runtime-only, executes nothing).")
     sp_wb.add_argument("action", choices=["serve"],
                        help="serve: start the localhost-only progress/approval panel.")
     sp_wb.add_argument("--port", type=int, default=8765,

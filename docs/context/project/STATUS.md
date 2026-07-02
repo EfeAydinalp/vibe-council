@@ -81,6 +81,10 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   with approve/reject/hold. Binds `127.0.0.1`, POSTs token-gated, inline HTML (no external assets).
   **Decisions only — no action execution, no provider/model calls.** See
   [`local panel`](../../decisions/2026-07-01-workbench-local-panel.md).
+- **Panel dogfood polish** (PR #71): self-explanatory empty state + a **"Create demo task"** button
+  (`POST /api/tasks/demo`, token-gated) that seeds a task + pending approval + saved advisory audit
+  (local runtime only, executes nothing); clearer approval cards ("No action will run from this
+  panel"). Still localhost-only and non-executing.
 - **Current focus:** **v0.5 Workbench MVP** — the see→decide loop is now user-visible end-to-end.
   Next: a **guarded executor** (runs an approved action only if the deterministic guard allows), then
   LAN/mobile behind token/QR auth, then voice. Mobile/voice/personalization still deferred.

@@ -70,7 +70,7 @@ class TestPureState(unittest.TestCase):
         html = wp.render_html(wp.build_state(self.root), token="tok")
         self.assertIn("AI Council Workbench", html)
         self.assertIn("Pending approvals", html)
-        self.assertIn("no action execution", html.lower())
+        self.assertIn("does not execute actions", html.lower())
         self.assertNotIn("http://", html)
         self.assertNotIn("https://", html)
         self.assertNotIn("<script src", html)
@@ -112,6 +112,52 @@ class TestPureState(unittest.TestCase):
     def test_make_server_is_localhost_only(self):
         with self.assertRaises(ValueError):
             wp.make_server(self.root, host="0.0.0.0")
+
+    # --- dogfood usability polish (PR #71) ---------------------------------- #
+
+    def test_empty_state_offers_demo(self):
+        html = wp.render_html(wp.build_state(self.root), token="")
+        self.assertIn("No tasks yet.", html)
+        self.assertIn("Create demo task", html)
+        self.assertIn("executes nothing", html)
+        self.assertIn("createDemo()", html)
+
+    def test_html_has_self_explanatory_notices(self):
+        html = wp.render_html(wp.build_state(self.root), token="")
+        self.assertIn("Local-only Workbench panel", html)
+        self.assertIn("does not execute actions", html.lower())
+        self.assertIn("Current workflow", html)
+        self.assertIn("Future workflow", html)
+
+    def test_create_demo_task_seeds_runtime_no_execution(self):
+        res = wp.create_demo_task(self.root)
+        self.assertTrue(res["ok"])
+        self.assertFalse(res["executed"])
+        # one task, one pending approval, one advisory audit result
+        self.assertEqual(len(wr.list_tasks(project_root=self.root)), 1)
+        pend = wo.list_pending_approvals(self.root)
+        self.assertEqual(len(pend), 1)
+        ap = wr.load_approval(res["approval_id"], self.root)
+        self.assertIsNotNone(wr.load_audit(res["audit_id"], self.root))  # audit saved
+        self.assertEqual(ap.audit_id, res["audit_id"])                   # attached
+        # the demo created NO action (nothing to execute)
+        self.assertEqual(wr.load_task(res["task_id"], self.root).action_ids, [])
+
+    def test_demo_task_renders_in_state_and_cards(self):
+        wp.create_demo_task(self.root)
+        st = wp.build_state(self.root)
+        self.assertEqual(len(st["tasks"]), 1)
+        self.assertEqual(len(st["pending_approvals"]), 1)
+        html = wp.render_html(st, token="")
+        self.assertIn("No action will run from this panel", html)
+        self.assertIn("risk: medium", html)
+
+    def test_approve_after_demo(self):
+        res = wp.create_demo_task(self.root)
+        code, body = wp.handle_decision(res["approval_id"], "approve", self.root)
+        self.assertEqual(code, 200)
+        self.assertFalse(body["executed"])
+        self.assertEqual(wr.load_approval(res["approval_id"], self.root).status, "approved")
 
 
 class TestHttpSmoke(unittest.TestCase):
@@ -166,6 +212,20 @@ class TestHttpSmoke(unittest.TestCase):
         c = self._conn(); c.request("GET", "/api/nope")
         r = c.getresponse(); r.read()
         self.assertEqual(r.status, 404)
+
+    def test_demo_requires_token(self):
+        c = self._conn(); c.request("POST", "/api/tasks/demo")
+        r = c.getresponse(); r.read()
+        self.assertEqual(r.status, 403)  # no token -> rejected
+
+    def test_demo_with_token_creates_task(self):
+        c = self._conn()
+        c.request("POST", "/api/tasks/demo", headers={"X-Workbench-Token": "T"})
+        r = c.getresponse(); body = json.loads(r.read())
+        self.assertEqual(r.status, 200)
+        self.assertTrue(body["ok"])
+        self.assertFalse(body["executed"])
+        self.assertIsNotNone(wr.load_task(body["task_id"], self.root))
 
 
 if __name__ == "__main__":
