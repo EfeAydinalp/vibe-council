@@ -687,19 +687,21 @@ them.
 
 ## Roadmap / next ideas
 
-**Recently shipped (v0.4.0 — read-only MCP / Claude Code workflow):** a **read-only** MCP surface
-over curated project memory — `vibe mcp contract` / `inspect` / `serve --stdio` — exposing project
-status, curated decisions, and the context pack + health to Claude Code / local agents with **no
-write/action authority**. A minimal **stdlib** JSON-RPC stdio transport (**no `mcp` SDK**); context
-reads are **in-memory** (no `.council/` writes); forbidden write/git/shell/provider tools are
-unreachable. (v0.3.1 hardened the decision-memory / context loop —
-`decisions promote` refuses placeholder-only drafts and writes curated
-`YYYY-MM-DD-slug.md` records, `decisions new --from-run` maps review sections into the draft,
-`context check` passes **21/21** on the real repo, plus a CLI UX pass. v0.3.0 shipped the redaction guard, the curated decision CLI, draft extraction + safe
-promotion, the context-pack builder/check/export, operator status, and the license/provenance
-"Question 0" checklist; v0.2.0 shipped the provider abstraction + local Ollama + `vibe doctor`;
-v0.1.0 shipped the first-run API-key guard, `vibe models`/`presets`/`--version`, CI, and decision
-memory.)
+**Recently shipped (v0.5.0 — AI Council Workbench MVP, guarded execution):** a task moves through
+**visible stages**, an AI proposes a change, an **audited approval** step gates it (deterministic
+guards are the boundary; the Approval Auditor is advisory only), and — as a **separate, explicit**
+step — an approved action can actually run: a bounded `write_file`/`edit_file` behind a verified local
+payload artifact, or an exact allowlisted command behind a fixed-argv resolver (`shell=False`,
+sanitized environment, timeout, bounded/redacted output). Approving never auto-executes; the trust
+boundary re-runs at execution time; the browser only ever sends an action id. Localhost-only panel
+(`vibe workbench serve`). See [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md). (v0.4.0 shipped
+the read-only MCP / Claude Code workflow — `vibe mcp contract` / `inspect` / `serve --stdio`, a
+minimal **stdlib** JSON-RPC stdio transport, no `mcp` SDK, in-memory context reads. v0.3.1 hardened
+the decision-memory / context loop; v0.3.0 shipped the redaction guard, the curated decision CLI,
+draft extraction + safe promotion, the context-pack builder/check/export, operator status, and the
+license/provenance "Question 0" checklist; v0.2.0 shipped the provider abstraction + local Ollama +
+`vibe doctor`; v0.1.0 shipped the first-run API-key guard, `vibe models`/`presets`/`--version`, CI,
+and decision memory.)
 
 **The v0.3 decision-memory / context loop:**
 
@@ -718,21 +720,22 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.4.0 — read-only MCP / Claude Code workflow.** The repo reports `0.4.0`; the
-`v0.4.0` git tag and GitHub Release are cut by a maintainer right after the release PR merges. The
-read-only MCP surface (`vibe mcp contract` / `inspect` / `serve --stdio`) is a minimal **stdlib**
-JSON-RPC stdio server — **no `mcp` SDK dependency**; context reads are **in-memory** and write no
-generated `.council/` files; the generic MCP stdio client pattern is in
-[`docs/mcp/claude-code-setup.md`](docs/mcp/claude-code-setup.md). See
-[`CHANGELOG.md`](CHANGELOG.md) and [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md)
-for the notes (v0.3.1: [`docs/releases/v0.3.1.md`](docs/releases/v0.3.1.md)), and
+**Release status:** **v0.5.0 — AI Council Workbench MVP (guarded execution).** The repo reports
+`0.5.0`; the `v0.5.0` git tag and GitHub Release are cut by a maintainer once real-repo dogfood
+(`docs/plans/v0.5-release-readiness.md`) is clean and the release PR merges. A task moves through
+visible stages, an audited approval gates it, and an approved bounded file action or exact allowlisted
+command can be explicitly executed — approving never auto-executes, and the deterministic trust
+boundary re-runs at execution time. See [`CHANGELOG.md`](CHANGELOG.md) and
+[`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md) for the notes (v0.4.0:
+[`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md); v0.3.1:
+[`docs/releases/v0.3.1.md`](docs/releases/v0.3.1.md)), and
 [`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an
 early `0.x` release — expect breaking changes between minor versions, and see the honest limitations
 below. **No commercial-clearance claim; license/provenance remains "Question 0".**
 
 **Near-term:**
 
-- **v0.5 — AI Council Workbench MVP** *(guarded-executor track complete; not yet released)* — a
+- **v0.5 — AI Council Workbench MVP** *(shipping in v0.5.0; not yet tagged)* — a
   user-visible **vertical slice**: a task moves through **visible stages**, an AI proposes a plan/diff,
   an **audited approval** step (deterministic guards are the boundary; the Approval Auditor is
   advisory) gates it, and only **approved, explicitly executed** actions run — everything logged.
@@ -749,9 +752,9 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
   id. `vibe workbench serve` opens the localhost panel; it starts empty — use the **"Create demo
   task"** button to seed a safe local approval (the demo intentionally seeds no executable action; see
   [`docs/plans/v0.5-release-readiness.md`](docs/plans/v0.5-release-readiness.md) for the manual
-  dogfood recipe that does exercise real execution). Prepared (not yet tagged) release notes are in
-  [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md); the repo still reports `0.4.0` until the
-  readiness checklist is clean on a real repo and a maintainer cuts the tag. See
+  dogfood recipe that does exercise real execution). Release notes are prepared in
+  [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md) and the repo now reports `0.5.0`; the `v0.5.0`
+  git tag and GitHub Release are still a separate, manual step once real-repo dogfood is clean. See
   [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md) and
   [`docs/plans/v0.5-guarded-executor.md`](docs/plans/v0.5-guarded-executor.md).
 - **v0.4 read-only MCP / Claude Code workflow** *(shipped in v0.4.0)* — query curated decisions,
