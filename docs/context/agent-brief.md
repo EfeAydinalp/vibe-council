@@ -64,8 +64,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   (runtime-only, executes nothing) for first-time dogfood. The **guarded executor** is **planned in
   docs only** ([plan](../plans/v0.5-guarded-executor.md)): execution stays **separate from approval**,
   the deterministic guard is **re-run at execution time** (the advisory Auditor never authorizes), and
-  the first executor is **tiny + dry-run-first**. No execution exists yet. Next: PR #73 executor
-  skeleton (dry-run only), then bounded write/edit; LAN/mobile + voice remain deferred.
+  the first executor is **tiny + dry-run-first**. The **dry-run executor**
+  (`backend/workbench_executor.py`) now exists: it re-runs the deterministic guard, validates the
+  full execution invariant, and previews what *would* happen — `execute_action(dry_run=False)` **fails
+  closed** and it writes/runs nothing (a stale advisory audit cannot authorize). Next: PR #74 bounded
+  `write_file`/`edit_file` real execution behind the same invariant; LAN/mobile + voice remain
+  deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
