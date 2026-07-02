@@ -152,9 +152,13 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   tagging, following the same pattern as prior releases. **No version bump, no `CHANGELOG.md` dated
   section, no git tag, no GitHub Release yet** — the repo still reports `0.4.0`; those steps follow
   `docs/release-checklist.md` once the readiness checklist (PR #82) is clean on a real repo.
+- **PR #84 — v0.5.0 version bump + CHANGELOG.** `backend/__init__.py`/`pyproject.toml` now report
+  `0.5.0`; `CHANGELOG.md` gained a dated `[0.5.0]` section. **The git tag and GitHub Release are still
+  a separate, manual step** (`docs/release-checklist.md`) — v0.5.0 is prepared, not tagged.
 - **Current focus:** **v0.5 Workbench MVP** — the guarded executor track (PR #72–#81) is complete,
-  readiness-checked (PR #82), and its release notes are drafted (PR #83); not yet tagged. Next:
-  dogfood on a real small repo, fix rough edges, then cut the actual v0.5.0 release. Execution stays
+  readiness-checked (PR #82), and v0.5.0 is version-bumped with release notes drafted (PR #83–#84);
+  not yet tagged. Next: dogfood on a real small repo, fix rough edges, then cut the actual v0.5.0
+  release. Execution stays
   separate from approval; mobile/voice deferred.
 
 ## Next actions

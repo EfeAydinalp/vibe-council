@@ -5,14 +5,87 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.4.0` is prepared. The repo reports `0.4.0`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.4.0` git tag + GitHub Release are cut by a
+> **Status:** `0.5.0` is prepared. The repo reports `0.5.0`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.5.0` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.4.0 changes will be listed here as normal Keep-a-Changelog deltas
+_Nothing yet. Post-0.5.0 changes will be listed here as normal Keep-a-Changelog deltas
 (Added / Changed / Fixed / Removed)._
+
+## [0.5.0] - 2026-07-02
+
+**AI Council Workbench MVP (guarded execution).** A task now moves through **visible stages**, an AI
+proposes a change, an **audited approval** step gates it (deterministic guards are the boundary; the
+Approval Auditor is advisory only), and — as a **separate, explicit** step — an approved,
+narrowly-bounded action can actually run: a file write/edit behind a verified local payload artifact,
+or an exact allowlisted command behind a fixed-argv resolver. Still local-first and stdlib-only: no
+new runtime dependency, no provider/model/network call from the executor, no LAN/mobile/remote
+surface.
+
+### Added
+
+- **Runtime store + state machine** (`backend/workbench_runtime.py`, `backend/workbench_orchestrator.py`)
+  — a gitignored `.council/runtime/` JSON tree (`Task`/`Stage`/`ApprovalRequest`/`ApprovalDecision`/
+  `Action`/`AuditResult`) and a deterministic task lifecycle (plan → request approval →
+  approve/reject/hold → executing → complete/fail/hold).
+- **Deterministic trust boundary** (`backend/workbench_trust.py`) — path allow/deny, command
+  allowlist, secret patterns, change-size limits, cloud-egress consent; re-run at execution time, not
+  just at approval time.
+- **Advisory Approval Auditor** (`backend/workbench_auditor.py`) — a human-readable approval summary
+  that copies risk/blocked/findings verbatim from the trust boundary, so it can never relax a block.
+- **Localhost Workbench panel** (`backend/workbench_panel.py`, `vibe workbench serve`) — task/approval
+  cards, approve/reject/hold, a "Create demo task" dogfood button, and (new this release) a separate,
+  explicit **"Execute"** step for approved actions.
+- **Payload artifacts + hash/scope verification** (`backend/workbench_payloads.py`) — bounded file
+  actions carry content in a local, gitignored, write-once `.council/runtime/payloads/<action_id>.json`,
+  hashed at creation and re-verified before every real execution.
+- **Bounded file write/edit execution** (`backend/workbench_executor.py`) — atomic writes, size/
+  line-delta limits, path/symlink guard, explicit-overwrite requirement, no content in logs.
+- **Command allowlist → fixed argv resolver** (`backend/workbench_commands.py`) — no shell, no string
+  parsing, `sys.executable`-based, no OS-specific launcher dependency; plus a dry-run preview.
+- **Real exact allowlisted command execution** — `subprocess.run(shell=False)` with a sanitized
+  environment, project-root cwd, a timeout, and bounded/redaction-checked output capture.
+- **Panel execute + result display** for both bounded file actions and allowlisted commands — the
+  browser only ever sends an action id.
+- **v0.5 release readiness / dogfood checklist** (`docs/plans/v0.5-release-readiness.md`) and prepared
+  release notes (`docs/releases/v0.5.0.md`).
+
+### Changed
+
+- `workbench_trust`'s command allowlist gained `vibe context build` (a gap noted while building the
+  command resolver).
+- README / project status / agent brief reflect the completed guarded-executor track.
+
+### Safety
+
+- **Approval is separate from execution** — approving only records a decision; it never writes a
+  file, edits a file, or runs a command.
+- **The deterministic trust boundary re-runs at execution time** — a stored/stale `AuditResult` or a
+  cached preview cannot authorize anything; the advisory Auditor is never the gate.
+- **The browser sends only an action id** (+ a startup token) — never file content, patch text, a
+  command string, argv, cwd, env, or a timeout; the executor resolves everything server-side.
+- **Payload artifacts are local/gitignored**, write-once, and hash/scope-verified before use.
+- **Command execution is fixed argv + `shell=False`, always** — no dynamic arguments, ever.
+- **The subprocess environment is allowlist-built** (no inherited secrets/API keys/`.env`); a timeout
+  and output-byte cap are enforced; a critical redaction finding in output blocks the result instead
+  of storing it.
+- **The panel is localhost-only (`127.0.0.1`) and token-gated** — no CORS wildcard.
+- Redaction lint remains **0 critical**; `context check` and MCP health remain **21/21**.
+- **License/provenance remains an unresolved commercial "Question 0"** — no clearance claim, no
+  `LICENSE`.
+
+### Verification
+
+- 570 tests pass; redaction lint 0 critical; decisions lint passes; `context check` 21/21; MCP health
+  21/21.
+
+### Deferred
+
+- Arbitrary command execution · a larger command allowlist · package install/deploy/`git push` ·
+  provider/model/API calls from the executor · LAN/mobile/remote access · voice · background/
+  autonomous loops · a plugin system · multi-user/team/hosted mode · cloud sync.
 
 ## [0.4.0] - 2026-07-01
 
