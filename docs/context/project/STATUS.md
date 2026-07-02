@@ -90,9 +90,16 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   Auditor never gates), first executor **tiny + dry-run-first**, with a stop-condition list. No
   execution added. See [`guarded executor plan`](../../plans/v0.5-guarded-executor.md) and
   [`decision`](../../decisions/2026-07-01-workbench-guarded-executor-plan.md).
-- **Current focus:** **v0.5 Workbench MVP** — the see→decide loop is user-visible end-to-end and
-  non-executing. Next: **PR #73 executor skeleton (dry-run only)** per the plan, then bounded
-  write/edit → allowlisted commands → panel execute button. Mobile/voice/personalization deferred.
+- **v0.5 dry-run executor landed** (PR #73): `backend/workbench_executor.py` — a **dry-run-only**
+  guarded executor that re-runs the deterministic trust guard, validates the full execution invariant
+  (approved approval + pending linked action + matching scope + supported kind + fresh non-blocked
+  trust), and previews what *would* happen. `execute_action(dry_run=False)` **fails closed**; writes/
+  runs nothing; a stale advisory audit can't authorize. See
+  [`dry-run executor`](../../decisions/2026-07-01-workbench-executor-dry-run.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: **PR #74 bounded `write_file`/`edit_file`
+  execution** behind the same invariant (atomic, size-limited, logged+redacted, opt-in). Then
+  allowlisted commands → panel execute button. Execution stays separate from approval; mobile/voice
+  deferred.
 
 ## Next actions
 
