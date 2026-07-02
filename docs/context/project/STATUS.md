@@ -164,9 +164,19 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   verification. **No executor/panel/CLI change, no allowlist growth, no v0.6 start in this PR.** See
   [`v0.5.1 dogfood & hardening`](../../plans/v0.5.1-dogfood-hardening.md) and
   [`decision`](../../decisions/2026-07-02-v0.5.1-dogfood-hardening.md).
-- **Current focus:** **v0.5.1 dogfood & hardening** — `v0.5.0` is tagged; next is running the fresh-
-  install/Workbench/Windows/security checklists (PR #85) on a clean clone and a real small repo, then
-  triaging findings into small fixes vs. explicitly-deferred v0.6+ scope (agent-to-Workbench bridge,
+- **PR #86 — first clean-clone dogfood pass completed.** Ran the PR #85 checklist for real: clean
+  clone → `uv sync` → version/doctor/status/presets → test suite → lint/decisions/context/MCP checks,
+  plus an HTTP-level Workbench panel smoke (binding, page content, token gating). Everything matched
+  the dev checkout (0 critical redaction, 21/21 context/MCP, 570 tests). Found and fixed three small
+  docs bugs: README's post-`uv sync` example used a bare `python` command that fails without `uv run`
+  (reproduced directly — same class of failure as running the test suite with the wrong interpreter);
+  `vibe workbench serve --help`'s text was stale (predated PR #77/#80/#81's real execution); and the
+  PR #85 checklist itself didn't name the venv interpreter for the test step. No executor/panel/CLI
+  behavior changed (only a help string). See
+  [`clean-clone dogfood report`](../../plans/v0.5.1-clean-clone-dogfood-report.md).
+- **Current focus:** **v0.5.1 dogfood & hardening** — clean-clone/Windows pass done (PR #86); next is
+  a Linux/CI-leg confirmation and a real small (non-`vibe-council`) repo pass, then triaging any
+  further findings into small fixes vs. explicitly-deferred v0.6+ scope (agent-to-Workbench bridge,
   personalization, mobile/LAN/voice, hosted/team). Execution stays separate from approval; mobile/
   voice deferred.
 

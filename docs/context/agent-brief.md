@@ -116,8 +116,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   Named known issues: `uv.lock`'s stale self-version entry (pre-existing, not a `v0.5.0` blocker), the
   context-pack budget running close to its limit, the demo's intentionally non-executing seed, and
   Windows/Linux parity still needing real-world verification. See
-  [v0.5.1 dogfood/hardening decision](../decisions/2026-07-02-v0.5.1-dogfood-hardening.md). LAN/mobile
-  + voice remain deferred to v0.6+.
+  [v0.5.1 dogfood/hardening decision](../decisions/2026-07-02-v0.5.1-dogfood-hardening.md). **PR #86**
+  ran that checklist for real (clean clone, Windows/PowerShell) — everything matched the dev checkout
+  (0 critical redaction, 21/21 context/MCP, 570 tests); found and fixed three small docs bugs (a
+  README `uv sync`→bare-`python` example that fails without `uv run`, a stale `workbench serve --help`
+  text predating real execution, and a missing venv-interpreter note in the PR #85 checklist itself).
+  No executor/panel/CLI behavior changed. See
+  [clean-clone dogfood report](../plans/v0.5.1-clean-clone-dogfood-report.md). LAN/mobile + voice
+  remain deferred to v0.6+.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
