@@ -109,9 +109,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   fallback step than earlier PRs to stay 21/21) — keep future decision records concise. See
   [release readiness decision](../decisions/2026-07-02-v0.5-release-readiness.md). **PR #83** prepared
   `docs/releases/v0.5.0.md` ahead of tagging; **PR #84** bumped `backend/__init__.py`/`pyproject.toml`
-  to `0.5.0` and added the dated `CHANGELOG.md` `[0.5.0]` section. **The git tag and GitHub Release are
-  still a separate, manual step** (`docs/release-checklist.md`) once real-repo dogfood clears PR #82's
-  checklist — v0.5.0 is prepared, not tagged. LAN/mobile + voice remain deferred.
+  to `0.5.0` and added the dated `CHANGELOG.md` `[0.5.0]` section. **`v0.5.0` is now tagged** (annotated
+  git tag pushed to `origin`); the GitHub Release itself remains a separate manual step. **PR #85**
+  (docs-only) plans **v0.5.1 dogfood/hardening** — fresh-install, Workbench panel, Windows-specific,
+  UX, and security-regression checklists on a clean clone and a real small repo, before any v0.6 work.
+  Named known issues: `uv.lock`'s stale self-version entry (pre-existing, not a `v0.5.0` blocker), the
+  context-pack budget running close to its limit, the demo's intentionally non-executing seed, and
+  Windows/Linux parity still needing real-world verification. See
+  [v0.5.1 dogfood/hardening decision](../decisions/2026-07-02-v0.5.1-dogfood-hardening.md). LAN/mobile
+  + voice remain deferred to v0.6+.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
