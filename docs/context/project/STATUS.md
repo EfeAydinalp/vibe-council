@@ -153,13 +153,22 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   section, no git tag, no GitHub Release yet** — the repo still reports `0.4.0`; those steps follow
   `docs/release-checklist.md` once the readiness checklist (PR #82) is clean on a real repo.
 - **PR #84 — v0.5.0 version bump + CHANGELOG.** `backend/__init__.py`/`pyproject.toml` now report
-  `0.5.0`; `CHANGELOG.md` gained a dated `[0.5.0]` section. **The git tag and GitHub Release are still
-  a separate, manual step** (`docs/release-checklist.md`) — v0.5.0 is prepared, not tagged.
-- **Current focus:** **v0.5 Workbench MVP** — the guarded executor track (PR #72–#81) is complete,
-  readiness-checked (PR #82), and v0.5.0 is version-bumped with release notes drafted (PR #83–#84);
-  not yet tagged. Next: dogfood on a real small repo, fix rough edges, then cut the actual v0.5.0
-  release. Execution stays
-  separate from approval; mobile/voice deferred.
+  `0.5.0`; `CHANGELOG.md` gained a dated `[0.5.0]` section.
+- **`v0.5.0` is tagged** (annotated git tag `v0.5.0`, pushed to `origin`). The GitHub Release itself
+  remains a separate manual step (using `docs/releases/v0.5.0.md` as the body).
+- **v0.5.1 dogfood/hardening planned (PR #85, docs-only).** A checklist-driven pass — fresh-install
+  (clean clone), Workbench panel smoke, Windows-specific verification, UX polish, and a security-
+  regression re-check — before any v0.6 feature work. Named known issues: `uv.lock`'s stale self-
+  version entry (pre-existing, not a blocker), context-pack budget running close to its limit, the
+  demo intentionally seeding no executable action, and Windows/Linux parity still needing real-world
+  verification. **No executor/panel/CLI change, no allowlist growth, no v0.6 start in this PR.** See
+  [`v0.5.1 dogfood & hardening`](../../plans/v0.5.1-dogfood-hardening.md) and
+  [`decision`](../../decisions/2026-07-02-v0.5.1-dogfood-hardening.md).
+- **Current focus:** **v0.5.1 dogfood & hardening** — `v0.5.0` is tagged; next is running the fresh-
+  install/Workbench/Windows/security checklists (PR #85) on a clean clone and a real small repo, then
+  triaging findings into small fixes vs. explicitly-deferred v0.6+ scope (agent-to-Workbench bridge,
+  personalization, mobile/LAN/voice, hosted/team). Execution stays separate from approval; mobile/
+  voice deferred.
 
 ## Next actions
 

@@ -721,11 +721,12 @@ vibe operator status                              # show local workflow status
 ```
 
 **Release status:** **v0.5.0 — AI Council Workbench MVP (guarded execution).** The repo reports
-`0.5.0`; the `v0.5.0` git tag and GitHub Release are cut by a maintainer once real-repo dogfood
-(`docs/plans/v0.5-release-readiness.md`) is clean and the release PR merges. A task moves through
-visible stages, an audited approval gates it, and an approved bounded file action or exact allowlisted
-command can be explicitly executed — approving never auto-executes, and the deterministic trust
-boundary re-runs at execution time. See [`CHANGELOG.md`](CHANGELOG.md) and
+`0.5.0` and the `v0.5.0` git tag is cut; the GitHub Release is a separate manual step. A task moves
+through visible stages, an audited approval gates it, and an approved bounded file action or exact
+allowlisted command can be explicitly executed — approving never auto-executes, and the deterministic
+trust boundary re-runs at execution time. **Next: a v0.5.1 dogfood/hardening pass**
+(`docs/plans/v0.5.1-dogfood-hardening.md`) — fresh-install, Workbench, Windows-specific, and security-
+regression checklists before any v0.6 feature work. See [`CHANGELOG.md`](CHANGELOG.md) and
 [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md) for the notes (v0.4.0:
 [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md); v0.3.1:
 [`docs/releases/v0.3.1.md`](docs/releases/v0.3.1.md)), and
@@ -735,7 +736,7 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
 
 **Near-term:**
 
-- **v0.5 — AI Council Workbench MVP** *(shipping in v0.5.0; not yet tagged)* — a
+- **v0.5 — AI Council Workbench MVP** *(shipped in v0.5.0; GitHub Release still pending)* — a
   user-visible **vertical slice**: a task moves through **visible stages**, an AI proposes a plan/diff,
   an **audited approval** step (deterministic guards are the boundary; the Approval Auditor is
   advisory) gates it, and only **approved, explicitly executed** actions run — everything logged.
@@ -752,10 +753,11 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
   id. `vibe workbench serve` opens the localhost panel; it starts empty — use the **"Create demo
   task"** button to seed a safe local approval (the demo intentionally seeds no executable action; see
   [`docs/plans/v0.5-release-readiness.md`](docs/plans/v0.5-release-readiness.md) for the manual
-  dogfood recipe that does exercise real execution). Release notes are prepared in
-  [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md) and the repo now reports `0.5.0`; the `v0.5.0`
-  git tag and GitHub Release are still a separate, manual step once real-repo dogfood is clean. See
-  [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md) and
+  dogfood recipe that does exercise real execution). Release notes are in
+  [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md); the repo reports `0.5.0` and the `v0.5.0` git
+  tag is cut (GitHub Release still a separate manual step). Next up:
+  [`v0.5.1` dogfood/hardening](docs/plans/v0.5.1-dogfood-hardening.md), before any v0.6 feature work.
+  See [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md) and
   [`docs/plans/v0.5-guarded-executor.md`](docs/plans/v0.5-guarded-executor.md).
 - **v0.4 read-only MCP / Claude Code workflow** *(shipped in v0.4.0)* — query curated decisions,
   status, and the context pack from Claude Code / local agents with **no write/action authority**.
