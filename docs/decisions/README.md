@@ -61,5 +61,6 @@ seed** for the linked decision-memory direction (see
 - [First Workbench panel is localhost-only and records decisions (no execution)](./2026-07-01-workbench-local-panel.md) — accepted
 - [Plan the guarded executor before building it (execution is a new risk boundary)](./2026-07-01-workbench-guarded-executor-plan.md) — accepted
 - [Guarded executor skeleton: dry-run only, invariant-validated](./2026-07-01-workbench-executor-dry-run.md) — accepted
+- [First real execution is bounded file write/edit only (commands deferred)](./2026-07-01-workbench-bounded-file-executor.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

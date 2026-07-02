@@ -96,10 +96,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   trust), and previews what *would* happen. `execute_action(dry_run=False)` **fails closed**; writes/
   runs nothing; a stale advisory audit can't authorize. See
   [`dry-run executor`](../../decisions/2026-07-01-workbench-executor-dry-run.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: **PR #74 bounded `write_file`/`edit_file`
-  execution** behind the same invariant (atomic, size-limited, logged+redacted, opt-in). Then
-  allowlisted commands → panel execute button. Execution stays separate from approval; mobile/voice
-  deferred.
+- **v0.5 bounded file executor landed** (PR #74): `execute_action(dry_run=False, payload=...)` really
+  runs **`write_file`/`edit_file`** behind the full invariant + fresh trust re-check — atomic writes,
+  ≤100 KB / ≤200-line-delta limits, fs-level path/symlink guard, existing-file needs explicit
+  overwrite, edit needs exact match, logs carry no content. **`run_command` real execution still
+  rejected**; dry-run unchanged. See [`bounded file executor`](../../decisions/2026-07-01-workbench-bounded-file-executor.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: PR #75 (optional) exact **allowlisted command**
+  execution, then PR #76 panel **execute button** + result display. Execution stays separate from
+  approval; the guard re-runs at execution time; mobile/voice deferred.
 
 ## Next actions
 
