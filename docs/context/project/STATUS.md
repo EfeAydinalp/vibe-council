@@ -174,11 +174,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   PR #85 checklist itself didn't name the venv interpreter for the test step. No executor/panel/CLI
   behavior changed (only a help string). See
   [`clean-clone dogfood report`](../../plans/v0.5.1-clean-clone-dogfood-report.md).
-- **Current focus:** **v0.5.1 dogfood & hardening** — clean-clone/Windows pass done (PR #86); next is
-  a Linux/CI-leg confirmation and a real small (non-`vibe-council`) repo pass, then triaging any
-  further findings into small fixes vs. explicitly-deferred v0.6+ scope (agent-to-Workbench bridge,
-  personalization, mobile/LAN/voice, hosted/team). Execution stays separate from approval; mobile/
-  voice deferred.
+- **PR #87 — Workbench interactive smoke/shutdown follow-up.** Investigated PR #86's leftover-process
+  finding: a `uv run`-wrapped launch can leave a child process running if only the outer `uv` process
+  is killed — confirmed as a **`uv run` process-tree artifact** (a direct venv-python launch released
+  the port cleanly every time), not a Workbench bug. Separately, a simulated Windows `CTRL_C_EVENT`
+  didn't trigger shutdown within 8s in automated testing (with or without `uv run`); no human-attended
+  real interactive terminal was available to confirm or rule out a real bug, so this stays
+  **inconclusive** rather than a confirmed issue — the existing `serve_forever()`/`KeyboardInterrupt`
+  code already follows the standard, correct pattern. A clean scratch-directory first-run pass (empty
+  state, demo, approve, token-gating) all matched expectations. **No code changed.** See
+  [`interactive smoke report`](../../plans/v0.5.1-workbench-interactive-smoke-report.md).
+- **Current focus:** **v0.5.1 dogfood & hardening** — clean-clone/Windows + interactive/shutdown
+  passes done (PR #86–#87); next is a Linux/CI-leg confirmation, a real human-attended Ctrl+C check,
+  and a real small (non-`vibe-council`) repo pass, then triaging any further findings into small fixes
+  vs. explicitly-deferred v0.6+ scope (agent-to-Workbench bridge, personalization, mobile/LAN/voice,
+  hosted/team). Execution stays separate from approval; mobile/voice deferred.
 
 ## Next actions
 
