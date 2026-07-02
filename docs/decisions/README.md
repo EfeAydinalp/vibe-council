@@ -69,5 +69,6 @@ seed** for the linked decision-memory direction (see
 - [Command labels resolve to fixed argv — dry-run preview only](./2026-07-02-workbench-command-preview.md) — accepted
 - [Real command execution is limited to exact resolver labels, sandboxed argv/env/cwd](./2026-07-02-workbench-command-executor.md) — accepted
 - [The panel exposes command execution only for approved allowlisted run_command actions, action id only](./2026-07-02-workbench-panel-command-results.md) — accepted
+- [v0.5 guarded-executor track is functionally complete; readiness checklist precedes a tagged release](./2026-07-02-v0.5-release-readiness.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

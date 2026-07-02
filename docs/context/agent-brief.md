@@ -102,7 +102,13 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   (exit code, timed-out/truncated flags, bounded/redacted stdout/stderr) come back in the execute
   response, never a raw/huge dump. This completes the v0.5 guarded-executor track (PR #72–#81). See
   [panel command results decision](../decisions/2026-07-02-workbench-panel-command-results.md).
-  LAN/mobile + voice remain deferred.
+  **PR #82** adds a docs-only release readiness checklist — what v0.5 contains/excludes, a dogfood
+  recipe (the "Create demo task" button seeds **no executable action**; real execution needs a
+  manually seeded temp-project fixture), and smoke/security/release-blocker checklists before a
+  v0.5.0 tag. It also flags that the context pack is nearing its budget (PR #81 needed one more
+  fallback step than earlier PRs to stay 21/21) — keep future decision records concise. See
+  [release readiness decision](../decisions/2026-07-02-v0.5-release-readiness.md). v0.5 is not yet
+  tagged. LAN/mobile + voice remain deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
