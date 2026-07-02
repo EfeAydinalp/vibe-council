@@ -71,8 +71,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **Agent quickstart added**: [`docs/agent-quickstart.md`](../../agent-quickstart.md) — a short,
   copy-paste-safe review → diff → decision recipe for humans and AI coding agents (council is advice,
   not authority; keep `.council/` gitignored; don't send secrets).
-- **Current focus:** **v0.5 Workbench MVP** — next: the **hybrid Approval Auditor** (advisory — the
-  deterministic guard stays the boundary), then the local panel. Mobile/voice/personalization deferred.
+- **v0.5 Approval Auditor landed** (PR #69): `backend/workbench_auditor.py` — **advisory** layer that
+  wraps the deterministic guard into an `AuditResult` (risk + findings + blocked + a short readable
+  approval prompt). Risk/blocked/findings are copied verbatim from the trust evaluation, so it can
+  **never relax** the guard; `model="deterministic"` (no LLM). No execution/provider calls. See
+  [`approval auditor`](../../decisions/2026-07-01-workbench-approval-auditor.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: the **local panel** (render stages + the approval
+  inbox using these AuditResults; approve/reject/hold). Execution stays behind the guard; mobile/voice
+  deferred.
 
 ## Next actions
 

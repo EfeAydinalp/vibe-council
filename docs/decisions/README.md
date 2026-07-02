@@ -57,5 +57,6 @@ seed** for the linked decision-memory direction (see
 - [`.council/runtime/` is the Workbench's live workflow state (JSON store)](./2026-07-01-workbench-runtime-store.md) — accepted
 - [Deterministic Workbench task lifecycle / state machine (no execution)](./2026-07-01-workbench-orchestrator-state-machine.md) — accepted
 - [Deterministic trust boundary is the Workbench's real security gate](./2026-07-01-workbench-trust-boundary.md) — accepted
+- [Approval Auditor is advisory (summarizes the deterministic guard)](./2026-07-01-workbench-approval-auditor.md) — accepted
 
 See also the curated [agent brief](../context/agent-brief.md) that distills these for agent context.

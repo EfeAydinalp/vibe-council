@@ -53,8 +53,11 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   security gate**: it classifies proposed actions (allowed/blocked/requires-approval + risk +
   cloud-egress consent) — unknown kinds + non-allowlisted/metachar commands blocked, writes require
   approval, secrets/`.git`/`.council`/private plans / out-of-project paths blocked, cloud needs
-  consent — and **executes nothing**. Next: the **advisory** Approval Auditor (never relaxes this
-  gate), then the panel.
+  consent — and **executes nothing**. The **advisory** Approval Auditor
+  (`backend/workbench_auditor.py`) wraps that guard into a panel-ready `AuditResult` (risk + findings
+  + a short readable approval prompt); it copies risk/blocked/findings verbatim from the guard, so it
+  **can never relax** a blocked/high-risk decision (`model="deterministic"`, no LLM yet). Next: the
+  **local panel** (stages + approval inbox); execution stays behind the guard.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
