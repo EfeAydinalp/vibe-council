@@ -162,7 +162,7 @@ class TestPureState(unittest.TestCase):
         self.assertIn("Local-only Workbench panel", html)
         self.assertIn("it never executes anything", html.lower())
         self.assertIn("Workflow:", html)
-        self.assertIn("run_command", html)
+        self.assertIn("exact allowlisted", html.lower())
 
     def test_create_demo_task_seeds_runtime_no_execution(self):
         res = wp.create_demo_task(self.root)
@@ -237,15 +237,34 @@ class TestExecuteAction(unittest.TestCase):
         a = next(x for x in st["actions"] if x["id"] == act.id)
         self.assertTrue(a["executable"])
 
-    def test_state_action_not_executable_for_run_command(self):
+    def test_state_action_executable_for_approved_allowlisted_command(self):
+        # PR #81: an approved, pending, resolver-allowlisted run_command action is now
+        # executable from the panel — no payload artifact is required for commands
+        # (that's a file-only concept); the resolver + trust boundary gate it instead.
         _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
                                           target="git status --short")
         st = wp.build_state(self.root)
         a = next(x for x in st["actions"] if x["id"] == act.id)
-        # PR #80 put run_command in REAL_EXEC_KINDS, but the panel's `executable` flag
-        # also requires a verified payload artifact, and run_command actions never
-        # have one (payloads are file-only, PR #76) — so the panel offers no new
-        # execute affordance for commands, even though the executor could now run one.
+        self.assertTrue(a["executable"])
+        self.assertIsNotNone(a["command_preview"])
+        self.assertEqual(a["command_preview"]["label"], "git status --short")
+        self.assertEqual(a["command_preview"]["argv"], ["git", "status", "--short"])
+        self.assertFalse(a["command_preview"]["shell"])
+
+    def test_state_action_not_executable_for_non_allowlisted_command(self):
+        _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
+                                          target="pip install evil")
+        st = wp.build_state(self.root)
+        a = next(x for x in st["actions"] if x["id"] == act.id)
+        self.assertFalse(a["executable"])
+        self.assertIsNone(a["command_preview"])
+        self.assertIn("does not resolve", a["executable_reason"])
+
+    def test_state_action_not_executable_for_unapproved_command(self):
+        _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
+                                          target="git status --short", decision=None)
+        st = wp.build_state(self.root)
+        a = next(x for x in st["actions"] if x["id"] == act.id)
         self.assertFalse(a["executable"])
 
     def test_state_no_raw_content_exposed(self):
@@ -255,6 +274,20 @@ class TestExecuteAction(unittest.TestCase):
         self.assertNotIn("TOP-SECRET-VALUE", json.dumps(st))
         html = wp.render_html(st, token="")
         self.assertNotIn("TOP-SECRET-VALUE", html)
+
+    def test_html_renders_command_card_with_execute_button(self):
+        _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
+                                          target="git status --short")
+        html = wp.render_html(wp.build_state(self.root), token="tok")
+        self.assertIn("git status --short", html)
+        self.assertIn("exact allowlisted command only", html)
+        self.assertIn("Execute approved command", html)
+        self.assertIn(f"execAction('{act.id}','run_command')", html)
+
+    def test_html_hides_execute_button_for_non_allowlisted_command(self):
+        _seed_action(self.root, kind="run_command", target="pip install evil")
+        html = wp.render_html(wp.build_state(self.root), token="tok")
+        self.assertNotIn("Execute approved command", html)
 
     def test_get_state_does_not_mutate(self):
         _seed_action(self.root, target="docs/pay2.md", payload={"content": "hi\n"})
@@ -334,18 +367,99 @@ class TestExecuteAction(unittest.TestCase):
         self.assertFalse((self.root / "docs" / "other.md").exists())
 
     def test_execute_non_allowlisted_command_fails_closed(self):
-        # PR #80 added real run_command execution for resolver-allowlisted commands
-        # (see test_workbench_command_executor.py) — the panel gains no new UI/button
-        # for it (no payload artifact ever exists for run_command, so `executable`
-        # stays False; see test_state_action_not_executable_for_run_command), but the
-        # shared execute_action() invariant still fail-closes a non-allowlisted command
-        # even if called directly.
+        # A non-allowlisted command is never executable (see
+        # test_state_action_not_executable_for_non_allowlisted_command), but the shared
+        # execute_action() invariant still fail-closes it even if called directly.
         _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
                                           target="pip install evil")
         code, body = wp.handle_execute(act.id, self.root)
         self.assertEqual(code, 200)
         self.assertTrue(body["blocked"])
         self.assertFalse(body["executed"])
+
+    def test_execute_unapproved_command_blocks(self):
+        _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
+                                          target="git status --short", decision=None)
+        code, body = wp.handle_execute(act.id, self.root)
+        self.assertEqual(code, 200)
+        self.assertTrue(body["blocked"])
+        self.assertFalse(body["executed"])
+
+    def test_execute_rejected_command_blocks(self):
+        _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
+                                          target="git status --short", decision="reject")
+        code, body = wp.handle_execute(act.id, self.root)
+        self.assertTrue(body["blocked"])
+
+    def test_execute_held_command_blocks(self):
+        _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
+                                          target="git status --short", decision="hold")
+        code, body = wp.handle_execute(act.id, self.root)
+        self.assertTrue(body["blocked"])
+
+    def test_execute_completed_command_blocks(self):
+        _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
+                                          target="git status --short", act_status="completed")
+        code, body = wp.handle_execute(act.id, self.root)
+        self.assertTrue(body["blocked"])
+
+    # --- happy path (monkeypatched subprocess) --------------------------------- #
+
+    def test_execute_allowlisted_command_runs_via_executor(self):
+        import subprocess as _subprocess
+
+        class _Fake:
+            returncode = 0
+            stdout = "clean\n"
+            stderr = ""
+
+        orig = _subprocess.run
+        calls = []
+
+        def _fake_run(*a, **k):
+            calls.append((a, k))
+            return _Fake()
+
+        _subprocess.run = _fake_run
+        try:
+            _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
+                                              target="git status --short")
+            code, body = wp.handle_execute(act.id, self.root)
+        finally:
+            _subprocess.run = orig
+        self.assertEqual(code, 200)
+        self.assertTrue(body["executed"])
+        self.assertEqual(body["exit_code"], 0)
+        self.assertFalse(body["timed_out"])
+        self.assertFalse(body["output_truncated"])
+        self.assertEqual(body["command_label"], "git status --short")
+        self.assertEqual(len(calls), 1)
+        args, kwargs = calls[0]
+        self.assertEqual(args[0], ["git", "status", "--short"])
+        self.assertFalse(kwargs["shell"])
+        self.assertEqual(wr.load_action(act.id, self.root).status, "completed")
+
+    def test_command_result_appears_in_state_after_execution(self):
+        import subprocess as _subprocess
+
+        class _Fake:
+            returncode = 0
+            stdout = "clean\n"
+            stderr = ""
+
+        orig = _subprocess.run
+        _subprocess.run = lambda *a, **k: _Fake()
+        try:
+            _t, _ap, act, _art = _seed_action(self.root, kind="run_command",
+                                              target="git status --short")
+            wp.handle_execute(act.id, self.root)
+        finally:
+            _subprocess.run = orig
+        st = wp.build_state(self.root)
+        a = next(x for x in st["actions"] if x["id"] == act.id)
+        self.assertEqual(a["status"], "completed")
+        self.assertIn("git status --short", a["result_summary"])
+        self.assertFalse(a["executable"])  # already completed, not pending anymore
 
     # --- happy path ----------------------------------------------------------- #
 
@@ -524,6 +638,101 @@ class TestExecuteHttp(unittest.TestCase):
         r = c.getresponse(); data = json.loads(r.read())
         a = next(x for x in data["actions"] if x["id"] == self.act.id)
         self.assertTrue(a["executable"])
+
+
+class TestExecuteCommandHttp(unittest.TestCase):
+    """HTTP-level coverage for executing an approved run_command action via the panel.
+    subprocess.run is monkeypatched so this stays fast/deterministic (the real
+    subprocess wiring is already smoke-tested in test_workbench_command_executor.py)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        _t, self.ap, self.act, _art = _seed_action(
+            self.root, kind="run_command", target="git status --short")
+        self.httpd = wp.make_server(self.root, host="127.0.0.1", port=0, token="T")
+        self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
+        self.thread.start()
+        self.port = self.httpd.server_address[1]
+
+    def tearDown(self):
+        self.httpd.shutdown()
+        self.httpd.server_close()
+        self._tmp.cleanup()
+
+    def _conn(self):
+        return http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+
+    def test_execute_command_requires_token(self):
+        c = self._conn()
+        c.request("POST", f"/api/actions/{self.act.id}/execute")
+        r = c.getresponse(); r.read()
+        self.assertEqual(r.status, 403)
+        self.assertEqual(wr.load_action(self.act.id, self.root).status, "pending")
+
+    def test_execute_command_ignores_browser_supplied_body(self):
+        import subprocess as _subprocess
+
+        class _Fake:
+            returncode = 0
+            stdout = "clean\n"
+            stderr = ""
+
+        orig = _subprocess.run
+        calls = []
+
+        def _fake_run(*a, **k):
+            calls.append((a, k))
+            return _Fake()
+
+        _subprocess.run = _fake_run
+        try:
+            malicious = json.dumps({
+                "command": "rm -rf /", "argv": ["rm", "-rf", "/"], "cwd": "/tmp",
+                "env": {"EVIL": "1"}, "timeout": 999999, "shell": True,
+            }).encode("utf-8")
+            c = self._conn()
+            c.request("POST", f"/api/actions/{self.act.id}/execute", body=malicious,
+                      headers={"X-Workbench-Token": "T", "Content-Type": "application/json"})
+            r = c.getresponse(); body = json.loads(r.read())
+        finally:
+            _subprocess.run = orig
+        self.assertEqual(r.status, 200)
+        self.assertEqual(len(calls), 1)
+        args, kwargs = calls[0]
+        # only the server-side resolved argv ever reaches subprocess.run, regardless
+        # of whatever the request body claimed.
+        self.assertEqual(args[0], ["git", "status", "--short"])
+        self.assertFalse(kwargs["shell"])
+        self.assertEqual(body["command_label"], "git status --short")
+
+    def test_execute_command_response_has_no_huge_raw_output(self):
+        import subprocess as _subprocess
+
+        class _Fake:
+            returncode = 0
+            stdout = "x" * 5000
+            stderr = ""
+
+        orig = _subprocess.run
+        _subprocess.run = lambda *a, **k: _Fake()
+        try:
+            c = self._conn()
+            c.request("POST", f"/api/actions/{self.act.id}/execute",
+                      headers={"X-Workbench-Token": "T"})
+            r = c.getresponse(); body = json.loads(r.read())
+        finally:
+            _subprocess.run = orig
+        self.assertEqual(r.status, 200)
+        self.assertIn("stdout_summary", body)
+        self.assertLessEqual(len(body["stdout_summary"]), 5000)
+
+    def test_get_state_shows_command_preview(self):
+        c = self._conn(); c.request("GET", "/api/state")
+        r = c.getresponse(); data = json.loads(r.read())
+        a = next(x for x in data["actions"] if x["id"] == self.act.id)
+        self.assertTrue(a["executable"])
+        self.assertEqual(a["command_preview"]["label"], "git status --short")
 
 
 if __name__ == "__main__":

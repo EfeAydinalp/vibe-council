@@ -91,10 +91,18 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   other kind. Timeout fails closed with no retry; output is captured, byte-bounded, and
   redaction-scanned before any storage (a critical finding blocks the result instead of storing it);
   environment is allowlist-built (`PATH`/`PYTHONIOENCODING`, plus `SystemRoot`/`SystemDrive` on
-  Windows only) — no inherited API keys/credentials, no `.env`. **The panel still offers no UI for
-  it** — `executable` requires a payload artifact, and `run_command` actions never have one. See
-  [command executor decision](../decisions/2026-07-02-workbench-command-executor.md). Next: panel
-  display for command results; LAN/mobile + voice remain deferred.
+  Windows only) — no inherited API keys/credentials, no `.env`. See
+  [command executor decision](../decisions/2026-07-02-workbench-command-executor.md). **The panel now
+  shows and can execute allowlisted commands** (PR #81): an approved, pending, resolver-allowlisted
+  `run_command` action gets a content-free command preview (label, fixed argv with the local
+  interpreter path masked, timeout, output cap, `shell=false`) and an "Execute approved command"
+  button — no separate payload-artifact requirement (commands don't have one; the resolver + trust
+  boundary gate them instead). The browser still sends only the action id; the execute handler never
+  reads a request body, so a command/argv/cwd/env/timeout supplied there has zero effect. Results
+  (exit code, timed-out/truncated flags, bounded/redacted stdout/stderr) come back in the execute
+  response, never a raw/huge dump. This completes the v0.5 guarded-executor track (PR #72–#81). See
+  [panel command results decision](../decisions/2026-07-02-workbench-panel-command-results.md).
+  LAN/mobile + voice remain deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

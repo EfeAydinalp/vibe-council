@@ -2,23 +2,26 @@
 
 The first user-visible Workbench slice: a **localhost-only** HTML panel that renders
 task progress and pending approval cards from `.council/runtime/`, lets a human
-**approve / reject / hold** an approval, and — for an already-approved, bounded
-`write_file`/`edit_file` action with a verified local payload artifact — lets them
-explicitly **execute** it via the guarded executor (PR #77). Built on `http.server` +
-`json` + stdlib — no framework, no npm, no external assets/CDN, no network egress.
+**approve / reject / hold** an approval, and — for an already-approved action the
+executor can actually run — lets them explicitly **execute** it via the guarded
+executor: a bounded `write_file`/`edit_file` action with a verified local payload
+artifact (PR #77), or an exact allowlisted `run_command` action the PR #79 resolver
+resolves (PR #81). Built on `http.server` + `json` + stdlib — no framework, no npm, no
+external assets/CDN, no network egress.
 
 **Approval and execution stay separate.** Approving here only records an
 `ApprovalDecision`; it never executes anything. Execution is a **distinct, explicit**
 POST (`/api/actions/<action_id>/execute`) that the browser can only trigger by action
-id — it never sends file content or patch text. The executor
-(`backend/workbench_executor.py`) loads and verifies the local payload artifact
-(`backend/workbench_payloads.py`), re-runs the deterministic trust boundary, and only
-then performs bounded real execution; any mismatch/missing artifact/blocked kind fails
-closed. The panel offers **no UI/affordance for `run_command`** — the `executable` flag
-in `build_state()` requires a verified payload artifact, and `run_command` actions never
-have one (payloads are file-only, PR #76), regardless of PR #80 adding real allowlisted
-command execution at the executor level. The panel binds to `127.0.0.1` only (no
-`0.0.0.0`/LAN/mobile), and POSTs require a startup token.
+id — it never sends file content, patch text, a command string, argv, cwd, env, or a
+timeout. The executor (`backend/workbench_executor.py`) is the sole source of truth: for
+file kinds it loads/verifies the local payload artifact (`backend/workbench_payloads.py`);
+for `run_command` it resolves the label via `backend/workbench_commands.py` — either way
+it re-runs the deterministic trust boundary and only then performs real, bounded
+execution. Any mismatch/missing artifact/unresolvable label/blocked kind fails closed,
+with no subprocess started and no file touched. Command output shown by the panel is
+already bounded and redaction-checked by the executor (PR #80) — the panel never widens
+what's exposed. The panel binds to `127.0.0.1` only (no `0.0.0.0`/LAN/mobile), and POSTs
+require a startup token.
 
 Pure functions (`build_state`, `handle_decision`, `handle_execute`, `render_html`) hold
 the logic and are tested directly; the HTTP handler is a thin router over them.
@@ -28,6 +31,7 @@ from __future__ import annotations
 
 import json
 import secrets
+import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -41,6 +45,14 @@ from . import workbench_payloads as wpay
 
 _LOCAL_HOSTS = ("127.0.0.1", "localhost", "::1")
 DECISIONS = ("approve", "reject", "hold")
+
+
+def _display_argv(argv: List[str]) -> List[str]:
+    """Display-only sanitization: swap the local interpreter's absolute path for a
+    generic placeholder (matches `_project_name`'s no-absolute-local-path convention).
+    Never used for actual execution — the executor always resolves the real argv
+    itself, independent of anything the panel renders."""
+    return ["<python>" if tok == sys.executable else tok for tok in argv]
 
 
 # --------------------------------------------------------------------------- #
@@ -66,10 +78,12 @@ def _task_view(task, project_root: Optional[Path]) -> Dict:
 
 def _action_view(action, project_root: Optional[Path]) -> Dict:
     """Read-only, content-free view of one runtime ``Action`` for the panel: status,
-    payload verification, a fresh (dry-run) risk/trust preview for still-pending
-    actions, and whether the panel may offer to execute it. Never includes raw
-    ``content``/``old_text``/``new_text`` — only the payload artifact's redacted
-    summary (byte counts / flags / kind), matching the executor's own log style."""
+    payload verification (file kinds) or a resolved command preview (``run_command``),
+    a fresh (dry-run) risk/trust preview for still-pending actions, and whether/why the
+    panel may offer to execute it. Never includes raw ``content``/``old_text``/
+    ``new_text`` (only the payload artifact's redacted summary) and never includes an
+    absolute local path (a command's argv is display-sanitized via `_display_argv`,
+    matching `_project_name`'s no-path-leakage convention)."""
     approval = (wr.load_approval(action.approval_id, project_root)
                 if action.approval_id else None)
     task = wr.load_task(action.task_id, project_root)
@@ -83,19 +97,51 @@ def _action_view(action, project_root: Optional[Path]) -> Dict:
             artifact, action, approval, task).ok
 
     risk_level, findings, would_execute = "blocked", [], False
+    preview = None
     if action.status == "pending":
-        # Dry-run only — re-runs the deterministic trust boundary, mutates nothing.
+        # Dry-run only — re-runs the deterministic trust boundary (and, for
+        # run_command, the command resolver), mutates nothing.
         preview = we.preview_action(action, approval, task, project_root)
         risk_level, findings, would_execute = (
             preview.risk_level, preview.findings, preview.would_execute)
 
-    executable = (
-        action.status == "pending"
-        and action.kind in we.REAL_EXEC_KINDS
-        and artifact is not None
-        and payload_verified
-        and would_execute
-    )
+    command_preview: Optional[Dict] = None
+    if action.kind == "run_command" and preview is not None and preview.command_label:
+        command_preview = {
+            "label": preview.command_label,
+            "argv": _display_argv(preview.command_argv),
+            "timeout_seconds": preview.command_timeout_seconds,
+            "output_limit_bytes": preview.command_output_limit_bytes,
+            "shell": preview.command_shell,
+        }
+
+    if action.kind in ("write_file", "edit_file"):
+        executable = (action.status == "pending" and artifact is not None
+                      and payload_verified and would_execute)
+        if action.status != "pending":
+            executable_reason = f"action not pending (status '{action.status}')"
+        elif artifact is None:
+            executable_reason = "no payload artifact found for this action"
+        elif not payload_verified:
+            executable_reason = "payload artifact failed verification"
+        elif not would_execute:
+            executable_reason = "blocked by the guard/invariant"
+        else:
+            executable_reason = "approved, payload verified, ready to execute"
+    elif action.kind == "run_command":
+        # No payload artifact involved — the resolver + trust boundary gate it.
+        executable = action.status == "pending" and would_execute
+        if action.status != "pending":
+            executable_reason = f"action not pending (status '{action.status}')"
+        elif not would_execute:
+            executable_reason = ("command label does not resolve to an allowlisted "
+                                 "command, or is blocked by the trust boundary")
+        else:
+            executable_reason = "exact allowlisted command, approved, ready to execute"
+    else:
+        executable = False
+        executable_reason = f"kind '{action.kind}' cannot be executed from the panel"
+
     return {
         "id": action.id, "task_id": action.task_id, "approval_id": action.approval_id,
         "kind": action.kind, "target": action.command_or_path, "status": action.status,
@@ -103,8 +149,10 @@ def _action_view(action, project_root: Optional[Path]) -> Dict:
         "payload_exists": artifact is not None,
         "payload_verified": payload_verified,
         "payload_summary": payload_summary,
+        "command_preview": command_preview,
         "risk_level": risk_level, "findings": findings,
         "executable": executable,
+        "executable_reason": executable_reason,
     }
 
 
@@ -162,15 +210,20 @@ def handle_decision(approval_id: str, decision: str,
 
 
 def handle_execute(action_id: str, project_root: Optional[Path] = None) -> Tuple[int, Dict]:
-    """Execute an already-approved, bounded ``write_file``/``edit_file`` action via the
-    guarded executor. The caller supplies **only** the action id — never file content
-    or patch text; the executor loads and verifies the local payload artifact itself
-    (``backend/workbench_payloads.py``) and re-runs the deterministic trust boundary
-    before any real write/edit. Fails closed (``blocked``/error, no mutation) on a
-    missing action, an unsupported kind (e.g. ``run_command``), an unapproved/
-    rejected/held approval, a non-pending action, or a missing/tampered/mismatched
-    payload artifact — all handled by the executor's existing invariant, not
-    re-implemented here. Returns (http_status, body); body carries no raw content."""
+    """Execute an already-approved action via the guarded executor: a bounded
+    ``write_file``/``edit_file`` action with a verified local payload artifact, or an
+    exact allowlisted ``run_command`` action the resolver resolves. The caller supplies
+    **only** the action id — this function never reads a request body, so the browser
+    cannot send file content, patch text, a command string, argv, cwd, env, or a
+    timeout; every one of those comes from the executor's own local, server-side
+    resolution (``backend/workbench_payloads.py`` / ``backend/workbench_commands.py``),
+    never from the caller. Fails closed (``blocked``/error, no mutation, no subprocess
+    started) on a missing action, an unsupported kind, an unapproved/rejected/held
+    approval, a non-pending action, a missing/tampered/mismatched payload artifact, or
+    a non-allowlisted/unresolvable command label — all handled by the executor's
+    existing invariant, not re-implemented here. Returns (http_status, body); body
+    carries no raw file content and only the executor's own bounded/redaction-checked
+    command output summary (never huge/raw)."""
     action = wr.load_action(action_id, project_root)
     if action is None:
         return 404, {"error": "action not found", "action_id": action_id}
@@ -178,12 +231,22 @@ def handle_execute(action_id: str, project_root: Optional[Path] = None) -> Tuple
         result = we.execute_action(action_id, project_root=project_root, dry_run=False)
     except we.ExecutorError as e:
         return 400, {"error": str(e), "action_id": action_id, "executed": False}
-    return 200, {
+    body = {
         "executed": result.executed, "dry_run": result.dry_run, "allowed": result.allowed,
         "blocked": result.blocked, "action_id": result.action_id, "kind": result.kind,
         "risk_level": result.risk_level, "findings": result.findings,
         "preview": result.preview, "reason": result.reason,
     }
+    if result.kind == "run_command":
+        body.update({
+            "command_label": result.command_label,
+            "exit_code": result.exit_code,
+            "timed_out": result.timed_out,
+            "output_truncated": result.output_truncated,
+            "stdout_summary": result.stdout_summary,
+            "stderr_summary": result.stderr_summary,
+        })
+    return 200, body
 
 
 def create_demo_task(project_root: Optional[Path] = None) -> Dict:
@@ -268,26 +331,46 @@ def render_html(state: Dict, token: str = "") -> str:
     actions_html = ""
     for act in state.get("actions", []):
         findings = "".join(f"<li>{_esc(f)}</li>" for f in act["findings"]) or "<li>none</li>"
-        payload_label = ("verified" if act["payload_verified"]
-                          else ("present but NOT verified" if act["payload_exists"]
-                                else "no payload artifact"))
-        summary = act.get("payload_summary") or {}
-        summary_html = (f"<div class='muted'>payload: {_esc(json.dumps(summary))}</div>"
-                         if summary else "")
         result_html = (f"<div class='muted'>result: {_esc(act['result_summary'])}</div>"
                         if act["result_summary"] else "")
+        detail_html = ""
+        if act["kind"] in ("write_file", "edit_file"):
+            payload_label = ("verified" if act["payload_verified"]
+                              else ("present but NOT verified" if act["payload_exists"]
+                                    else "no payload artifact"))
+            summary = act.get("payload_summary") or {}
+            summary_html = (f"<div class='muted'>payload: {_esc(json.dumps(summary))}</div>"
+                             if summary else "")
+            detail_html = f"<div class='muted'>payload: {payload_label}</div>{summary_html}"
+            btn_label = "Execute approved file action"
+        elif act["kind"] == "run_command":
+            cp = act.get("command_preview")
+            if cp:
+                detail_html = (
+                    f"<div class='muted'>command: {_esc(cp['label'])} "
+                    "(exact allowlisted command only)</div>"
+                    f"<div class='muted'>argv: {_esc(json.dumps(cp['argv']))}</div>"
+                    f"<div class='muted'>timeout: {_esc(cp['timeout_seconds'])}s &middot; "
+                    f"output cap: {_esc(cp['output_limit_bytes'])}B &middot; "
+                    f"shell={_esc(cp['shell'])} &middot; runs in the project root</div>")
+            else:
+                detail_html = "<div class='muted'>command does not resolve to an allowlisted argv</div>"
+            btn_label = "Execute approved command"
+        else:
+            btn_label = "Execute"
         btn_html = (
-            f"<button onclick=\"execAction('{_esc(act['id'])}')\">"
-            "Execute approved file action</button>"
+            f"<button onclick=\"execAction('{_esc(act['id'])}','{_esc(act['kind'])}')\">"
+            f"{btn_label}</button>"
             if act["executable"] else "")
         actions_html += (
             f"<div class='card action'>"
             f"<div class='row'><b>{_esc(act['kind'])}: {_esc(act['target'])}</b>"
             f"<span class='pill risk-{_esc(act['risk_level'])}'>"
             f"status: {_esc(act['status'])}</span></div>"
-            f"<div class='muted'>payload: {payload_label} &middot; "
-            f"executable: {_esc(act['executable'])}</div>"
-            f"{summary_html}{result_html}"
+            f"{detail_html}"
+            f"<div class='muted'>executable: {_esc(act['executable'])} "
+            f"({_esc(act['executable_reason'])})</div>"
+            f"{result_html}"
             f"<ul class='findings'>{findings}</ul>"
             f"<div class='btns'>{btn_html}</div></div>")
     if not state.get("actions"):
@@ -313,11 +396,13 @@ def render_html(state: Dict, token: str = "") -> str:
 <h1>AI Council Workbench</h1>
 <div class="muted">Local-only Workbench panel &middot; project: {_esc(state['project'])} &middot; 127.0.0.1</div>
 <div class="banner">Approving <b>only records a decision — it never executes anything.</b>
- Execution of an approved, bounded file action requires a separate, explicit
- <b>Execute</b> click below and a confirmation prompt.</div>
+ Execution of an approved, bounded file action or an exact allowlisted command requires
+ a separate, explicit <b>Execute</b> click below and a confirmation prompt.</div>
 <div class="muted">Workflow: task &rarr; approval card &rarr; approve/reject/hold &rarr; (if a bounded
- file action with a verified payload exists) explicit Execute.</div>
-<div class="muted">This panel offers no `run_command` UI — only bounded file actions with a verified payload can be executed here.</div>
+ file action with a verified payload, or an exact allowlisted command, exists) explicit
+ Execute.</div>
+<div class="muted">Commands: only an exact allowlisted label resolves to a fixed argv (no shell, no
+ dynamic args); execution always runs in the project root and its output is bounded/redacted.</div>
 <div class="controls"><button onclick="createDemo()">Create demo task</button>
  <span class="muted">Seeds a safe local approval (runtime-only; executes nothing).</span></div>
 <h2>Tasks</h2>{tasks_html}
@@ -337,13 +422,23 @@ def render_html(state: Dict, token: str = "") -> str:
    if(!r.ok){{alert('demo failed: '+r.status);return;}}
    location.reload();
  }}
- async function execAction(id){{
-   if(!confirm('This will apply an approved bounded file change. Continue?'))return;
+ async function execAction(id, kind){{
+   const msg = kind==='run_command'
+     ? 'This will run an exact allowlisted command in the project root. Continue?'
+     : 'This will apply an approved bounded file change. Continue?';
+   if(!confirm(msg))return;
    const r=await fetch(`/api/actions/${{id}}/execute`,{{method:'POST',
      headers:{{'X-Workbench-Token':TOKEN}}}});
    const body=await r.json();
    if(!r.ok){{alert('execute failed: '+(body.error||r.status));return;}}
    if(body.blocked){{alert('blocked: '+(body.reason||'blocked by guard'));}}
+   else if(kind==='run_command'){{
+     const out=(body.stdout_summary||'').slice(0,500);
+     const err=(body.stderr_summary||'').slice(0,500);
+     alert('command '+(body.executed?'ran':'did not run')+' - exit='+body.exit_code+
+       ' timed_out='+body.timed_out+' truncated='+body.output_truncated+
+       (out?('\\nstdout: '+out):'')+(err?('\\nstderr: '+err):''));
+   }}
    location.reload();
  }}
 </script>
@@ -426,15 +521,17 @@ def serve(project_root: Optional[Path] = None, port: int = 8765,
           use_token: bool = True) -> int:
     """Blocking CLI entry point: bind localhost, print the URL (+ token), serve until
     Ctrl-C. Localhost-only; approve/reject/hold never execute; execution of an
-    approved, bounded write_file/edit_file action with a verified payload artifact
-    requires a separate, explicit Execute click (PR #77)."""
+    approved, bounded write_file/edit_file action with a verified payload artifact, or
+    an exact allowlisted run_command action, requires a separate, explicit Execute
+    click (PR #77/#81)."""
     token = secrets.token_urlsafe(16) if use_token else ""
     httpd = make_server(project_root, host="127.0.0.1", port=port, token=token)
     host, bound = httpd.server_address[0], httpd.server_address[1]
     url = f"http://{host}:{bound}/"
     print(url + (f"?token={token}" if token else ""))
     print(f"[workbench] localhost-only panel; approving never executes. Executing an "
-          f"approved bounded file action requires an explicit Execute click.")
+          f"approved bounded file action or an exact allowlisted command requires an "
+          f"explicit Execute click.")
     print(f"[workbench] the panel starts empty; use the 'Create demo task' button to seed a "
           f"safe local approval (demo does not create an executable action).")
     if token:

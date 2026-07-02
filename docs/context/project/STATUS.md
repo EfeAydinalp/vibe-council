@@ -136,7 +136,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   timeout (fail-closed, no retry), and bounded/redaction-checked output capture. Every existing gate
   (approval/linkage/scope/fresh trust re-check/resolver) still applies unchanged. No panel/CLI change.
   See [`command executor`](../../decisions/2026-07-02-workbench-command-executor.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: PR #81 panel display for command results.
+- **PR #81 — panel command display landed.** An approved, pending, resolver-allowlisted
+  `run_command` action now shows a content-free command preview (label/argv/timeout/output cap/
+  `shell=false`) and an "Execute approved command" button in the panel, gated by the same invariant as
+  file actions. The browser sends only the action id; the execute handler never reads a request body.
+  Results (exit code, timed-out/truncated flags, bounded/redacted output) come back in the response.
+  This completes the v0.5 guarded-executor track. See
+  [`panel command results`](../../decisions/2026-07-02-workbench-panel-command-results.md).
+- **Current focus:** **v0.5 Workbench MVP** — the guarded executor track (PR #72–#81) is complete.
   Execution stays separate from approval; mobile/voice deferred.
 
 ## Next actions
