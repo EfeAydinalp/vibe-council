@@ -122,8 +122,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   README `uv sync`→bare-`python` example that fails without `uv run`, a stale `workbench serve --help`
   text predating real execution, and a missing venv-interpreter note in the PR #85 checklist itself).
   No executor/panel/CLI behavior changed. See
-  [clean-clone dogfood report](../plans/v0.5.1-clean-clone-dogfood-report.md). LAN/mobile + voice
-  remain deferred to v0.6+.
+  [clean-clone dogfood report](../plans/v0.5.1-clean-clone-dogfood-report.md). **PR #87** followed up
+  on PR #86's leftover-process finding: confirmed it's a **`uv run` process-tree artifact** (killing
+  only the outer `uv` process can leave its python child running; a direct venv-python launch always
+  released cleanly), not a Workbench bug. A simulated Windows `CTRL_C_EVENT` didn't trigger shutdown
+  within 8s either way in automated testing, but no human-attended real interactive terminal was
+  available to confirm or rule out a real bug — stays **inconclusive**, not confirmed; the existing
+  shutdown code already follows the standard, correct pattern. **No code changed.** See
+  [interactive smoke report](../plans/v0.5.1-workbench-interactive-smoke-report.md). LAN/mobile +
+  voice remain deferred to v0.6+.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
