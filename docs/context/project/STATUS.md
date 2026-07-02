@@ -143,8 +143,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   Results (exit code, timed-out/truncated flags, bounded/redacted output) come back in the response.
   This completes the v0.5 guarded-executor track. See
   [`panel command results`](../../decisions/2026-07-02-workbench-panel-command-results.md).
-- **Current focus:** **v0.5 Workbench MVP** — the guarded executor track (PR #72–#81) is complete.
-  Execution stays separate from approval; mobile/voice deferred.
+- **PR #82 — v0.5 release readiness checklist.** Docs-only: what v0.5 contains/excludes, a manual
+  dogfood recipe (the demo seeds **no executable action** — real execution needs a manually seeded
+  temp-project fixture), and smoke/security/release-blocker checklists before a v0.5.0 tag. Flags
+  rising context-pack budget pressure — future decision records should stay concise. See
+  [`release readiness`](../../decisions/2026-07-02-v0.5-release-readiness.md).
+- **Current focus:** **v0.5 Workbench MVP** — the guarded executor track (PR #72–#81) is complete and
+  readiness-checked (PR #82); not yet tagged. Next: dogfood on a real small repo, fix rough edges,
+  then release notes. Execution stays separate from approval; mobile/voice deferred.
 
 ## Next actions
 

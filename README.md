@@ -732,19 +732,26 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
 
 **Near-term:**
 
-- **v0.5 — AI Council Workbench MVP** *(next; roadmap corrected)* — a user-visible **vertical slice**:
-  a task moves through **visible stages**, an AI proposes a plan/diff, an **audited approval** step
-  (deterministic guards are the boundary; the Approval Auditor is advisory) gates it, and only
-  approved actions run — everything logged. Reuses the v0.2–v0.4 infrastructure (MCP = read-only
-  knowledge source; decisions/context = memory; `.council/` = local runtime). Near-term product name
-  is **"AI Council Workbench"**; a broader **local-first AI project OS** is a **long-term / internal**
-  direction, not near-term external messaging. Landed so far: the gitignored `.council/runtime/` JSON
-  store, a deterministic task orchestrator, the deterministic trust boundary, the advisory Approval
-  Auditor, and a **localhost-only panel** (`vibe workbench serve`) that shows task progress + approval
-  cards and records approve/reject/hold — **decisions only, no action execution yet** (curated
-  `docs/decisions/` stays long-term memory). `vibe workbench serve` opens the localhost panel; it
-  starts empty — use the **"Create demo task"** button to seed a safe local approval. See
-  [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md).
+- **v0.5 — AI Council Workbench MVP** *(guarded-executor track complete; not yet released)* — a
+  user-visible **vertical slice**: a task moves through **visible stages**, an AI proposes a plan/diff,
+  an **audited approval** step (deterministic guards are the boundary; the Approval Auditor is
+  advisory) gates it, and only **approved, explicitly executed** actions run — everything logged.
+  Reuses the v0.2–v0.4 infrastructure (MCP = read-only knowledge source; decisions/context = memory;
+  `.council/` = local runtime). Near-term product name is **"AI Council Workbench"**; a broader
+  **local-first AI project OS** is a **long-term / internal** direction, not near-term external
+  messaging. Landed: the gitignored `.council/runtime/` JSON store, a deterministic task orchestrator,
+  the deterministic trust boundary, the advisory Approval Auditor, and a **localhost-only panel**
+  (`vibe workbench serve`) that shows task progress + approval cards, records approve/reject/hold, and
+  — as a **separate, explicit** step — can **execute** an approved bounded `write_file`/`edit_file`
+  action (behind a verified local payload artifact) or an approved **exact allowlisted** command
+  (fixed argv, `shell=False`, sanitized environment, timeout, bounded/redacted output). Approving never
+  auto-executes; the trust boundary re-runs at execution time; the browser only ever sends an action
+  id. `vibe workbench serve` opens the localhost panel; it starts empty — use the **"Create demo
+  task"** button to seed a safe local approval (the demo intentionally seeds no executable action; see
+  [`docs/plans/v0.5-release-readiness.md`](docs/plans/v0.5-release-readiness.md) for the manual
+  dogfood recipe that does exercise real execution). See
+  [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md) and
+  [`docs/plans/v0.5-guarded-executor.md`](docs/plans/v0.5-guarded-executor.md).
 - **v0.4 read-only MCP / Claude Code workflow** *(shipped in v0.4.0)* — query curated decisions,
   status, and the context pack from Claude Code / local agents with **no write/action authority**.
   Browse the contract with `vibe mcp contract`; run a read-only smoke with `vibe mcp inspect`
