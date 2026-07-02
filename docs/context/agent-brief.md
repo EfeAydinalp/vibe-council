@@ -82,13 +82,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   patch text — and the executor loads/verifies the local payload artifact itself. Approving still
   never executes; a browser `confirm()` adds friction only, not a security boundary. `run_command` is
   not offered by the panel and stays rejected. See
-  [panel execute decision](../decisions/2026-07-02-workbench-panel-execute.md). **Allowlisted command
-  execution is now planned in docs only** (PR #78): a no-shell, fixed-argv allowlist (label → pre-
-  built argv, never string-parsed), extending the existing invariant with a timeout, bounded/redacted
-  output, sanitized environment, fixed project-root cwd, and explicit Windows/Linux-safe resolution.
-  **No execution/executor/panel/CLI change yet — `run_command` still fails closed.** See
-  [command execution plan](../plans/v0.5-command-execution.md). Next: an allowlist/argv model
-  (dry-run only), then real allowlisted execution, then panel display; LAN/mobile + voice remain
+  [panel execute decision](../decisions/2026-07-02-workbench-panel-execute.md). The **command
+  allowlist → fixed-argv resolver now exists** (`backend/workbench_commands.py`, PR #79): a label
+  (e.g. `"vibe lint --redaction"`) resolves only to a hardcoded, `sys.executable`-based argv — never
+  parsed from a string, never OS-launcher-dependent. `run_command` dry-run previews now require
+  **both** the deterministic trust boundary *and* this resolver to pass before `would_execute=True`.
+  **Real command execution still does not exist** — `REAL_EXEC_KINDS` excludes `run_command`, so
+  `execute_action(..., dry_run=False)` for a command still raises `ExecutorError`. See
+  [command preview decision](../decisions/2026-07-02-workbench-command-preview.md). Next: real
+  allowlisted execution behind the full invariant, then panel display; LAN/mobile + voice remain
   deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See

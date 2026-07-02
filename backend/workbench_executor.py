@@ -21,6 +21,13 @@ direct callers). If ``payload`` is omitted, the executor loads the matching
 agreement with the live action/approval/task, and uses its stored payload. A payload
 hash check is **additional** to, never a replacement for, the deterministic trust
 re-check performed by ``validate_execution_invariant``.
+
+**Command preview (PR #79):** for ``run_command`` dry-run previews, the executor also
+consults :mod:`backend.workbench_commands` — a label must resolve to a fixed,
+allowlisted argv **and** pass the deterministic trust boundary before a preview reports
+``would_execute=True``; either gate failing blocks it. This module still never imports
+``subprocess``, and ``REAL_EXEC_KINDS`` still excludes ``run_command`` — real command
+execution stays fail-closed (``ExecutorError``) exactly as before.
 """
 
 from __future__ import annotations
@@ -35,6 +42,7 @@ from typing import Dict, List, Optional
 from . import workbench_runtime as wr
 from . import workbench_trust as wt
 from . import workbench_payloads as wp
+from . import workbench_commands as wc
 
 EXECUTOR = "workbench-executor"
 EXECUTOR_VERSION = 3
@@ -71,6 +79,13 @@ class ExecutionResult:
     executor_version: int = EXECUTOR_VERSION
     started_at: str = ""
     completed_at: str = ""
+    # PR #79: populated only for a successfully-previewed run_command dry-run.
+    command_label: str = ""
+    command_argv: List[str] = field(default_factory=list)
+    command_timeout_seconds: int = 0
+    command_output_limit_bytes: int = 0
+    command_cwd: str = ""
+    command_shell: bool = False
 
 
 def _now() -> str:
@@ -141,6 +156,29 @@ def validate_execution_invariant(action, approval, task, project_root: Optional[
     if ev.blocked:
         return blocked(ev.reason or "trust boundary blocked", findings=ev.findings,
                        risk=ev.risk_level)
+
+    if kind == "run_command":
+        # Two independent gates, both required (PR #79): trust already passed above;
+        # the command must ALSO resolve to a fixed, allowlisted argv via the resolver.
+        # Neither gate can authorize alone — this only ever narrows would_execute,
+        # never widens it. REAL_EXEC_KINDS still excludes run_command, so real
+        # execution stays fail-closed regardless of this preview's outcome.
+        cp = wc.preview_command(target, project_root=project_root)
+        if not cp.would_execute:
+            return blocked(cp.reason or "command not resolvable", risk="blocked")
+        return ExecutionResult(
+            action_id=aid, approval_id=apid, task_id=tid, kind=kind, dry_run=True,
+            executed=False, allowed=ev.allowed, blocked=False, would_execute=True,
+            risk_level=ev.risk_level, findings=list(ev.findings),
+            preview=(f"[dry-run] would RUN allowlisted command `{cp.label}` "
+                     f"(argv={cp.argv}, timeout={cp.timeout_seconds}s, "
+                     f"cap={cp.output_limit_bytes}B, shell=False; not executed)."),
+            reason="invariant + command resolver satisfied; dry-run only (nothing executed)",
+            started_at=now, completed_at=now,
+            command_label=cp.label, command_argv=list(cp.argv),
+            command_timeout_seconds=cp.timeout_seconds,
+            command_output_limit_bytes=cp.output_limit_bytes,
+            command_cwd=cp.cwd, command_shell=cp.shell)
 
     return ExecutionResult(
         action_id=aid, approval_id=apid, task_id=tid, kind=kind, dry_run=True,

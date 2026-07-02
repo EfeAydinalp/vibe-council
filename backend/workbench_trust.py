@@ -64,6 +64,7 @@ _ALLOWED_COMMANDS = (
     "python -m unittest discover -s tests -t .",
     "vibe lint --redaction",
     "vibe decisions lint",
+    "vibe context build",
     "vibe context check",
     "vibe mcp inspect --context --health",
 )

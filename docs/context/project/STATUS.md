@@ -124,9 +124,14 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   **No execution/executor/panel/CLI change — `run_command` still fails closed.** See
   [`command execution plan`](../../plans/v0.5-command-execution.md) and
   [`decision`](../../decisions/2026-07-02-workbench-command-execution-plan.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: PR #79 allowlist/argv model (dry-run only), then
-  PR #80 real allowlisted execution, then PR #81 panel display. Execution stays separate from
-  approval; mobile/voice deferred.
+- **PR #79 — command allowlist/argv resolver + dry-run preview landed.**
+  `backend/workbench_commands.py`: fixed label → argv allowlist (`sys.executable`-based, no
+  OS-specific `vibe` launcher), pure `preview_command`. `run_command` dry-run now requires **both**
+  the trust boundary and this resolver to pass before `would_execute=True`. Real execution still
+  absent — `run_command` still fails closed. See
+  [`command preview`](../../decisions/2026-07-02-workbench-command-preview.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: PR #80 real allowlisted execution, then PR #81
+  panel display. Execution stays separate from approval; mobile/voice deferred.
 
 ## Next actions
 
