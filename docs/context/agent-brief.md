@@ -82,8 +82,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   patch text — and the executor loads/verifies the local payload artifact itself. Approving still
   never executes; a browser `confirm()` adds friction only, not a security boundary. `run_command` is
   not offered by the panel and stays rejected. See
-  [panel execute decision](../decisions/2026-07-02-workbench-panel-execute.md). Next: optional
-  allowlisted-command execution; LAN/mobile + voice remain deferred.
+  [panel execute decision](../decisions/2026-07-02-workbench-panel-execute.md). **Allowlisted command
+  execution is now planned in docs only** (PR #78): a no-shell, fixed-argv allowlist (label → pre-
+  built argv, never string-parsed), extending the existing invariant with a timeout, bounded/redacted
+  output, sanitized environment, fixed project-root cwd, and explicit Windows/Linux-safe resolution.
+  **No execution/executor/panel/CLI change yet — `run_command` still fails closed.** See
+  [command execution plan](../plans/v0.5-command-execution.md). Next: an allowlist/argv model
+  (dry-run only), then real allowlisted execution, then panel display; LAN/mobile + voice remain
+  deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
