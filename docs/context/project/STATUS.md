@@ -108,10 +108,13 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   requirements. **No code/schema/helper/executor/panel/`run_command` changes.** See
   [`payload bridge plan`](../../plans/v0.5-payload-bridge.md) and
   [`decision`](../../decisions/2026-07-02-workbench-payload-bridge.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: PR #76 implements the payload store + hash/scope
-  verification designed in PR #75, then PR #77 panel **execute button** + result display, then PR #78
-  (optional) exact **allowlisted command** execution. Execution stays separate from approval; the guard
-  re-runs at execution time; mobile/voice deferred.
+- **PR #76 — payload store + executor hash verification landed.** `backend/workbench_payloads.py`
+  implements the PR #75 design (write-once hashed artifacts over `.council/runtime/payloads/`); the
+  executor now loads and verifies one (hash + kind/target/approval/task) when called without an
+  explicit `payload`, **additional to** the fresh trust re-check. No panel/`run_command` change. See
+  [`payload store`](../../decisions/2026-07-02-workbench-payload-store.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: PR #77 panel **execute button**, then PR #78
+  (optional) allowlisted commands. Execution stays separate from approval; mobile/voice deferred.
 
 ## Next actions
 
