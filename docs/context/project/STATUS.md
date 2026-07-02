@@ -113,8 +113,13 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   executor now loads and verifies one (hash + kind/target/approval/task) when called without an
   explicit `payload`, **additional to** the fresh trust re-check. No panel/`run_command` change. See
   [`payload store`](../../decisions/2026-07-02-workbench-payload-store.md).
-- **Current focus:** **v0.5 Workbench MVP** — next: PR #77 panel **execute button**, then PR #78
-  (optional) allowlisted commands. Execution stays separate from approval; mobile/voice deferred.
+- **PR #77 — panel execute button landed.** `backend/workbench_panel.py`: `build_state()` gains a
+  content-free per-action payload/risk/`executable` view; `POST /api/actions/<action_id>/execute`
+  (token-gated, action id only — never content/patch) calls the executor, which loads/verifies the
+  local payload artifact itself. Approve/reject/hold still never execute; `run_command` not offered.
+  See [`panel execute`](../../decisions/2026-07-02-workbench-panel-execute.md).
+- **Current focus:** **v0.5 Workbench MVP** — next: PR #78 (optional) allowlisted commands. Execution
+  stays separate from approval; mobile/voice deferred.
 
 ## Next actions
 

@@ -75,10 +75,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   (`backend/workbench_payloads.py`, PR #76): a local, gitignored, write-once, hashed
   `.council/runtime/payloads/<action_id>.json` artifact carries `write_file`/`edit_file` content, and
   the executor verifies its hash + kind/target/approval/task agreement before real execution —
-  **additional to**, never instead of, the fresh trust re-check. **No panel execute button, no
-  `run_command` execution.** See [payload store decision](../decisions/2026-07-02-workbench-payload-store.md).
-  Next: a panel execute button, then optional allowlisted-command execution; LAN/mobile + voice
-  remain deferred.
+  **additional to**, never instead of, the fresh trust re-check. See
+  [payload store decision](../decisions/2026-07-02-workbench-payload-store.md). The **panel can now
+  execute** an approved bounded file action (`backend/workbench_panel.py`, PR #77): the browser sends
+  only an action id to `POST /api/actions/<action_id>/execute` (token-gated) — never file content or
+  patch text — and the executor loads/verifies the local payload artifact itself. Approving still
+  never executes; a browser `confirm()` adds friction only, not a security boundary. `run_command` is
+  not offered by the panel and stays rejected. See
+  [panel execute decision](../decisions/2026-07-02-workbench-panel-execute.md). Next: optional
+  allowlisted-command execution; LAN/mobile + voice remain deferred.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
