@@ -129,8 +129,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   within 8s either way in automated testing, but no human-attended real interactive terminal was
   available to confirm or rule out a real bug — stays **inconclusive**, not confirmed; the existing
   shutdown code already follows the standard, correct pattern. **No code changed.** See
-  [interactive smoke report](../plans/v0.5.1-workbench-interactive-smoke-report.md). LAN/mobile +
-  voice remain deferred to v0.6+.
+  [interactive smoke report](../plans/v0.5.1-workbench-interactive-smoke-report.md). **PR #88**
+  corrects that finding: a maintainer's real manual Ctrl+C test was clean (prompt returned
+  immediately); the `netstat` listener seen afterward on the default port was an unrelated local
+  service (`PhoneScriptRunner`), not vibe-council — **no confirmed shutdown or `0.0.0.0`-bind bug**.
+  Added defense-in-depth anyway: `make_server()` re-checks the actual bound address after `bind()`,
+  `effective_bind_host()`/`_startup_lines()` make the printed URL provably match what's really bound,
+  and a new regression test simulates Ctrl+C and asserts `server_close()` actually closes the socket.
+  No change to the blocking serve loop or a new CLI flag — neither was warranted. LAN/mobile + voice
+  remain deferred to v0.6+.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
