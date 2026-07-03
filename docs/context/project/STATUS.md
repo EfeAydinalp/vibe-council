@@ -184,10 +184,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   code already follows the standard, correct pattern. A clean scratch-directory first-run pass (empty
   state, demo, approve, token-gating) all matched expectations. **No code changed.** See
   [`interactive smoke report`](../../plans/v0.5.1-workbench-interactive-smoke-report.md).
-- **Current focus:** **v0.5.1 dogfood & hardening** — clean-clone/Windows + interactive/shutdown
-  passes done (PR #86–#87); next is a Linux/CI-leg confirmation, a real human-attended Ctrl+C check,
-  and a real small (non-`vibe-council`) repo pass, then triaging any further findings into small fixes
-  vs. explicitly-deferred v0.6+ scope (agent-to-Workbench bridge, personalization, mobile/LAN/voice,
+- **PR #88 — Windows shutdown/bind hardening, and a correction.** A maintainer's real manual Ctrl+C
+  test (`uv run python -m backend.cli workbench serve`, Ctrl+C, prompt returned) was clean; a `netstat`
+  listener seen afterward on the default port was fingerprinted as an unrelated local service
+  (`PhoneScriptRunner`), not vibe-council — **corrects PR #87's "inconclusive" Ctrl+C finding: no
+  confirmed shutdown or 0.0.0.0-bind bug.** Added defense-in-depth anyway: `make_server()` re-checks
+  the actual bound address after `bind()` (not just the requested host string); `effective_bind_host()`
+  and a pure, testable `_startup_lines()` helper so the printed URL can never drift from what's really
+  bound; a regression test simulating Ctrl+C (`KeyboardInterrupt` from `serve_forever()`) that asserts
+  `server_close()` really closes the socket. No change to the blocking serve loop, no new CLI flag —
+  neither was warranted. See
+  [`interactive smoke report`](../../plans/v0.5.1-workbench-interactive-smoke-report.md) §7.
+- **Current focus:** **v0.5.1 dogfood & hardening** — clean-clone/Windows, interactive/shutdown, and
+  bind-hardening passes done (PR #86–#88); next is a Linux/CI-leg confirmation and a real small
+  (non-`vibe-council`) repo pass, then triaging any further findings into small fixes vs.
+  explicitly-deferred v0.6+ scope (agent-to-Workbench bridge, personalization, mobile/LAN/voice,
   hosted/team). Execution stays separate from approval; mobile/voice deferred.
 
 ## Next actions

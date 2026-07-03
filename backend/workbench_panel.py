@@ -505,16 +505,56 @@ class _Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": "not found"})
 
 
+_LOOPBACK_ADDRS = ("127.0.0.1", "::1")
+
+
+def effective_bind_host(httpd: HTTPServer) -> str:
+    """The address a bound server is actually listening on (``httpd.server_address[0]``)
+    — the single place tests/callers should read this from, rather than reaching into
+    ``server_address`` directly everywhere."""
+    return httpd.server_address[0]
+
+
 def make_server(project_root: Optional[Path] = None, host: str = "127.0.0.1",
                 port: int = 0, token: Optional[str] = None) -> HTTPServer:
     """Create (bind) a localhost-only panel server. Refuses non-local hosts. Does not
-    call ``serve_forever`` — the caller controls the loop."""
+    call ``serve_forever`` — the caller controls the loop.
+
+    Belt-and-suspenders: even though only ``_LOCAL_HOSTS`` values are accepted as input,
+    the **actual bound address is re-checked after ``bind()``** — if ``host="localhost"``
+    ever resolved to something other than a loopback address (e.g. a misconfigured
+    ``hosts`` file), the socket is closed immediately and this raises rather than
+    silently serving on an unexpected interface."""
     if host not in _LOCAL_HOSTS:
         raise ValueError("workbench panel is localhost-only (host must be 127.0.0.1)")
     httpd = HTTPServer((host, port), _Handler)
+    bound = effective_bind_host(httpd)
+    if bound not in _LOOPBACK_ADDRS:
+        httpd.server_close()
+        raise ValueError(
+            f"workbench panel refuses to serve on non-loopback bind address {bound!r} "
+            f"(requested host {host!r})")
     httpd.project_root = project_root  # type: ignore[attr-defined]
     httpd.token = token or ""          # type: ignore[attr-defined]
     return httpd
+
+
+def _startup_lines(httpd: HTTPServer, token: str) -> List[str]:
+    """The lines `serve()` prints at startup — a pure, testable helper so the printed
+    URL's host can be asserted without blocking on `serve_forever()`. The URL is built
+    from the server's *actual* bound address (`effective_bind_host`), never a hardcoded
+    string, so it can never drift from what was really bound."""
+    host, bound = effective_bind_host(httpd), httpd.server_address[1]
+    url = f"http://{host}:{bound}/"
+    lines = [url + (f"?token={token}" if token else "")]
+    lines.append("[workbench] localhost-only panel; approving never executes. Executing an "
+                 "approved bounded file action or an exact allowlisted command requires an "
+                 "explicit Execute click.")
+    lines.append("[workbench] the panel starts empty; use the 'Create demo task' button to seed a "
+                 "safe local approval (demo does not create an executable action).")
+    if token:
+        lines.append(f"[workbench] POST token: {token}")
+    return lines
 
 
 def serve(project_root: Optional[Path] = None, port: int = 8765,
@@ -523,19 +563,12 @@ def serve(project_root: Optional[Path] = None, port: int = 8765,
     Ctrl-C. Localhost-only; approve/reject/hold never execute; execution of an
     approved, bounded write_file/edit_file action with a verified payload artifact, or
     an exact allowlisted run_command action, requires a separate, explicit Execute
-    click (PR #77/#81)."""
+    click (PR #77/#81). ``KeyboardInterrupt`` (Ctrl-C) always reaches ``server_close()``
+    via the ``finally`` block, so the listening socket is released even on interrupt."""
     token = secrets.token_urlsafe(16) if use_token else ""
     httpd = make_server(project_root, host="127.0.0.1", port=port, token=token)
-    host, bound = httpd.server_address[0], httpd.server_address[1]
-    url = f"http://{host}:{bound}/"
-    print(url + (f"?token={token}" if token else ""))
-    print(f"[workbench] localhost-only panel; approving never executes. Executing an "
-          f"approved bounded file action or an exact allowlisted command requires an "
-          f"explicit Execute click.")
-    print(f"[workbench] the panel starts empty; use the 'Create demo task' button to seed a "
-          f"safe local approval (demo does not create an executable action).")
-    if token:
-        print(f"[workbench] POST token: {token}")
+    for line in _startup_lines(httpd, token):
+        print(line)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

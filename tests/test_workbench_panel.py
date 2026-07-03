@@ -148,6 +148,66 @@ class TestPureState(unittest.TestCase):
         with self.assertRaises(ValueError):
             wp.make_server(self.root, host="0.0.0.0")
 
+    # --- Windows shutdown/bind hardening (PR #88) ---------------------------- #
+
+    def test_make_server_default_host_is_127_0_0_1(self):
+        httpd = wp.make_server(self.root, port=0)
+        try:
+            self.assertEqual(wp.effective_bind_host(httpd), "127.0.0.1")
+            self.assertEqual(httpd.server_address[0], "127.0.0.1")
+        finally:
+            httpd.server_close()
+
+    def test_make_server_rejects_0_0_0_0(self):
+        with self.assertRaises(ValueError):
+            wp.make_server(self.root, host="0.0.0.0", port=0)
+
+    def test_make_server_rejects_empty_string_host(self):
+        # an empty host string is how socketserver spells "bind all interfaces" -- must
+        # never be accepted, even though it isn't literally the string "0.0.0.0".
+        with self.assertRaises(ValueError):
+            wp.make_server(self.root, host="", port=0)
+
+    def test_startup_lines_use_the_actual_bound_host(self):
+        httpd = wp.make_server(self.root, port=0)
+        try:
+            lines = wp._startup_lines(httpd, token="tok")
+            self.assertTrue(lines[0].startswith("http://127.0.0.1:"))
+            self.assertIn("?token=tok", lines[0])
+            self.assertIn(str(httpd.server_address[1]), lines[0])
+        finally:
+            httpd.server_close()
+
+    def test_startup_lines_omit_token_query_when_no_token(self):
+        httpd = wp.make_server(self.root, port=0)
+        try:
+            lines = wp._startup_lines(httpd, token="")
+            self.assertNotIn("?token=", lines[0])
+            self.assertFalse(any("POST token" in line for line in lines))
+        finally:
+            httpd.server_close()
+
+    def test_serve_closes_the_socket_on_keyboard_interrupt(self):
+        # Simulate Ctrl-C without blocking on a real serve_forever() loop or spawning a
+        # thread: make the created server's serve_forever raise KeyboardInterrupt
+        # immediately, and confirm serve() still reaches server_close() via `finally`.
+        created = {}
+        real_make_server = wp.make_server
+
+        def spy_make_server(*args, **kwargs):
+            httpd = real_make_server(*args, **kwargs)
+            httpd.serve_forever = lambda: (_ for _ in ()).throw(KeyboardInterrupt())
+            created["httpd"] = httpd
+            return httpd
+
+        wp.make_server = spy_make_server
+        try:
+            rc = wp.serve(self.root, port=0, use_token=False)
+        finally:
+            wp.make_server = real_make_server
+        self.assertEqual(rc, 0)
+        self.assertEqual(created["httpd"].socket.fileno(), -1)  # closed
+
     # --- dogfood usability polish (PR #71) ---------------------------------- #
 
     def test_empty_state_offers_demo(self):
