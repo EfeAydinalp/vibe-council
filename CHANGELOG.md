@@ -5,14 +5,72 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.5.0` is prepared. The repo reports `0.5.0`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.5.0` git tag + GitHub Release are cut by a
+> **Status:** `0.5.1` is prepared. The repo reports `0.5.1`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.5.1` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.5.0 changes will be listed here as normal Keep-a-Changelog deltas
+_Nothing yet. Post-0.5.1 changes will be listed here as normal Keep-a-Changelog deltas
 (Added / Changed / Fixed / Removed)._
+
+## [0.5.1] - 2026-07-03
+
+**Dogfood & hardening patch — no new product surface.** Mirrors the v0.3→v0.3.1 precedent: a
+checklist-driven pass finding and fixing rough edges in the v0.5.0 Workbench MVP, not adding
+capability. No executor/panel behavior changes beyond what's listed here, no command allowlist
+growth, no v0.6 work.
+
+### Verified
+
+- **Clean-clone / Windows dogfood** (PR #86) — fresh `git clone` → `uv sync` → version/doctor/
+  status/presets → full test suite → lint/decisions/context/MCP checks, plus an HTTP-level
+  Workbench panel smoke, all matching the dev checkout.
+- **Workbench interactive smoke** (PR #87) — a clean scratch-directory first run (empty state,
+  demo, approve, token-gating) matched expectations end-to-end.
+- **Manual execution dogfood** (PR #89) — the real guarded-executor path, previously untested
+  through the panel: a manually-seeded `write_file` action and a manually-seeded `run_command`
+  action both executed successfully through the panel's real HTTP API in a temp/safe project;
+  both a non-allowlisted command and a missing payload artifact failed closed; a crafted request
+  body (different target/content/command/argv/env/cwd/timeout) had **zero effect** on what
+  actually ran.
+
+### Fixed
+
+- **Workbench localhost bind/shutdown hardening** (PR #88) — `make_server()` now re-checks the
+  actual bound address after `bind()` (defense-in-depth; no confirmed `0.0.0.0`-bind bug was ever
+  found), and a new regression test locks in that `server_close()` actually closes the socket on
+  `Ctrl+C`/`KeyboardInterrupt`.
+- **`ExecutionResult.dry_run` metadata bug** (PR #89) — every real (non-preview) execution
+  response incorrectly reported `dry_run: true` alongside `executed: true`; now correctly `false`.
+  Display/metadata only — did not change what the executor was willing to run.
+- **Misleading `run_command` panel message** (PR #89) — a completed or blocked command action's
+  card could falsely claim "does not resolve to an allowlisted argv" even when it had already run
+  successfully; the card now shows the actual target/status instead.
+- **`uv.lock` self-version drift** (PR #90) — the local `vibe-council` package entry in `uv.lock`
+  had read a stale `0.2.0` since before `v0.3.0`, causing an accidental lockfile diff on every
+  `uv sync`/`uv run`. Synced to match `pyproject.toml`/`backend/__init__.py`; no dependency package
+  versions changed.
+
+### Unchanged (security posture)
+
+Nothing here relaxes or expands the v0.5.0 security model:
+
+- Approval is still **separate from execution** — approving never auto-executes.
+- The panel is still **localhost-only (`127.0.0.1`)** and **POSTs are still token-gated**.
+- Payload artifacts are still **local, gitignored, write-once, and hash-verified**.
+- Command execution is still **fixed argv + `shell=False`, always** — no dynamic arguments, no
+  arbitrary shell, no new allowlist entries.
+
+### Explicit non-goals (deferred, not started)
+
+No v0.6 agent-to-Workbench bridge · no personalization/profile implementation · no mobile/LAN/
+voice access · no hosted/team/cloud work · no command allowlist expansion.
+
+### Verification
+
+- 576 tests pass; redaction lint 0 critical; decisions lint passes; `context check` 21/21; MCP
+  health 21/21.
 
 ## [0.5.0] - 2026-07-02
 

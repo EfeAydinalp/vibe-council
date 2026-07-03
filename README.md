@@ -693,21 +693,25 @@ them.
 
 ## Roadmap / next ideas
 
-**Recently shipped (v0.5.0 — AI Council Workbench MVP, guarded execution):** a task moves through
-**visible stages**, an AI proposes a change, an **audited approval** step gates it (deterministic
-guards are the boundary; the Approval Auditor is advisory only), and — as a **separate, explicit**
-step — an approved action can actually run: a bounded `write_file`/`edit_file` behind a verified local
-payload artifact, or an exact allowlisted command behind a fixed-argv resolver (`shell=False`,
-sanitized environment, timeout, bounded/redacted output). Approving never auto-executes; the trust
-boundary re-runs at execution time; the browser only ever sends an action id. Localhost-only panel
-(`vibe workbench serve`). See [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md). (v0.4.0 shipped
-the read-only MCP / Claude Code workflow — `vibe mcp contract` / `inspect` / `serve --stdio`, a
-minimal **stdlib** JSON-RPC stdio transport, no `mcp` SDK, in-memory context reads. v0.3.1 hardened
-the decision-memory / context loop; v0.3.0 shipped the redaction guard, the curated decision CLI,
-draft extraction + safe promotion, the context-pack builder/check/export, operator status, and the
-license/provenance "Question 0" checklist; v0.2.0 shipped the provider abstraction + local Ollama +
-`vibe doctor`; v0.1.0 shipped the first-run API-key guard, `vibe models`/`presets`/`--version`, CI,
-and decision memory.)
+**Recently shipped (v0.5.1 — Workbench dogfood & hardening patch):** a checklist-driven hardening
+pass over the v0.5.0 AI Council Workbench MVP — clean-clone/Windows dogfood, an interactive
+Workbench smoke pass, localhost bind/shutdown defense-in-depth, a manual execution dogfood pass
+that exercised the real guarded-executor path end-to-end (file write + allowlisted command, both
+through the panel's actual HTTP API, both with crafted-request-body override attempts confirmed to
+have zero effect), and a `uv.lock` self-version hygiene fix. **No new command, no new panel
+capability, no allowlist growth.** See [`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md). (v0.5.0
+shipped the AI Council Workbench MVP itself: a task moves through **visible stages**, an AI proposes
+a change, an **audited approval** step gates it (deterministic guards are the boundary; the Approval
+Auditor is advisory only), and — as a **separate, explicit** step — an approved action can actually
+run: a bounded `write_file`/`edit_file` behind a verified local payload artifact, or an exact
+allowlisted command behind a fixed-argv resolver (`shell=False`, sanitized environment, timeout,
+bounded/redacted output). v0.4.0 shipped the read-only MCP / Claude Code workflow — `vibe mcp
+contract` / `inspect` / `serve --stdio`, a minimal **stdlib** JSON-RPC stdio transport, no `mcp` SDK,
+in-memory context reads. v0.3.1 hardened the decision-memory / context loop; v0.3.0 shipped the
+redaction guard, the curated decision CLI, draft extraction + safe promotion, the context-pack
+builder/check/export, operator status, and the license/provenance "Question 0" checklist; v0.2.0
+shipped the provider abstraction + local Ollama + `vibe doctor`; v0.1.0 shipped the first-run
+API-key guard, `vibe models`/`presets`/`--version`, CI, and decision memory.)
 
 **The v0.3 decision-memory / context loop:**
 
@@ -726,14 +730,15 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.5.0 — AI Council Workbench MVP (guarded execution).** The repo reports
-`0.5.0` and the `v0.5.0` git tag is cut; the GitHub Release is a separate manual step. A task moves
-through visible stages, an audited approval gates it, and an approved bounded file action or exact
-allowlisted command can be explicitly executed — approving never auto-executes, and the deterministic
-trust boundary re-runs at execution time. **Next: a v0.5.1 dogfood/hardening pass**
-(`docs/plans/v0.5.1-dogfood-hardening.md`) — fresh-install, Workbench, Windows-specific, and security-
-regression checklists before any v0.6 feature work. See [`CHANGELOG.md`](CHANGELOG.md) and
-[`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md) for the notes (v0.4.0:
+**Release status:** **v0.5.1 — Workbench dogfood & hardening patch.** The repo reports `0.5.1`; the
+`v0.5.1` git tag and GitHub Release are cut by a maintainer right after the release PR merges. This
+is a checklist-driven hardening pass over v0.5.0 — no new command, no new panel capability, no
+allowlist growth (see [`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md) for the full findings).
+The underlying v0.5.0 Workbench model is unchanged: a task moves through visible stages, an audited
+approval gates it, and an approved bounded file action or exact allowlisted command can be explicitly
+executed — approving never auto-executes, and the deterministic trust boundary re-runs at execution
+time. See [`CHANGELOG.md`](CHANGELOG.md) and [`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md) for
+the notes (v0.5.0: [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md); v0.4.0:
 [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md); v0.3.1:
 [`docs/releases/v0.3.1.md`](docs/releases/v0.3.1.md)), and
 [`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an
@@ -742,7 +747,7 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
 
 **Near-term:**
 
-- **v0.5 — AI Council Workbench MVP** *(shipped in v0.5.0; GitHub Release still pending)* — a
+- **v0.5 — AI Council Workbench MVP** *(shipped in v0.5.0; hardened in v0.5.1)* — a
   user-visible **vertical slice**: a task moves through **visible stages**, an AI proposes a plan/diff,
   an **audited approval** step (deterministic guards are the boundary; the Approval Auditor is
   advisory) gates it, and only **approved, explicitly executed** actions run — everything logged.
@@ -759,10 +764,12 @@ below. **No commercial-clearance claim; license/provenance remains "Question 0".
   id. `vibe workbench serve` opens the localhost panel; it starts empty — use the **"Create demo
   task"** button to seed a safe local approval (the demo intentionally seeds no executable action; see
   [`docs/plans/v0.5-release-readiness.md`](docs/plans/v0.5-release-readiness.md) for the manual
-  dogfood recipe that does exercise real execution). Release notes are in
-  [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md); the repo reports `0.5.0` and the `v0.5.0` git
-  tag is cut (GitHub Release still a separate manual step). Next up:
-  [`v0.5.1` dogfood/hardening](docs/plans/v0.5.1-dogfood-hardening.md), before any v0.6 feature work.
+  dogfood recipe that does exercise real execution — now proven end-to-end through the panel's real
+  HTTP API by v0.5.1's manual execution dogfood pass). Release notes: `v0.5.0`:
+  [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md); `v0.5.1` (dogfood/hardening patch):
+  [`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md). The repo reports `0.5.1`; the `v0.5.1` git tag
+  and GitHub Release are cut once this release-prep PR merges. Next up: v0.6 scoping (the
+  agent-to-Workbench bridge is the leading candidate — not started).
   See [`docs/plans/v0.5-workbench-mvp.md`](docs/plans/v0.5-workbench-mvp.md) and
   [`docs/plans/v0.5-guarded-executor.md`](docs/plans/v0.5-guarded-executor.md).
 - **v0.4 read-only MCP / Claude Code workflow** *(shipped in v0.4.0)* — query curated decisions,

@@ -5,7 +5,7 @@ hand-written **dogfood seed**, not generated output — it distills the committe
 under [`docs/decisions/`](../decisions/). Future *generated* agent briefs should default to a
 local, gitignored location and be committed only by explicit, redacted opt-in.
 
-_Last curated: 2026-07-03 (vibe-council 0.5.0)._
+_Last curated: 2026-07-03 (vibe-council 0.5.1)._
 
 ## Project identity
 
@@ -151,8 +151,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   `pyproject.toml`/`backend/__init__.py` stayed correctly at `0.5.0` — `uv sync` deterministically
   rewrites exactly that one line, no dependency versions changed, and a second `uv sync` is a no-op.
   Committed (precedent: an earlier `1d6a3b9` commit did the same kind of self-metadata sync), stopping
-  the accidental `uv.lock` diff several v0.5.1 passes had to avoid staging. This closes v0.5.1's exit
-  criteria — release prep is next.
+  the accidental `uv.lock` diff several v0.5.1 passes had to avoid staging. This closed v0.5.1's exit
+  criteria. **PR #91** is v0.5.1 release prep: `backend/__init__.py`/`pyproject.toml` now report
+  `0.5.1`, `uv.lock`'s self-version entry is synced to match (one line, no dependency change),
+  `CHANGELOG.md` gained a dated `[0.5.1]` section, and
+  [`docs/releases/v0.5.1.md`](../releases/v0.5.1.md) documents the patch — clean-clone/Windows
+  dogfood, interactive Workbench smoke, localhost bind/shutdown hardening, manual execution
+  dogfood, and `uv.lock` hygiene (PR #86–#90), with the security posture explicitly unchanged. **No
+  new command surface, no allowlist growth, no tag, no GitHub Release** in this PR — the `v0.5.1`
+  git tag and GitHub Release are a separate, manual step once it merges.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
