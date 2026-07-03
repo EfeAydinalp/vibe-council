@@ -208,9 +208,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   badge (role + `proposal_id`, all HTML-escaped) so they're distinct from demo/manual tasks —
   display-only, derived from the task `agent:<name>` source + a read-only importer lookup
   (`proposal_meta_for_task`); no raw payload in HTML or `/api/state` JSON, no token exposure,
-  approval/execution/Host/token/CORS behavior unchanged. **Budget policy from here: Fable is
-  technical lead/architect only; Opus/Sonnet implement routine PRs** — the remaining v0.6.0 sequence
-  (agent bridge docs → v0.6.0 release prep) with copy-paste prompts is in
+  approval/execution/Host/token/CORS behavior unchanged. **v0.6 phase 4** documents the bridge in
+  [`docs/workbench-agent-bridge.md`](workbench-agent-bridge.md) (overview/flow, safety model, CLI
+  usage, safe examples, rejected-example/dedup/conflict cases, agent + operator workflows), with
+  README + `docs/agent-quickstart.md` §10 pointers — docs only. **Budget policy from here: Fable is
+  technical lead/architect only; Opus/Sonnet implement routine PRs** — the last v0.6.0 step (v0.6.0
+  release prep) with a copy-paste prompt is in
   [`docs/fable/v0.6-followup-implementation-plan.md`](fable/v0.6-followup-implementation-plan.md).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See

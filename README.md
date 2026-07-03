@@ -748,6 +748,19 @@ and the deterministic trust boundary re-runs at execution time. See [`CHANGELOG.
 early `0.x` release — expect breaking changes between minor versions, and see the honest limitations
 below. **No commercial-clearance claim; license/provenance remains "Question 0".**
 
+**Agent proposal bridge (in progress on `master`, unreleased):** AI agents can **propose** a bounded
+code action into the local Workbench instead of acting directly — a human still approves and
+executes. It's **local file/CLI intake only** (no network endpoint): an agent writes a schema-v1
+proposal JSON and runs
+
+```sh
+vibe workbench propose proposal.json       # or:  vibe workbench propose -   (stdin)
+```
+
+which validates it, mints ids/hash server-side, and records a **pending** approval; nothing runs
+until you approve it in `vibe workbench serve` and explicitly execute it. See
+[`docs/workbench-agent-bridge.md`](docs/workbench-agent-bridge.md).
+
 **Implementation pack:** the phase-by-phase plan for upcoming work (v0.6 agent-to-Workbench bridge,
 onboarding, project vault, personalization, positioning, and the open-core path) lives in
 [`docs/fable/`](docs/fable/README.md) — a structured pack for driving future implementation with a

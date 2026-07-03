@@ -44,6 +44,19 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
   HTML or `/api/state` JSON, no tokens are exposed, and approval/execution semantics, the Host-header
   check, `/api/state` token gating, and CORS behavior are all unchanged.
 
+### Docs
+
+- **Agent proposal bridge guide** (`docs/workbench-agent-bridge.md`) — documents the now-implemented
+  v0.6 flow end to end: an agent writes a schema-v1 proposal JSON, submits it locally via
+  `vibe workbench propose <file | ->`, the Workbench validates/mints ids+hash server-side and records
+  a **pending** approval, the panel shows proposed-by-agent metadata, and a human approves before the
+  **existing** guarded executor runs anything. Covers the safety model (no network endpoint, no
+  auto-execution, no agent-supplied argv/hash/ids, server-side hashing, raw payload stays local),
+  CLI usage/output, safe `write_file`/`edit_file`/`run_command` examples, rejected-example/common-
+  mistake cases (freeform command, smuggled fields, denied paths, `cloud_call`, dedup/conflict), and
+  the agent + human operator workflows. README and `docs/agent-quickstart.md` gain short pointers.
+  Docs only — no code, test, or dependency change.
+
 ## [0.5.2] - 2026-07-03
 
 **Workbench security-hardening patch (+ implementation-pack docs).** A small patch on top of the
