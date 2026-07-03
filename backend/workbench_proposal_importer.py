@@ -319,3 +319,34 @@ def summarize_import(result: ImportResult) -> str:
 def result_to_dict(result: ImportResult) -> Dict:
     """JSON-safe dict for CLI output (stdout stays machine-readable)."""
     return asdict(result)
+
+
+def proposal_meta_for_task(task_id: str,
+                           project_root: Optional[Path] = None) -> Optional[Dict]:
+    """Read-only lookup of an imported proposal's **safe, content-free** metadata for a
+    task, for display surfaces (e.g. the panel): ``{proposal_id, agent_name,
+    agent_role, agent_session}``. Returns None if the task wasn't agent-proposed.
+
+    Never reads or returns raw payload content (payloads live only in the write-once
+    payload artifact; the dedup record stores a fingerprint hash, not content). Scans
+    the small ``.council/runtime/proposals/`` index for the record whose ``task_id``
+    matches; a corrupt/unreadable record is skipped (returns None) rather than raising —
+    this is a display helper, not an authorization path. Mutates nothing."""
+    root = _proposals_root(project_root)
+    if not root.is_dir():
+        return None
+    for p in sorted(root.glob("*.json")):
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(data, dict) or data.get("task_id") != task_id:
+            continue
+        agent = data.get("agent") or {}
+        return {
+            "proposal_id": str(data.get("proposal_id", "")),
+            "agent_name": str(agent.get("name", "")),
+            "agent_role": str(agent.get("role", "")),
+            "agent_session": str(agent.get("session", "")),
+        }
+    return None

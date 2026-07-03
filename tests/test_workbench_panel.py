@@ -901,5 +901,121 @@ class TestExecuteCommandHttp(unittest.TestCase):
         self.assertEqual(a["command_preview"]["label"], "git status --short")
 
 
+class TestAgentProposalDisplay(unittest.TestCase):
+    """The panel surfaces safe 'proposed by agent' metadata for imported proposals
+    (PR: panel agent-proposal visibility) — display-only, never raw payload content,
+    always HTML-escaped."""
+
+    def setUp(self):
+        from backend import workbench_proposal_importer as wimp
+        self.wimp = wimp
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _import(self, **over):
+        prop = {
+            "proposal_schema": 1,
+            "proposal_id": over.get("proposal_id", "prop-panel-1"),
+            "agent": {"name": over.get("agent_name", "claude-code"),
+                      "role": over.get("agent_role", "coder"),
+                      "session": "sess-1"},
+            "title": over.get("title", "Write a note"),
+            "summary": over.get("summary", "adds a small note"),
+            "action": {"kind": "write_file",
+                       "target": over.get("target", "docs/note.md"),
+                       "payload": {"content": over.get("content", "hello agent\n")}},
+        }
+        return self.wimp.import_proposal(prop, project_root=self.root)
+
+    def test_state_includes_safe_agent_metadata(self):
+        self._import()
+        state = wp.build_state(self.root)
+        tv = next(t for t in state["tasks"])
+        prop = tv["proposal"]
+        self.assertIsNotNone(prop)
+        self.assertTrue(prop["proposed_by_agent"])
+        self.assertEqual(prop["agent_name"], "claude-code")
+        self.assertEqual(prop["agent_role"], "coder")
+        self.assertEqual(prop["proposal_id"], "prop-panel-1")
+
+    def test_html_shows_agent_badge(self):
+        self._import()
+        html = wp.render_html(wp.build_state(self.root), token="")
+        self.assertIn("proposed by agent: claude-code", html)
+        self.assertIn("role: coder", html)
+        self.assertIn("proposal id: prop-panel-1", html)
+
+    def test_demo_and_manual_tasks_have_no_agent_badge(self):
+        # a manual (non-agent) task: source is not "agent:*"
+        wo.start_task("manual task", source="panel-demo", project_root=self.root)
+        state = wp.build_state(self.root)
+        tv = next(t for t in state["tasks"])
+        self.assertIsNone(tv["proposal"])
+        html = wp.render_html(state, token="")
+        self.assertNotIn("proposed by agent", html)
+
+    def test_agent_source_without_proposal_record_degrades_gracefully(self):
+        # A task tagged agent:<name> but whose proposals index record is gone (deleted/
+        # never written) still shows the badge with the source-derived name; role and
+        # proposal_id are simply omitted rather than erroring.
+        wo.start_task("orphaned agent task", source="agent:codex",
+                      project_root=self.root)
+        state = wp.build_state(self.root)
+        tv = next(t for t in state["tasks"])
+        self.assertIsNotNone(tv["proposal"])
+        self.assertTrue(tv["proposal"]["proposed_by_agent"])
+        self.assertEqual(tv["proposal"]["agent_name"], "codex")
+        self.assertEqual(tv["proposal"]["agent_role"], "")
+        self.assertEqual(tv["proposal"]["proposal_id"], "")
+        html = wp.render_html(state, token="")
+        self.assertIn("proposed by agent: codex", html)
+
+    def test_raw_payload_not_in_html_or_json_state(self):
+        self._import(content="DISTINCTIVE-PANEL-PAYLOAD-7f\n")
+        state = wp.build_state(self.root)
+        self.assertNotIn("DISTINCTIVE-PANEL-PAYLOAD-7f", json.dumps(state))
+        html = wp.render_html(state, token="")
+        self.assertNotIn("DISTINCTIVE-PANEL-PAYLOAD-7f", html)
+
+    def test_malicious_agent_name_is_escaped(self):
+        self._import(agent_name="<script>alert(1)</script>")
+        state = wp.build_state(self.root)
+        html = wp.render_html(state, token="")
+        self.assertNotIn("<script>alert(1)</script>", html)
+        self.assertIn("&lt;script&gt;", html)  # escaped, not executable
+
+    def test_malicious_title_is_escaped(self):
+        self._import(title="<img src=x onerror=alert(1)>")
+        html = wp.render_html(wp.build_state(self.root), token="")
+        self.assertNotIn("<img src=x onerror=alert(1)>", html)
+        self.assertIn("&lt;img", html)
+
+    def test_state_token_gate_and_no_payload_over_http(self):
+        # /api/state stays token-gated; agent metadata is present, payload is not.
+        import http.client
+        self._import(content="HTTP-DISTINCTIVE-PAYLOAD-9q\n")
+        httpd = wp.make_server(self.root, host="127.0.0.1", port=0, token="T")
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+        try:
+            port = httpd.server_address[1]
+            # no token -> 403 (unchanged behavior)
+            c = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            c.request("GET", "/api/state")
+            self.assertEqual(c.getresponse().status, 403)
+            # with token -> 200, agent metadata present, no raw payload
+            c = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            c.request("GET", "/api/state", headers={"X-Workbench-Token": "T"})
+            r = c.getresponse(); raw = r.read().decode("utf-8")
+            self.assertEqual(r.status, 200)
+            self.assertIn("claude-code", raw)
+            self.assertNotIn("HTTP-DISTINCTIVE-PAYLOAD-9q", raw)
+        finally:
+            httpd.shutdown(); httpd.server_close()
+
+
 if __name__ == "__main__":
     unittest.main()

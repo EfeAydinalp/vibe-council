@@ -285,14 +285,22 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   Advisory audit saved on import. Tests prove an imported `write_file` executes through the
   **existing** executor after approval in a temp project, and blocks without approval. 26 new tests
   (663 total). No execution on import, no network endpoint, no panel change, no allowlist growth.
-- **Model budget policy (binding):** **Fable = technical lead/architect only** from here — routine
-  PRs are implemented by Opus/Sonnet. The remaining v0.6.0 sequence (panel agent badge → bridge docs
-  → v0.6.0 release prep) with copy-paste implementer prompts and stop conditions lives in
+- **v0.6 phase 3 — panel agent-proposal visibility (`backend/workbench_panel.py`).** Imported
+  agent-proposed tasks now show a "proposed by agent: `<name>`" badge (with role + `proposal_id`, all
+  HTML-escaped) so they're visually distinct from demo/manual tasks. **Display-only:** derived from
+  the task's existing `agent:<name>` source plus a **read-only** importer lookup
+  (`proposal_meta_for_task`, scans the local proposals index). No raw payload in HTML or `/api/state`
+  JSON, no token exposure; approval/execution semantics, Host-header validation, `/api/state` token
+  gating, and CORS are all unchanged. 7 new tests (671 total) including escaping/injection and
+  no-payload-leak guarantees. Implemented by Opus/Sonnet per the budget policy (Fable not used).
+- **Model budget policy (binding):** **Fable = technical lead/architect only** — routine PRs are
+  implemented by Opus/Sonnet. The remaining v0.6.0 sequence (agent bridge docs → v0.6.0 release prep)
+  with copy-paste implementer prompts and stop conditions lives in
   [`docs/fable/v0.6-followup-implementation-plan.md`](../../fable/v0.6-followup-implementation-plan.md).
-- **Current focus:** **v0.6.0 agent bridge — phases 1–2 done (schema PR #95, importer PR #96).**
-  Next per the follow-up plan: panel "proposed by agent" badge (display-only), agent bridge docs,
-  then v0.6.0 release prep. No new network endpoint anywhere in v0.6.0. Deferred as before:
-  personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **Current focus:** **v0.6.0 agent bridge — phases 1–3 done (schema PR #95, importer PR #96, panel
+  visibility PR #97).** Next per the follow-up plan: agent bridge docs, then v0.6.0 release prep. No
+  new network endpoint anywhere in v0.6.0. Deferred as before: personalization (v0.7),
+  mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 
