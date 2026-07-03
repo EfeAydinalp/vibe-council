@@ -312,10 +312,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **Model budget policy (binding):** **Fable = technical lead/architect only** — routine PRs are
   implemented by Opus/Sonnet. See
   [`docs/fable/v0.6-followup-implementation-plan.md`](../../fable/v0.6-followup-implementation-plan.md).
-- **Current focus:** **v0.6.0 prepared, not yet tagged.** The agent bridge (PR #95–#98) is complete
-  and release prep (PR #99) is in review; next is the manual tag/GitHub Release step, then scoping
-  the next roadmap phase (v0.6.1 onboarding launcher → v0.6.2 project vault → v0.6.3 cross-project).
-  No new network endpoint anywhere in v0.6.0. Deferred as before: personalization (v0.7),
+- **v0.6.0 is tagged and released** (`v0.6.0` annotated tag pushed; GitHub Release from
+  [`docs/releases/v0.6.0.md`](../../releases/v0.6.0.md)).
+- **v0.6.1 phase 1 — role-aware agent guide (`vibe guide claude --role <role>`).** First onboarding
+  slice per [`docs/fable/07`](../../fable/07-agent-session-launcher.md): a **read-only stdout
+  generator** (no repo writes, no `--write` for roles yet, no `vibe council start`/`/council`) that
+  prints a role-tailored Claude guide for `task-shaper`/`planner`/`coder`/`reviewer`/
+  `release-manager`. Each pairs a role-specific workflow with the common rules (`vibe` not
+  `/council`; council is reviewer/context/memory not implementer; cheap/balanced/full policy;
+  before/after-coding workflow; Workbench propose→approve→execute basics; never-stage list). 10 new
+  tests (682 total). No Workbench/importer/executor/trust change, no dependency change, no version
+  bump.
+- **Current focus:** **v0.6.1 onboarding launcher, phase by phase.** Role-aware `vibe guide` is the
+  first slice; next candidates per the roadmap are `--write` (opt-in AGENTS.md/CLAUDE.md emission,
+  with confirm-before-overwrite) and codex/fable topics, then v0.6.2 project vault → v0.6.3
+  cross-project. No new network endpoint. Deferred as before: personalization (v0.7),
   mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions

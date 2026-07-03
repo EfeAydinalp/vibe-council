@@ -13,7 +13,7 @@ Commands:
     status                           show active workspace info
     last [review|decision|diff|run]  print the latest saved artifact
     help                             usage + workflow help
-    guide claude [--write FILE]      Claude Code instruction block
+    guide claude [--role ROLE] [--write FILE]   Claude Code instruction block (optionally role-aware)
 
 Output goes to stdout; diagnostics (verbose logs, saved paths, model errors,
 workspace notices) go to stderr so stdout stays clean for piping. The API key
@@ -1476,8 +1476,19 @@ def cmd_help(args) -> int:
 
 def cmd_guide(args) -> int:
     if args.topic != "claude":
-        _err("Usage: vibe guide claude [--write FILE]")
+        _err("Usage: vibe guide claude [--role ROLE] [--write FILE]")
         return EXIT_USAGE
+
+    role = getattr(args, "role", None)
+    if role:
+        # Role-aware guide is a read-only stdout generator. `--write` for roles is
+        # intentionally deferred (v0.6.1 phase 1 is read-only; a later slice adds
+        # opt-in file emission with confirm-before-overwrite). If `--write` was also
+        # passed, say so and still print to stdout — never write.
+        if getattr(args, "write", None):
+            _err("[guide] --write is not supported with --role yet; printing to stdout.")
+        print(role_guide(role))
+        return EXIT_OK
 
     target = getattr(args, "write", None)
     if not target:
@@ -1533,7 +1544,7 @@ Common commands:
   vibe operator status                                # show local workflow status (no model)
   vibe --version
   vibe help
-  vibe guide claude
+  vibe guide claude [--role task-shaper|planner|coder|reviewer|release-manager]
 
 Examples:
   vibe review --preset balanced --file plan.md --yes
@@ -1623,6 +1634,115 @@ Rules for agents:
 """
 
 _GUIDE_CLAUDE = "Claude Code instructions for vibe-council:\n\n" + _GUIDE_CLAUDE_SECTION
+
+
+# --------------------------------------------------------------------------- #
+# Role-aware agent guides (v0.6.1; read-only stdout generators — no repo writes)
+# --------------------------------------------------------------------------- #
+
+GUIDE_ROLES = ("task-shaper", "planner", "coder", "reviewer", "release-manager")
+
+_ROLE_BLOCKS = {
+    "task-shaper": """### Role: task-shaper
+
+You turn a vague user ask into a scoped, reviewable plan. You do NOT write code by default.
+
+- Restate the goal in one or two sentences; ask clarifying questions ONLY when a real ambiguity
+  blocks scoping (don't interrogate for detail you can reasonably assume).
+- Run `vibe status` to see the project workspace and any prior context.
+- Read prior decisions first: `vibe decisions context "<topic>"` (no model call).
+- Produce a short `plan.md`: goal, in-scope, explicit non-goals, and acceptance criteria.
+- Recommend a plan review before implementation (`vibe review --preset cheap|balanced --file
+  plan.md --usage`), then hand off to a planner/coder. Do not start coding yourself.""",
+
+    "planner": """### Role: planner
+
+You write and refine the implementation plan. You do NOT implement unless explicitly asked.
+
+- Start from the task-shaper's `plan.md` (or write one). Separate **must-have** from
+  **nice-to-have**, and list explicit non-goals.
+- Get a second opinion when it helps: `vibe review --preset cheap --file plan.md --usage` for
+  routine plans, `--preset balanced` for non-trivial or security-relevant ones.
+- Apply only the useful feedback (correctness, security, cost, missing constraints); skip style
+  nits and speculative rewrites.
+- Break the work into small, individually reviewable PRs, and note the review level each needs.""",
+
+    "coder": """### Role: coder
+
+You implement scoped, small PRs. Read the project context BEFORE coding.
+
+- Before coding: read `docs/context/` and any `plan.md`; confirm scope and non-goals; run
+  `vibe status`.
+- Implement one small, focused change. Match the surrounding code style.
+- After coding: run the project tests, then `vibe diff --preset cheap --usage` (use `--preset
+  balanced` for security-relevant or non-trivial diffs). Apply only useful feedback.
+- **For Workbench actions, PROPOSE — do not bypass approval.** Write a schema-v1 proposal JSON and
+  run `vibe workbench propose <file | ->`; this records a *pending* approval and executes nothing.
+  A human approves/rejects/holds in `vibe workbench serve`, then executes explicitly. See
+  `docs/workbench-agent-bridge.md`. Do not claim a change was applied until an approved action has
+  actually executed.
+- Never stage `.council/`, runtime/payload artifacts, secrets, `.env`, or private local plans.""",
+
+    "reviewer": """### Role: reviewer
+
+You review a plan or a diff and surface what actually matters.
+
+- Review the working diff with `vibe diff --preset cheap --usage` for routine changes;
+  `--preset balanced` for security-relevant or non-trivial diffs; reserve `full` for major
+  architecture/security questions only (it is multi-model and more expensive).
+- Focus on correctness, security-invariant regressions, cost, and missing constraints. Separate
+  must-fix from nice-to-have; apply/recommend only the useful feedback.
+- vibe-council output is advice, not authority — a human (or the main coding agent) owns the final
+  decision.""",
+
+    "release-manager": """### Role: release-manager
+
+You prepare releases carefully and never ship without explicit approval.
+
+- **No git tag, no GitHub Release, no publish unless the user explicitly allows it.** Release prep
+  (version bump + CHANGELOG + release notes) and the tag/Release are separate steps.
+- Mirror the established pattern (`docs/release-checklist.md`): bump `backend/__init__.py` +
+  `pyproject.toml`, run `uv sync`, and confirm `uv.lock`'s only change is the `vibe-council`
+  self-version line (no dependency-graph churn).
+- Verify the gates before proposing a tag: tests green, `vibe lint --redaction` 0 critical,
+  `vibe decisions lint` passes, `vibe context check` 21/21, `vibe mcp inspect --context --health`
+  21/21, and `vibe --version` reports the new version.
+- Never stage private/runtime/generated artifacts (`.council/`, payloads, raw outputs, generated
+  packs/exports, `.env`, `data/`, secrets).""",
+}
+
+_GUIDE_COMMON = """### Common rules (every role)
+
+- **This project's CLI is `vibe`, not `/council`.** `/council` is a possible future host-specific
+  custom command / shell alias — it does NOT exist today; never invoke it as if it did.
+- **vibe-council is a reviewer, context, and decision-memory layer — not an implementer.** Its
+  output is advice a human or the main coding agent must filter and decide on. You own the decision.
+- **Preset policy:** `--preset cheap` for routine/smoke, `--preset balanced` for non-trivial or
+  security-relevant work, `full` only for major roadmap/product/security questions, `premium` only
+  with explicit human approval (`--allow-premium`). Always pass `--usage` on model-spending
+  commands, and `--yes` in non-interactive agent workflows.
+- **Before coding:** `vibe status` → read `docs/context/` + prior decisions → a short `plan.md` →
+  review it. **After coding:** run tests → `vibe diff` → apply only useful feedback.
+- **Workbench proposal bridge:** to make a bounded code change under Workbench approval, an agent
+  PROPOSES via `vibe workbench propose <file | ->` (a *pending* approval; nothing runs), a human
+  approves/rejects/holds, and execution is a separate explicit step through the existing guarded
+  executor. No auto-execution; no arbitrary shell; commands are exact allowlisted labels only.
+- **Never stage / never send to a model:** `.council/`, `.council/runtime/`,
+  `.council/runtime/payloads/`, `.env`, `.venv/`, `data/`, private local plans, raw council
+  outputs, generated packs/exports, secrets/API keys, and unrelated `uv.lock` churn. Keep
+  `.council/` gitignored; never print the `OPENROUTER_API_KEY`."""
+
+
+def role_guide(role: str) -> str:
+    """Build the role-aware Claude guide text (role-specific block + common rules). Pure;
+    writes nothing. Raises ``ValueError`` for an unknown role — argparse already
+    restricts the CLI to ``GUIDE_ROLES``, but this keeps the public helper safe for
+    any direct caller."""
+    block = _ROLE_BLOCKS.get(role)
+    if block is None:
+        raise ValueError(f"unknown guide role '{role}' (roles: {', '.join(GUIDE_ROLES)})")
+    return (f"Claude Code instructions for vibe-council — role: {role}\n\n"
+            f"{block}\n\n{_GUIDE_COMMON}\n")
 
 
 # --------------------------------------------------------------------------- #
@@ -1826,10 +1946,16 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("help", help="Print usage and workflow help.")
 
-    sp_guide = sub.add_parser("guide", help="Print an agent guide (e.g. 'guide claude').")
+    sp_guide = sub.add_parser(
+        "guide",
+        help="Print an agent guide (e.g. 'guide claude', 'guide claude --role coder').")
     sp_guide.add_argument("topic", choices=["claude"])
+    sp_guide.add_argument("--role", choices=list(GUIDE_ROLES),
+                          help="Print a role-specific guide (read-only stdout; no file write). "
+                               "Roles: " + ", ".join(GUIDE_ROLES) + ".")
     sp_guide.add_argument("--write", nargs="?", const="CLAUDE.md", metavar="FILE",
-                          help="Append the workflow section to FILE (default CLAUDE.md).")
+                          help="Append the workflow section to FILE (default CLAUDE.md). "
+                               "Not supported with --role.")
     sp_guide.add_argument("--yes", action="store_true", help="Assume yes for writing.")
 
     return parser

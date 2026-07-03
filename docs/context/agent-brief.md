@@ -220,6 +220,13 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   Release are a separate, manual step once it merges. **Budget policy: Fable is technical
   lead/architect only; Opus/Sonnet implement routine PRs** — see
   [`docs/fable/v0.6-followup-implementation-plan.md`](fable/v0.6-followup-implementation-plan.md).
+  **v0.6.0 is now tagged/released.** **v0.6.1 phase 1** adds a **role-aware agent guide**
+  (`vibe guide claude --role task-shaper|planner|coder|reviewer|release-manager`): a read-only stdout
+  generator (no repo writes, no `--write` for roles yet, no `/council` as a real command) pairing a
+  role-specific workflow with the common rules (`vibe` not `/council`; council is reviewer/context/
+  memory not implementer; cheap/balanced/full policy; before/after-coding workflow; Workbench
+  propose→approve→execute basics; never-stage list). `vibe guide claude` with no role is unchanged.
+  No Workbench/importer/executor/trust/dependency change.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

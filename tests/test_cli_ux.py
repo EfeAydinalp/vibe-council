@@ -97,5 +97,98 @@ class TestDecisionsHelpBoundary(unittest.TestCase):
         self.assertIn("human-reviewed", out)
 
 
+class TestRoleAwareGuide(unittest.TestCase):
+    """Role-aware `vibe guide claude --role <role>` output (v0.6.1). Read-only stdout
+    generator — no repo writes, no model/network."""
+
+    ROLES = ("task-shaper", "planner", "coder", "reviewer", "release-manager")
+
+    def test_plain_guide_still_works(self):
+        r = run_cli(["guide", "claude"])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Vibe Council Workflow", r.stdout)
+
+    def test_each_role_prints_role_specific_content(self):
+        markers = {
+            "task-shaper": "task-shaper",
+            "planner": "must-have",
+            "coder": "PROPOSE",
+            "reviewer": "advice, not authority",
+            "release-manager": "No git tag",
+        }
+        for role in self.ROLES:
+            r = run_cli(["guide", "claude", "--role", role])
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn(f"role: {role}", r.stdout)
+            self.assertIn(f"### Role: {role}", r.stdout)
+            self.assertIn(markers[role], r.stdout,
+                          f"{role}: missing role-specific marker")
+
+    def test_invalid_role_fails_clearly(self):
+        r = run_cli(["guide", "claude", "--role", "nonsense"])
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("invalid choice", r.stderr)
+
+    def test_guide_mentions_vibe_not_council_command(self):
+        r = run_cli(["guide", "claude", "--role", "coder"])
+        self.assertIn("CLI is `vibe`, not `/council`", r.stdout)
+        # /council must be framed as a future idea, never as a runnable command
+        self.assertIn("does NOT exist today", r.stdout)
+
+    def test_guide_includes_no_stage_warnings(self):
+        for role in self.ROLES:
+            r = run_cli(["guide", "claude", "--role", role])
+            out = r.stdout
+            self.assertIn(".council/runtime/payloads/", out, role)
+            self.assertIn("secrets", out, role)
+            self.assertIn("uv.lock", out, role)
+            self.assertIn(".env", out, role)
+
+    def test_coder_role_mentions_workbench_proposal_flow(self):
+        r = run_cli(["guide", "claude", "--role", "coder"])
+        self.assertIn("vibe workbench propose", r.stdout)
+        self.assertIn("pending", r.stdout)
+
+    def test_release_manager_role_mentions_no_tag_without_approval(self):
+        r = run_cli(["guide", "claude", "--role", "release-manager"])
+        self.assertIn("No git tag", r.stdout)
+        self.assertIn("unless the user explicitly allows", r.stdout)
+
+    def test_guide_writes_no_files(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            before = set(p.name for p in root.iterdir())
+            r = run_cli(["guide", "claude", "--role", "coder"], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            after = set(p.name for p in root.iterdir())
+            self.assertEqual(before, after)  # nothing written to the project dir
+
+    def test_write_ignored_with_role_and_prints_to_stdout(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            r = run_cli(["guide", "claude", "--role", "coder", "--write",
+                         str(root / "OUT.md")], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("role: coder", r.stdout)
+            self.assertIn("not supported with --role", r.stderr)
+            self.assertFalse((root / "OUT.md").exists())  # no write happened
+
+    def test_help_lists_role_option(self):
+        r = run_cli(["guide", "--help"])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("--role", r.stdout)
+        self.assertIn("coder", r.stdout)
+
+    def test_parser_choices_match_guide_roles(self):
+        # The --role choices must stay in lockstep with GUIDE_ROLES / _ROLE_BLOCKS.
+        from backend import cli
+        self.assertEqual(set(cli.GUIDE_ROLES), set(self.ROLES))
+        for role in cli.GUIDE_ROLES:
+            self.assertIn(role, cli._ROLE_BLOCKS)
+        # the public helper is defensive for direct (non-argparse) callers
+        with self.assertRaises(ValueError):
+            cli.role_guide("not-a-role")
+
+
 if __name__ == "__main__":
     unittest.main()

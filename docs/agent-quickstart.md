@@ -191,6 +191,21 @@ explicit step through the guarded executor. Never submit a freeform command, `ar
 claim a change was applied until an approved action has actually executed. Full guide + examples:
 [`docs/workbench-agent-bridge.md`](workbench-agent-bridge.md).
 
+## 11. Role-aware onboarding guide
+
+To onboard an agent for a specific role, print a role-tailored instruction block (read-only; writes
+nothing):
+
+```sh
+vibe guide claude --role coder          # also: task-shaper | planner | reviewer | release-manager
+```
+
+Each role guide carries the role-specific workflow **plus** the common rules (this project's CLI is
+`vibe`, not `/council`; council is a reviewer/context/memory layer, not an implementer; the
+cheap/balanced/full preset policy; before/after-coding workflow; the Workbench proposal-bridge
+basics; and the never-stage list). `vibe guide claude` with no `--role` still prints the original
+Claude workflow block.
+
 ---
 
 ## Copy-paste instruction for AI coding agents

@@ -28,12 +28,17 @@ Version 1 **prints** a copy-paste instruction pack to stdout and writes nothing 
 File emission is opt-in and later:
 
 ```sh
-vibe guide claude                 # print an instruction pack (exists today)
-vibe guide codex                  # (proposed) print a Codex pack
-vibe guide fable                  # (proposed) print a Fable pack
-vibe guide <agent> --role coder   # (proposed) role-specialized pack
-vibe guide <agent> --write        # (later) opt-in: write AGENTS.md / CLAUDE.md / .codex/instructions.md
+vibe guide claude                       # print an instruction pack (exists today)
+vibe guide claude --role coder          # role-specialized pack — IMPLEMENTED (v0.6.1 phase 1)
+vibe guide codex                        # (proposed) print a Codex pack
+vibe guide fable                        # (proposed) print a Fable pack
+vibe guide <agent> --write              # (later) opt-in: write AGENTS.md / CLAUDE.md / .codex/instructions.md
 ```
+
+> **Status:** the **role-aware `vibe guide claude --role <role>`** slice is **implemented** —
+> read-only stdout for `task-shaper`/`planner`/`coder`/`reviewer`/`release-manager`, no `--write`
+> for roles yet, no `vibe council start`/`/council`. Codex/Fable topics and `--write` remain
+> proposed/later.
 
 `--write` must never overwrite an existing file without confirmation (see
 [09-cross-project-onboarding.md](09-cross-project-onboarding.md)).
