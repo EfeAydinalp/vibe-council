@@ -173,6 +173,24 @@ and vibe's context packs both just help **manage** long-running context. **Do no
 host-agent slash commands (`/compact`, `/clear`, `/doctor`, `/init`, `AGENTS.md`) with `vibe` CLI
 commands**, and remember vibe-council output is advice, not authority.
 
+## 10. Proposing actions into the Workbench (agent bridge)
+
+Beyond reviewing, an agent can **propose a bounded code action** into the local Workbench for a human
+to approve — instead of editing files or running commands directly. Write a schema-v1 proposal JSON
+(one `write_file` / `edit_file` / `run_command` action) and submit it **locally**:
+
+```sh
+vibe workbench propose proposal.json     # or:  vibe workbench propose -   (read stdin)
+```
+
+This **validates** the proposal, mints ids and the payload hash **server-side**, and records a
+**pending** approval — it **does not execute anything**. The human then runs `vibe workbench serve`,
+sees a "proposed by agent" card, and approves/rejects/holds; execution is a further, separate,
+explicit step through the guarded executor. Never submit a freeform command, `argv`/`env`/`cwd`/
+`timeout`/`shell`, a `payload_hash`/`*_id`/`status`, an absolute/`..` path, or a `cloud_call`; never
+claim a change was applied until an approved action has actually executed. Full guide + examples:
+[`docs/workbench-agent-bridge.md`](workbench-agent-bridge.md).
+
 ---
 
 ## Copy-paste instruction for AI coding agents

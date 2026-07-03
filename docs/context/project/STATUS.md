@@ -293,14 +293,20 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   JSON, no token exposure; approval/execution semantics, Host-header validation, `/api/state` token
   gating, and CORS are all unchanged. 7 new tests (671 total) including escaping/injection and
   no-payload-leak guarantees. Implemented by Opus/Sonnet per the budget policy (Fable not used).
+- **v0.6 phase 4 — agent bridge docs (`docs/workbench-agent-bridge.md`).** Documents the implemented
+  bridge end to end (schema PR #95, importer PR #96, panel visibility PR #97): overview + flow, the
+  safety model, CLI usage/output, safe `write_file`/`edit_file`/`run_command` examples,
+  rejected-example/common-mistake cases (freeform command, smuggled fields, denied paths,
+  `cloud_call`, dedup/conflict), and the agent + human operator workflows. README and
+  `docs/agent-quickstart.md` (new §10) gained pointers. Docs only — no code/test/dependency change.
 - **Model budget policy (binding):** **Fable = technical lead/architect only** — routine PRs are
-  implemented by Opus/Sonnet. The remaining v0.6.0 sequence (agent bridge docs → v0.6.0 release prep)
-  with copy-paste implementer prompts and stop conditions lives in
+  implemented by Opus/Sonnet. The remaining v0.6.0 step (v0.6.0 release prep) with a copy-paste
+  implementer prompt and stop conditions lives in
   [`docs/fable/v0.6-followup-implementation-plan.md`](../../fable/v0.6-followup-implementation-plan.md).
-- **Current focus:** **v0.6.0 agent bridge — phases 1–3 done (schema PR #95, importer PR #96, panel
-  visibility PR #97).** Next per the follow-up plan: agent bridge docs, then v0.6.0 release prep. No
-  new network endpoint anywhere in v0.6.0. Deferred as before: personalization (v0.7),
-  mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **Current focus:** **v0.6.0 agent bridge — phases 1–4 done (schema PR #95, importer PR #96, panel
+  visibility PR #97, bridge docs PR #98).** Next and last v0.6.0 step per the follow-up plan: v0.6.0
+  release prep. No new network endpoint anywhere in v0.6.0. Deferred as before: personalization
+  (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 
