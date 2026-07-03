@@ -248,11 +248,19 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   playbook, and copy-paste Fable prompt templates. No code/tests/behavior change — it's the map for
   the next phases, with security invariants and roadmap as the source of truth. See
   [`docs/fable/README.md`](../../fable/README.md).
-- **Current focus:** **v0.5.1 tagged; v0.5.2 hardening merged; v0.6 not yet started.** The
-  implementation pack is in place; the leading next code phase is the **v0.6.0 agent bridge**
-  (file/CLI proposal intake, no new network endpoint) per
-  [`docs/fable/05-v0.6-agent-bridge.md`](../../fable/05-v0.6-agent-bridge.md). Deferred as before:
-  personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **PR #94 — v0.5.2 release prep.** `backend/__init__.py`/`pyproject.toml` now report `0.5.2`;
+  `uv.lock`'s self-version entry synced to match (one line, no dependency-graph change, per the
+  release checklist's `uv lock` step). `CHANGELOG.md` gained a dated `[0.5.2]` section and
+  [`docs/releases/v0.5.2.md`](../../releases/v0.5.2.md) documents the patch: Workbench Host-header
+  validation + `/api/state` token gate (PR #92) and the `docs/fable/` implementation pack (PR #93).
+  Security posture is explicitly unchanged/strengthened (no executor/trust/payload/allowlist
+  behavior change, no new endpoint, no dependency change). **No version bump beyond `0.5.2`, no tag,
+  no GitHub Release** — those are manual follow-up steps once this PR merges.
+- **Current focus:** **v0.5.2 prepared, not yet tagged.** The security hardening (PR #92) and
+  implementation pack (PR #93) are done and release prep (PR #94) is in review; next is the manual
+  tag/GitHub Release step, then the **v0.6.0 agent bridge** (file/CLI proposal intake, no new network
+  endpoint) per [`docs/fable/05-v0.6-agent-bridge.md`](../../fable/05-v0.6-agent-bridge.md). Deferred
+  as before: personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 
