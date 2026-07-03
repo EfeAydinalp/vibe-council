@@ -765,8 +765,10 @@ until you approve it in `vibe workbench serve` and explicitly execute it. See
 
 **Role-aware onboarding (in progress on `master`, unreleased):** `vibe guide claude --role <role>`
 prints a role-tailored instruction pack (`task-shaper` / `planner` / `coder` / `reviewer` /
-`release-manager`) — a read-only stdout generator (no repo writes yet) that reduces per-session
-re-onboarding. See [`docs/agent-quickstart.md`](docs/agent-quickstart.md) §11.
+`release-manager`) to reduce per-session re-onboarding. Add `--write [FILE]` to **append** that
+role's section to a `CLAUDE.md`-style file (default `CLAUDE.md`); it never overwrites (re-runs for a
+role are skipped, and roles coexist in one file). See
+[`docs/agent-quickstart.md`](docs/agent-quickstart.md) §11.
 
 **Implementation pack:** the phase-by-phase plan for upcoming work (v0.6 agent-to-Workbench bridge,
 onboarding, project vault, personalization, positioning, and the open-core path) lives in

@@ -163,15 +163,18 @@ class TestRoleAwareGuide(unittest.TestCase):
             after = set(p.name for p in root.iterdir())
             self.assertEqual(before, after)  # nothing written to the project dir
 
-    def test_write_ignored_with_role_and_prints_to_stdout(self):
+    def test_role_write_now_writes_the_file(self):
+        # `--write` with `--role` is now supported (opt-in write mode); it appends to
+        # the file rather than printing the guide to stdout. (Full coverage in
+        # TestRoleAwareGuideWrite.)
         with tempfile.TemporaryDirectory() as t:
             root = Path(t)
-            r = run_cli(["guide", "claude", "--role", "coder", "--write",
-                         str(root / "OUT.md")], caller_cwd=root)
+            out = root / "OUT.md"
+            r = run_cli(["guide", "claude", "--role", "coder", "--write", str(out),
+                         "--yes"], caller_cwd=root)
             self.assertEqual(r.returncode, 0, r.stderr)
-            self.assertIn("role: coder", r.stdout)
-            self.assertIn("not supported with --role", r.stderr)
-            self.assertFalse((root / "OUT.md").exists())  # no write happened
+            self.assertTrue(out.exists())
+            self.assertIn("[written]", r.stderr)
 
     def test_help_lists_role_option(self):
         r = run_cli(["guide", "--help"])
@@ -188,6 +191,113 @@ class TestRoleAwareGuide(unittest.TestCase):
         # the public helper is defensive for direct (non-argparse) callers
         with self.assertRaises(ValueError):
             cli.role_guide("not-a-role")
+
+
+class TestRoleAwareGuideWrite(unittest.TestCase):
+    """Opt-in `--write` for role-aware guides (v0.6.1). Appends a role section to a
+    CLAUDE.md-style file; never overwrites; stdout-only mode still writes nothing."""
+
+    def test_plain_guide_write_still_works(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "CLAUDE.md"
+            r = run_cli(["guide", "claude", "--write", str(f), "--yes"], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue(f.exists())
+            self.assertIn("Vibe Council Workflow", f.read_text(encoding="utf-8"))
+
+    def test_role_write_creates_file_and_reports_path(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "AGENTS.md"
+            r = run_cli(["guide", "claude", "--role", "coder", "--write", str(f),
+                         "--yes"], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue(f.exists())
+            self.assertIn("[written]", r.stderr)
+            self.assertIn("AGENTS.md", r.stderr)
+
+    def test_role_write_content_includes_role_and_common_rules(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "AGENTS.md"
+            run_cli(["guide", "claude", "--role", "coder", "--write", str(f), "--yes"],
+                    caller_cwd=root)
+            text = f.read_text(encoding="utf-8")
+            self.assertIn("### Role: coder", text)
+            self.assertIn("PROPOSE", text)                       # coder-specific
+            self.assertIn("vibe workbench propose", text)        # Workbench flow
+            self.assertIn("CLI is `vibe`, not `/council`", text)  # vibe not /council
+            self.assertIn("does NOT exist today", text)          # /council future only
+            self.assertIn(".council/runtime/payloads/", text)    # never-stage
+            self.assertIn("secrets", text)
+            self.assertIn("uv.lock", text)
+
+    def test_role_write_does_not_overwrite_or_duplicate(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "AGENTS.md"
+            f.write_text("# Existing project notes\n\nkeep me\n", encoding="utf-8")
+            r1 = run_cli(["guide", "claude", "--role", "coder", "--write", str(f),
+                          "--yes"], caller_cwd=root)
+            self.assertEqual(r1.returncode, 0, r1.stderr)
+            after_first = f.read_text(encoding="utf-8")
+            self.assertIn("keep me", after_first)                # original preserved
+            self.assertIn("### Role: coder", after_first)
+            # re-run: skipped, not duplicated, not overwritten
+            r2 = run_cli(["guide", "claude", "--role", "coder", "--write", str(f),
+                          "--yes"], caller_cwd=root)
+            self.assertEqual(r2.returncode, 0, r2.stderr)
+            self.assertIn("already contains", r2.stderr)
+            self.assertIn("not modifying", r2.stderr)
+            self.assertEqual(f.read_text(encoding="utf-8"), after_first)  # byte-identical
+
+    def test_different_roles_can_coexist_in_one_file(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "AGENTS.md"
+            run_cli(["guide", "claude", "--role", "coder", "--write", str(f), "--yes"],
+                    caller_cwd=root)
+            run_cli(["guide", "claude", "--role", "reviewer", "--write", str(f), "--yes"],
+                    caller_cwd=root)
+            text = f.read_text(encoding="utf-8")
+            self.assertIn("(role: coder)", text)
+            self.assertIn("(role: reviewer)", text)
+
+    def test_stdout_only_role_mode_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            before = set(p.name for p in root.iterdir())
+            r = run_cli(["guide", "claude", "--role", "planner"], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("### Role: planner", r.stdout)
+            self.assertEqual(before, set(p.name for p in root.iterdir()))
+
+    def test_role_write_to_new_file_has_no_leading_blank_lines(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "AGENTS.md"  # does not exist yet
+            run_cli(["guide", "claude", "--role", "coder", "--write", str(f), "--yes"],
+                    caller_cwd=root)
+            text = f.read_text(encoding="utf-8")
+            self.assertTrue(text.startswith("## vibe-council agent guide (role: coder)"),
+                            f"unexpected leading content: {text[:40]!r}")
+
+    def test_role_write_creates_no_council_dir(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            run_cli(["guide", "claude", "--role", "coder", "--write",
+                     str(root / "AGENTS.md"), "--yes"], caller_cwd=root)
+            self.assertFalse((root / ".council").exists())
+
+    def test_invalid_role_with_write_still_fails(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "AGENTS.md"
+            r = run_cli(["guide", "claude", "--role", "nope", "--write", str(f),
+                         "--yes"], caller_cwd=root)
+            self.assertNotEqual(r.returncode, 0)
+            self.assertFalse(f.exists())
 
 
 if __name__ == "__main__":

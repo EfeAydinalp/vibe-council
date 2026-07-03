@@ -320,14 +320,19 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   prints a role-tailored Claude guide for `task-shaper`/`planner`/`coder`/`reviewer`/
   `release-manager`. Each pairs a role-specific workflow with the common rules (`vibe` not
   `/council`; council is reviewer/context/memory not implementer; cheap/balanced/full policy;
-  before/after-coding workflow; Workbench propose→approve→execute basics; never-stage list). 10 new
-  tests (682 total). No Workbench/importer/executor/trust change, no dependency change, no version
-  bump.
-- **Current focus:** **v0.6.1 onboarding launcher, phase by phase.** Role-aware `vibe guide` is the
-  first slice; next candidates per the roadmap are `--write` (opt-in AGENTS.md/CLAUDE.md emission,
-  with confirm-before-overwrite) and codex/fable topics, then v0.6.2 project vault → v0.6.3
-  cross-project. No new network endpoint. Deferred as before: personalization (v0.7),
-  mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+  before/after-coding workflow; Workbench propose→approve→execute basics; never-stage list). No
+  Workbench/importer/executor/trust change, no dependency change, no version bump.
+- **v0.6.1 phase 2 — opt-in `--write` for role guides.** `vibe guide claude --role <role> --write
+  [FILE]` **appends** the role's section to a `CLAUDE.md`-style file (default `CLAUDE.md`) and
+  reports the path, following the existing `--write` append + marker-skip convention: it **never
+  overwrites** (a distinct per-role marker means a re-run for the same role is skipped, and different
+  roles coexist in one file). No `--force` needed (append never truncates). Without `--write`, role
+  output stays stdout-only; only the explicit target file is touched (no `.council/` created). 691
+  tests total. No Workbench/importer/executor/trust change, no dependency change, no version bump.
+- **Current focus:** **v0.6.1 onboarding launcher, phase by phase.** Role-aware `vibe guide` (stdout
+  + opt-in `--write`) is done; next candidates per the roadmap are codex/fable guide topics, then
+  v0.6.2 project vault → v0.6.3 cross-project. No new network endpoint. Deferred as before:
+  personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 

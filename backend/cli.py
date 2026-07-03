@@ -1481,13 +1481,35 @@ def cmd_guide(args) -> int:
 
     role = getattr(args, "role", None)
     if role:
-        # Role-aware guide is a read-only stdout generator. `--write` for roles is
-        # intentionally deferred (v0.6.1 phase 1 is read-only; a later slice adds
-        # opt-in file emission with confirm-before-overwrite). If `--write` was also
-        # passed, say so and still print to stdout — never write.
-        if getattr(args, "write", None):
-            _err("[guide] --write is not supported with --role yet; printing to stdout.")
-        print(role_guide(role))
+        target = getattr(args, "write", None)
+        if not target:
+            # Default: read-only stdout generator (writes nothing).
+            print(role_guide(role))
+            return EXIT_OK
+        # Opt-in write: append a role section to a CLAUDE.md-style file, following the
+        # same append + marker-skip convention as the plain `--write` below. Never
+        # overwrites/truncates; a re-run for the same role is skipped (so no --force is
+        # needed). Only the explicit target file is touched — no .council/ or other
+        # project files.
+        path = Path(target)
+        marker = _role_guide_marker(role)
+        existing = ""
+        if path.exists():
+            # errors="replace" so a non-UTF-8 target can't crash the marker check.
+            existing = path.read_text(encoding="utf-8", errors="replace")
+        if marker in existing:
+            _err(f"'{path}' already contains a role '{role}' guide section; not modifying.")
+            return EXIT_OK
+        if _interactive(args) and not _confirm(
+                f"Append the '{role}' agent guide to '{path}'?"):
+            _err("Aborted.")
+            return EXIT_OK
+        # Only separate from prior content when the file already has some.
+        prefix = "\n\n" if existing.strip() else ""
+        section = prefix + role_guide_section(role).rstrip() + "\n"
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(section)
+        _err(f"[written] appended the '{role}' agent guide to {path}")
         return EXIT_OK
 
     target = getattr(args, "write", None)
@@ -1544,7 +1566,7 @@ Common commands:
   vibe operator status                                # show local workflow status (no model)
   vibe --version
   vibe help
-  vibe guide claude [--role task-shaper|planner|coder|reviewer|release-manager]
+  vibe guide claude [--role task-shaper|planner|coder|reviewer|release-manager] [--write FILE]
 
 Examples:
   vibe review --preset balanced --file plan.md --yes
@@ -1743,6 +1765,20 @@ def role_guide(role: str) -> str:
         raise ValueError(f"unknown guide role '{role}' (roles: {', '.join(GUIDE_ROLES)})")
     return (f"Claude Code instructions for vibe-council — role: {role}\n\n"
             f"{block}\n\n{_GUIDE_COMMON}\n")
+
+
+def _role_guide_marker(role: str) -> str:
+    """The Markdown heading that marks a role's guide section in a written file — used
+    for idempotent, non-destructive appends (skip if already present). Deliberately
+    distinct from ``_GUIDE_MARKER`` so a role section and the plain workflow section
+    never collide."""
+    return f"## vibe-council agent guide (role: {role})"
+
+
+def role_guide_section(role: str) -> str:
+    """A Markdown section (heading + role guide) suitable for appending to a
+    ``CLAUDE.md``-style file. Pure; writes nothing."""
+    return f"{_role_guide_marker(role)}\n\n{role_guide(role)}"
 
 
 # --------------------------------------------------------------------------- #
@@ -1951,11 +1987,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Print an agent guide (e.g. 'guide claude', 'guide claude --role coder').")
     sp_guide.add_argument("topic", choices=["claude"])
     sp_guide.add_argument("--role", choices=list(GUIDE_ROLES),
-                          help="Print a role-specific guide (read-only stdout; no file write). "
-                               "Roles: " + ", ".join(GUIDE_ROLES) + ".")
+                          help="Print a role-specific guide (stdout by default; add --write to "
+                               "append it to a file). Roles: " + ", ".join(GUIDE_ROLES) + ".")
     sp_guide.add_argument("--write", nargs="?", const="CLAUDE.md", metavar="FILE",
-                          help="Append the workflow section to FILE (default CLAUDE.md). "
-                               "Not supported with --role.")
+                          help="Append the workflow section to FILE (default CLAUDE.md); with "
+                               "--role, appends that role's guide section. Skips if the section "
+                               "already exists (never overwrites).")
     sp_guide.add_argument("--yes", action="store_true", help="Assume yes for writing.")
 
     return parser

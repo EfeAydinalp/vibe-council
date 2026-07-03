@@ -14,14 +14,20 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Role-aware agent guide** (`vibe guide claude --role <role>`) — the first v0.6.1 onboarding slice:
-  a **read-only stdout generator** (no repo writes, no `--write` for roles yet) that prints a
-  role-tailored Claude instruction block for `task-shaper`, `planner`, `coder`, `reviewer`, or
-  `release-manager`. Each role guide pairs its role-specific workflow with the common rules — this
-  project's CLI is `vibe` (not `/council`, which stays a future idea), council is a reviewer/context/
-  memory layer not an implementer, the cheap/balanced/full preset policy, the before/after-coding
-  workflow, the Workbench proposal-bridge basics (propose → human approves → separate explicit
-  execute), and the never-stage list. `vibe guide claude` with no `--role` is unchanged. No
-  Workbench/importer/executor/trust change, no new dependency, no version bump.
+  a **read-only stdout generator** that prints a role-tailored Claude instruction block for
+  `task-shaper`, `planner`, `coder`, `reviewer`, or `release-manager`. Each role guide pairs its
+  role-specific workflow with the common rules — this project's CLI is `vibe` (not `/council`, which
+  stays a future idea), council is a reviewer/context/memory layer not an implementer, the
+  cheap/balanced/full preset policy, the before/after-coding workflow, the Workbench proposal-bridge
+  basics (propose → human approves → separate explicit execute), and the never-stage list.
+  `vibe guide claude` with no `--role` is unchanged. No Workbench/importer/executor/trust change, no
+  new dependency, no version bump.
+- **Opt-in `--write` for role-aware guides** — `vibe guide claude --role <role> --write [FILE]`
+  **appends** the role's guide section to a `CLAUDE.md`-style file (default `CLAUDE.md`) and reports
+  the path. Follows the existing `--write` convention: it **never overwrites** — a distinct
+  per-role marker means a re-run for the same role is skipped (and different roles can coexist in one
+  file). Without `--write`, role output stays stdout-only. Only the explicit target file is touched;
+  no `.council/` or other project files are created.
 
 ## [0.6.0] - 2026-07-04
 

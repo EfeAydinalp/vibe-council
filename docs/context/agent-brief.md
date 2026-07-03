@@ -221,12 +221,16 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   lead/architect only; Opus/Sonnet implement routine PRs** — see
   [`docs/fable/v0.6-followup-implementation-plan.md`](fable/v0.6-followup-implementation-plan.md).
   **v0.6.0 is now tagged/released.** **v0.6.1 phase 1** adds a **role-aware agent guide**
-  (`vibe guide claude --role task-shaper|planner|coder|reviewer|release-manager`): a read-only stdout
-  generator (no repo writes, no `--write` for roles yet, no `/council` as a real command) pairing a
-  role-specific workflow with the common rules (`vibe` not `/council`; council is reviewer/context/
-  memory not implementer; cheap/balanced/full policy; before/after-coding workflow; Workbench
-  propose→approve→execute basics; never-stage list). `vibe guide claude` with no role is unchanged.
-  No Workbench/importer/executor/trust/dependency change.
+  (`vibe guide claude --role task-shaper|planner|coder|reviewer|release-manager`): a stdout generator
+  (no `/council` as a real command) pairing a role-specific workflow with the common rules (`vibe`
+  not `/council`; council is reviewer/context/memory not implementer; cheap/balanced/full policy;
+  before/after-coding workflow; Workbench propose→approve→execute basics; never-stage list).
+  **v0.6.1 phase 2** adds opt-in `--write`: `vibe guide claude --role <role> --write [FILE]` appends
+  the role's section to a `CLAUDE.md`-style file (default `CLAUDE.md`) and reports the path — same
+  append + marker-skip convention as the plain `--write` (never overwrites; per-role marker lets
+  roles coexist and skips re-runs; no `--force` needed). Without `--write`, role output stays
+  stdout-only; only the explicit target file is touched. `vibe guide claude` with no role is
+  unchanged. No Workbench/importer/executor/trust/dependency change.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
