@@ -5,11 +5,24 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.5.2` is prepared. The repo reports `0.5.2`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.5.2` git tag + GitHub Release are cut by a
+> **Status:** `0.6.0` is prepared. The repo reports `0.6.0`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.6.0` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+_Nothing yet. Post-0.6.0 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.6.0] - 2026-07-04
+
+**Agent-to-Workbench proposal bridge.** AI agents (Claude Code, Codex, Fable, or custom workers) can
+now **propose** a bounded code action into the local Workbench instead of acting directly — a human
+still approves and executes. Local **file/CLI intake only** (no network endpoint): an agent writes a
+schema-v1 proposal JSON, `vibe workbench propose` validates it and mints ids + payload hash
+server-side, the panel shows a proposed-by-agent card, and nothing runs until a human approves and
+explicitly executes it through the **existing, unchanged** guarded executor. Still local-first and
+stdlib-only: no new runtime dependency, no new network surface, no command-allowlist growth.
 
 ### Added
 
