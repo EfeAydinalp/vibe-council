@@ -302,6 +302,11 @@ def _real_execute(action_id: str, payload: Optional[Dict], project_root: Optiona
 
     # Re-validate the full invariant + re-run the deterministic trust guard NOW.
     result = validate_execution_invariant(action, approval, task, project_root, policy)
+    # validate_execution_invariant always builds a dry-run preview (dry_run=True); this
+    # call path is a real execution attempt, so correct the flag before it's returned to
+    # any caller (bug found during v0.5.1 manual dogfood: every real-execution response,
+    # success or fail-closed, previously reported dry_run=True alongside executed=True).
+    result.dry_run = False
     if action is None:
         return result  # nothing to mutate
     if not result.would_execute:

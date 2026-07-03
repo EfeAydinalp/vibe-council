@@ -1,6 +1,6 @@
 # Status
 
-_Snapshot date: **2026-06-30**._
+_Snapshot date: **2026-07-03**._
 
 A short, current snapshot of where vibe-council is. See [`README.md`](./README.md) for what this
 folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision records.
@@ -195,11 +195,19 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   `server_close()` really closes the socket. No change to the blocking serve loop, no new CLI flag —
   neither was warranted. See
   [`interactive smoke report`](../../plans/v0.5.1-workbench-interactive-smoke-report.md) §7.
-- **Current focus:** **v0.5.1 dogfood & hardening** — clean-clone/Windows, interactive/shutdown, and
-  bind-hardening passes done (PR #86–#88); next is a Linux/CI-leg confirmation and a real small
-  (non-`vibe-council`) repo pass, then triaging any further findings into small fixes vs.
-  explicitly-deferred v0.6+ scope (agent-to-Workbench bridge, personalization, mobile/LAN/voice,
-  hosted/team). Execution stays separate from approval; mobile/voice deferred.
+- **PR #89 — manual execution dogfood: the real execute path verified end-to-end.** Manually seeded a
+  `write_file` action and a `run_command` action (temp/safe project, `curl` against the panel's real
+  HTTP API — no browser automation, matching PR #87's documented fallback) and confirmed both execute
+  successfully, both fail closed for non-allowlisted commands / missing payloads, and a crafted
+  request body (different target/content/command/argv/env/cwd/timeout) has **zero effect** — only the
+  server-resolved action ever runs. Found and fixed two small display/metadata bugs (not security-
+  relevant): `ExecutionResult.dry_run` stayed `true` on every real execution response, and a completed/
+  blocked `run_command` action's card falsely claimed "does not resolve to an allowlisted argv". See
+  [`manual execution dogfood report`](../../plans/v0.5.1-manual-execution-dogfood-report.md).
+- **Current focus:** **v0.5.1 dogfood & hardening — panel smoke pass (§4/§11) now complete** (PR
+  #86–#89); remaining exit-criteria work is release prep and the separately-scoped `uv.lock` hygiene
+  fix (plan §8/§9), then triaging any further findings vs. explicitly-deferred v0.6+ scope
+  (agent-to-Workbench bridge, personalization, mobile/LAN/voice, hosted/team).
 
 ## Next actions
 

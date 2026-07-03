@@ -353,8 +353,14 @@ def render_html(state: Dict, token: str = "") -> str:
                     f"<div class='muted'>timeout: {_esc(cp['timeout_seconds'])}s &middot; "
                     f"output cap: {_esc(cp['output_limit_bytes'])}B &middot; "
                     f"shell={_esc(cp['shell'])} &middot; runs in the project root</div>")
-            else:
+            elif act["status"] == "pending":
                 detail_html = "<div class='muted'>command does not resolve to an allowlisted argv</div>"
+            else:
+                # A command_preview is only ever built for a pending action (dry-run
+                # preview) — a completed/blocked/failed action has no preview to show,
+                # and reusing the "does not resolve" text here would misreport a command
+                # that actually ran (see `result_html` below for the real outcome).
+                detail_html = f"<div class='muted'>command: {_esc(act['target'])}</div>"
             btn_label = "Execute approved command"
         else:
             btn_label = "Execute"
