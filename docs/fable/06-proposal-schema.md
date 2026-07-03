@@ -1,7 +1,8 @@
 # 06 — Proposal schema (concrete)
 
-The wire contract an agent authors and `vibe workbench propose` imports. This is a **design target**
-for v0.6.0, not yet implemented. The importer is the authority; anything not listed as
+The wire contract an agent authors and `vibe workbench propose` imports. **The validation layer is
+implemented** (`backend/workbench_proposals.py` — schema v1, strict, pure/side-effect-free); **the
+importer is still pending** (a later PR). The importer is the authority; anything not listed as
 agent-suppliable is server-minted or rejected.
 
 ## Envelope

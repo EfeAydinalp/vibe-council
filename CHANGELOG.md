@@ -11,8 +11,18 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.5.2 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Added
+
+- **Workbench proposal schema + validation layer** (`backend/workbench_proposals.py`) — the first
+  v0.6 agent-bridge slice: proposal envelope **schema v1** (strict — unknown keys rejected at every
+  level) and pure, fail-closed validation for agent-authored proposals. Allowed kinds:
+  `write_file`/`edit_file` (relative, trust-checked targets; exact payload shapes; NUL/size caps
+  mirroring executor bounds) and `run_command` by **exact allowlist label only** (both resolver and
+  trust gates; no freeform commands, argv, env, cwd, timeout, or shell — ever). Server-minted fields
+  (ids, `payload_hash`, statuses, verdicts) are hard-rejected if present; `proposal_id` (the future
+  dedup key) is strictly charset-validated, not sanitized. **Validation only:** no importer, no store
+  writes, no id minting, no execution, no `subprocess` import, no panel/CLI/network change — the
+  deterministic trust boundary still re-runs at approval display and execution time regardless.
 
 ## [0.5.2] - 2026-07-03
 

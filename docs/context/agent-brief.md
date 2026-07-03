@@ -185,7 +185,17 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   gained a dated `[0.5.2]` section, and [`docs/releases/v0.5.2.md`](../releases/v0.5.2.md) documents
   the patch (Host-header validation + `/api/state` token gate from PR #92, and the `docs/fable/` pack
   from PR #93). **No new command surface, no allowlist growth, no tag, no GitHub Release** in this PR
-  — the `v0.5.2` tag and GitHub Release are a separate, manual step once it merges.
+  — the `v0.5.2` tag and GitHub Release are a separate, manual step once it merges. **v0.5.2 is now
+  tagged.** **v0.6 phase 1** adds `backend/workbench_proposals.py` — proposal **schema v1** + pure,
+  fail-closed validation, the typed external contract for the agent bridge (per
+  [`docs/fable/06`](fable/06-proposal-schema.md)): strict unknown-key rejection at every level;
+  `write_file`/`edit_file` with relative trust-checked targets, exact payload shapes, and NUL/size
+  caps (executor stays final authority); `run_command` by **exact allowlist label only** (resolver ∧
+  trust two-gate rule); server-minted fields (ids, `payload_hash`, statuses, verdicts) and
+  argv/env/cwd/timeout/shell/freeform-`command` hard-rejected; `proposal_id` strictly
+  charset-validated (future dedup key). **Validation only — no importer, no store writes, no
+  execution, no `subprocess` import, no panel/CLI/network change.** The importer
+  (`vibe workbench propose`, full-review PR) is the next phase.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
