@@ -36,6 +36,13 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
   allowlist growth, no new dependency.** Also adds
   `docs/fable/v0.6-followup-implementation-plan.md` — the remaining v0.6.0 PR sequence with
   copy-paste implementer prompts and the Fable-as-architect-only budget policy.
+- **Workbench panel: agent-proposal visibility** (`backend/workbench_panel.py`) — imported
+  agent-proposed tasks now show a "proposed by agent: `<name>`" badge with the agent role and
+  `proposal_id` (all HTML-escaped), so they are visually distinct from demo/manual tasks. Display
+  only: derived from the task's existing `agent:<name>` source plus a **read-only** importer lookup
+  of the local proposals index (`proposal_meta_for_task`); **no raw payload content** appears in the
+  HTML or `/api/state` JSON, no tokens are exposed, and approval/execution semantics, the Host-header
+  check, `/api/state` token gating, and CORS behavior are all unchanged.
 
 ## [0.5.2] - 2026-07-03
 

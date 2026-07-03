@@ -42,6 +42,7 @@ from . import workbench_orchestrator as wo
 from . import workbench_auditor as wa
 from . import workbench_executor as we
 from . import workbench_payloads as wpay
+from . import workbench_proposal_importer as wimp
 
 _LOCAL_HOSTS = ("127.0.0.1", "localhost", "::1")
 DECISIONS = ("approve", "reject", "hold")
@@ -65,6 +66,27 @@ def _project_name(project_root: Optional[Path]) -> str:
     return p.name or "project"
 
 
+def _proposal_view(task, project_root: Optional[Path]) -> Optional[Dict]:
+    """Safe, content-free "proposed by agent" metadata for a task, or None for a
+    demo/manual task. The task's own ``source`` (``agent:<name>``, set by the importer)
+    is the reliable signal; role/proposal_id are enriched from the read-only importer
+    lookup when the proposals index still has the record. Never includes payload
+    content, tokens, or an absolute path — only agent name/role/session and the
+    (charset-validated) proposal id, all escaped again at render time."""
+    source = getattr(task, "source", "") or ""
+    if not source.startswith("agent:"):
+        return None
+    agent_name = source[len("agent:"):].strip()
+    meta = wimp.proposal_meta_for_task(task.id, project_root) or {}
+    return {
+        "proposed_by_agent": True,
+        "agent_name": meta.get("agent_name") or agent_name,
+        "agent_role": meta.get("agent_role", ""),
+        "agent_session": meta.get("agent_session", ""),
+        "proposal_id": meta.get("proposal_id", ""),
+    }
+
+
 def _task_view(task, project_root: Optional[Path]) -> Dict:
     p = wo.get_task_progress(task.id, project_root)
     cur = p.get("current_stage") or {}
@@ -73,6 +95,7 @@ def _task_view(task, project_root: Optional[Path]) -> Dict:
         "current_stage": cur.get("name", ""), "current_stage_status": cur.get("status", ""),
         "completed_stages": p["completed_stages"], "next_action": p["next_action"],
         "active_worker": p["active_worker"], "active_model": p["active_model"],
+        "proposal": _proposal_view(task, project_root),
     }
 
 
@@ -286,10 +309,23 @@ def render_html(state: Dict, token: str = "") -> str:
     tasks_html = ""
     for t in state["tasks"]:
         done = ", ".join(t["completed_stages"]) or "-"
+        prop = t.get("proposal")
+        agent_html = ""
+        if prop and prop.get("proposed_by_agent"):
+            pill = ("<span class='pill agent'>proposed by agent: "
+                    f"{_esc(prop.get('agent_name') or '?')}</span>")
+            bits = []
+            if prop.get("agent_role"):
+                bits.append(f"role: {_esc(prop['agent_role'])}")
+            if prop.get("proposal_id"):
+                bits.append(f"proposal id: {_esc(prop['proposal_id'])}")
+            detail = f"<div class='muted'>{' &middot; '.join(bits)}</div>" if bits else ""
+            agent_html = f"<div class='agentrow'>{pill}</div>{detail}"
         tasks_html += (
             "<div class='card'>"
             f"<div class='row'><b>{_esc(t['title'])}</b>"
             f"<span class='pill'>{_esc(t['status'])}</span></div>"
+            f"{agent_html}"
             f"<div class='muted'>stage: {_esc(t['current_stage'] or '-')} "
             f"({_esc(t['current_stage_status'] or '-')}) · done: {_esc(done)}</div>"
             f"<div class='muted'>next: {_esc(t['next_action'] or '-')}</div>"
@@ -393,6 +429,8 @@ def render_html(state: Dict, token: str = "") -> str:
  .action{{border-color:#b7eb8f}}
  .row{{display:flex;justify-content:space-between;align-items:center}}
  .pill{{font-size:.75rem;padding:.1rem .5rem;border-radius:999px;background:#eee}}
+ .pill.agent{{background:#e6f4ff;color:#0958d9;font-weight:600}}
+ .agentrow{{margin:.35rem 0}}
  .risk-low{{background:#f6ffed}} .risk-medium{{background:#fff7e6}} .risk-high{{background:#fff1f0}} .risk-blocked{{background:#ffccc7}}
  .prompt{{margin:.4rem 0}} .findings{{margin:.2rem 0;padding-left:1.1rem;color:#555;font-size:.85rem}}
  .btns button{{margin-right:.4rem;padding:.3rem .7rem;cursor:pointer}}

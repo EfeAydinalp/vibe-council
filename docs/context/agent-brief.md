@@ -203,9 +203,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   not depend on spoofable identity): identical re-import returns the original ids; same id with
   materially different content is a **conflict, fail closed**. CLI failure creates no runtime files;
   stdout is a JSON result (never raw payload). No execution on import, no network endpoint, no
-  allowlist growth. **Budget policy from here: Fable is technical lead/architect only; Opus/Sonnet
-  implement routine PRs** — the remaining v0.6.0 sequence (panel badge → bridge docs → release prep)
-  with copy-paste prompts is in
+  allowlist growth. **v0.6 phase 3** adds panel agent-proposal visibility
+  (`backend/workbench_panel.py`): imported agent-proposed tasks show a "proposed by agent: `<name>`"
+  badge (role + `proposal_id`, all HTML-escaped) so they're distinct from demo/manual tasks —
+  display-only, derived from the task `agent:<name>` source + a read-only importer lookup
+  (`proposal_meta_for_task`); no raw payload in HTML or `/api/state` JSON, no token exposure,
+  approval/execution/Host/token/CORS behavior unchanged. **Budget policy from here: Fable is
+  technical lead/architect only; Opus/Sonnet implement routine PRs** — the remaining v0.6.0 sequence
+  (agent bridge docs → v0.6.0 release prep) with copy-paste prompts is in
   [`docs/fable/v0.6-followup-implementation-plan.md`](fable/v0.6-followup-implementation-plan.md).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
