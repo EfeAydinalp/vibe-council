@@ -23,6 +23,19 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
   dedup key) is strictly charset-validated, not sanitized. **Validation only:** no importer, no store
   writes, no id minting, no execution, no `subprocess` import, no panel/CLI/network change — the
   deterministic trust boundary still re-runs at approval display and execution time regardless.
+- **Workbench proposal importer + `vibe workbench propose`**
+  (`backend/workbench_proposal_importer.py`) — the second v0.6 bridge slice: a validated schema-v1
+  proposal becomes a runtime Task + pending ApprovalRequest + pending Action, flowing into the
+  **existing, unchanged** trust/auditor/panel/executor path. All ids and the payload hash are
+  **server-minted**; file payloads live only in the local write-once payload artifact (never in
+  task/approval/action JSON or the dedup record). Dedup by `proposal_id` (global): an identical
+  re-import returns the original ids and creates nothing; the same id with materially different
+  content is a **conflict** and fails closed. CLI intake is local-only (`vibe workbench propose
+  <file | ->`, stdin supported; JSON result on stdout, never raw payload; non-zero exit on failure).
+  An advisory audit is saved on import. **No execution, no network endpoint, no panel change, no
+  allowlist growth, no new dependency.** Also adds
+  `docs/fable/v0.6-followup-implementation-plan.md` — the remaining v0.6.0 PR sequence with
+  copy-paste implementer prompts and the Fable-as-architect-only budget policy.
 
 ## [0.5.2] - 2026-07-03
 

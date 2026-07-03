@@ -271,11 +271,28 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   no id minting, no execution, no `subprocess` import, no panel/CLI/network change. 48 new tests
   (635 total) including the five `docs/fable/06` examples verbatim and writes-nothing /
   never-imports-subprocess / errors-never-echo-content guarantees.
-- **Current focus:** **v0.6.0 agent bridge, phase by phase.** Phase 1 (schema/validation) is in
-  review; next is the **importer** (`vibe workbench propose` — file/CLI intake, server mints
-  ids/hash, dedup on `proposal_id`, full-review PR), then the panel "proposed by agent" badge, then
-  agent bridge docs. No new network endpoint anywhere in v0.6.0. Deferred as before: personalization
-  (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **v0.6 phase 2 — proposal importer + `vibe workbench propose`
+  (`backend/workbench_proposal_importer.py`).** A validated schema-v1 proposal becomes a runtime
+  Task + pending ApprovalRequest + pending Action through the **existing, unchanged**
+  trust/auditor/panel/executor path. All ids and the payload hash are **server-minted**; the
+  internal `kind:target` convention is constructed server-side (agents never author it); file
+  payloads live only in the write-once payload artifact — never in task/approval/action JSON or the
+  dedup record (fingerprint hash only). **Dedup by `proposal_id`, globally** (deliberately not
+  agent-scoped, so dedup never depends on spoofable identity): identical re-import returns the
+  original ids; same id + materially different content = **conflict, fail closed**. CLI:
+  `vibe workbench propose <file | ->` (stdin supported; JSON result on stdout, human summary on
+  stderr, never raw payload; non-zero exit on failure; failed imports create no runtime files).
+  Advisory audit saved on import. Tests prove an imported `write_file` executes through the
+  **existing** executor after approval in a temp project, and blocks without approval. 26 new tests
+  (663 total). No execution on import, no network endpoint, no panel change, no allowlist growth.
+- **Model budget policy (binding):** **Fable = technical lead/architect only** from here — routine
+  PRs are implemented by Opus/Sonnet. The remaining v0.6.0 sequence (panel agent badge → bridge docs
+  → v0.6.0 release prep) with copy-paste implementer prompts and stop conditions lives in
+  [`docs/fable/v0.6-followup-implementation-plan.md`](../../fable/v0.6-followup-implementation-plan.md).
+- **Current focus:** **v0.6.0 agent bridge — phases 1–2 done (schema PR #95, importer PR #96).**
+  Next per the follow-up plan: panel "proposed by agent" badge (display-only), agent bridge docs,
+  then v0.6.0 release prep. No new network endpoint anywhere in v0.6.0. Deferred as before:
+  personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 

@@ -194,8 +194,19 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   trust two-gate rule); server-minted fields (ids, `payload_hash`, statuses, verdicts) and
   argv/env/cwd/timeout/shell/freeform-`command` hard-rejected; `proposal_id` strictly
   charset-validated (future dedup key). **Validation only — no importer, no store writes, no
-  execution, no `subprocess` import, no panel/CLI/network change.** The importer
-  (`vibe workbench propose`, full-review PR) is the next phase.
+  execution, no `subprocess` import, no panel/CLI/network change.** **v0.6 phase 2** adds the
+  importer (`backend/workbench_proposal_importer.py`) + `vibe workbench propose <file | ->`: a
+  validated proposal becomes a Task + pending ApprovalRequest + pending Action through the
+  **existing, unchanged** trust/auditor/panel/executor path; all ids and the payload hash are
+  **server-minted**; raw payloads live only in the write-once payload artifact (dedup record stores
+  a fingerprint hash only). **Dedup by `proposal_id`, globally** (never agent-scoped — dedup must
+  not depend on spoofable identity): identical re-import returns the original ids; same id with
+  materially different content is a **conflict, fail closed**. CLI failure creates no runtime files;
+  stdout is a JSON result (never raw payload). No execution on import, no network endpoint, no
+  allowlist growth. **Budget policy from here: Fable is technical lead/architect only; Opus/Sonnet
+  implement routine PRs** — the remaining v0.6.0 sequence (panel badge → bridge docs → release prep)
+  with copy-paste prompts is in
+  [`docs/fable/v0.6-followup-implementation-plan.md`](fable/v0.6-followup-implementation-plan.md).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
