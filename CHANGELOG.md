@@ -27,6 +27,14 @@ _Slated for a `0.5.2` patch (Workbench security hardening; no version bump yet).
   approved-pending actions). No executor/panel **execution** behavior changed, no new endpoint, no
   CORS, no command-allowlist change, no new dependency.
 
+### Docs
+
+- **`docs/fable/` implementation pack.** A structured, phase-by-phase plan for driving future work
+  (v0.6 agent-to-Workbench bridge + proposal schema, onboarding/session launcher, Obsidian-like
+  project vault, cross-project onboarding, tighten-only personalization, website positioning, and the
+  open-core commercial path) with a long-running model, alongside the non-negotiable security
+  invariants and operating rules. Docs only — no code, tests, dependencies, or behavior change.
+
 ## [0.5.1] - 2026-07-03
 
 **Dogfood & hardening patch — no new product surface.** Mirrors the v0.3→v0.3.1 precedent: a

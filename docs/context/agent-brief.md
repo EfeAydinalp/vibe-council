@@ -170,7 +170,16 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   is now gated on the **same** startup token as the POSTs, via `X-Workbench-Token` or the `?token=`
   the panel URL already carries; the token is never echoed in JSON. `GET /` stays tokenless (Host
   validation is its guard) so the panel URL still loads. **No executor/panel execution behavior
-  changed, no new endpoint, no CORS, no allowlist/dependency change, no version bump.**
+  changed, no new endpoint, no CORS, no allowlist/dependency change, no version bump.** **PR #92 is
+  merged.** A **Fable implementation pack** now lives in [`docs/fable/`](fable/README.md) (docs-only):
+  the full phase-by-phase plan an implementer follows for future work — current-state baseline,
+  operating rules, product vision, the non-negotiable security invariants, the v0.5.2→v0.9+ roadmap,
+  the **v0.6 agent-to-Workbench bridge** design + concrete proposal schema (file/CLI intake, server
+  mints ids/hash, no new network endpoint, no `cloud_call`, no allowlist growth), onboarding/session
+  launcher, the Obsidian-like vault (extend `docs/context/`, not a new `.vibe/`), cross-project
+  onboarding, tighten-only personalization, website positioning, open-core path, an implementation
+  playbook, and copy-paste prompt templates. It does not change code or behavior; roadmap + security
+  invariants remain the source of truth. Leading next code phase: the **v0.6.0 agent bridge**.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

@@ -745,6 +745,11 @@ the notes (v0.5.0: [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md); v0.4.0:
 early `0.x` release — expect breaking changes between minor versions, and see the honest limitations
 below. **No commercial-clearance claim; license/provenance remains "Question 0".**
 
+**Implementation pack:** the phase-by-phase plan for upcoming work (v0.6 agent-to-Workbench bridge,
+onboarding, project vault, personalization, positioning, and the open-core path) lives in
+[`docs/fable/`](docs/fable/README.md) — a structured pack for driving future implementation with a
+long-running model while keeping the product/security direction intact.
+
 **Near-term:**
 
 - **v0.5 — AI Council Workbench MVP** *(shipped in v0.5.0; hardened in v0.5.1)* — a
