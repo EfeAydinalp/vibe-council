@@ -237,11 +237,22 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   Host validation. **No executor/panel execution behavior changed, no new endpoint, no CORS, no
   allowlist change, no dependency change, no version bump.** 585 tests (+9). Blast radius today is
   small; fixed before v0.6 fills the runtime store with approved-pending actions.
-- **Current focus:** **v0.5.1 tagged; v0.5.2 Host-header hardening in review (PR #92).** Dogfood/
-  hardening (PR #86–#90), release prep (PR #91), and the v0.5.1 tag are done. PR #92 closes the one
-  pre-v0.6 security item from the Fable review. Next: merge PR #92, then v0.6 scoping (agent-to-
-  Workbench bridge is the leading candidate — not started) vs. explicitly-deferred scope
-  (personalization, mobile/LAN/voice, hosted/team).
+- **PR #92 merged** — Host-header validation + `/api/state` token gate are on `master` (v0.5.2
+  hardening; not yet bundled into a tagged release).
+- **Fable implementation pack (docs-only)** — `docs/fable/` now holds the full phase-by-phase plan
+  for future work: current-state baseline, operating rules, product vision, the non-negotiable
+  security invariants, the v0.5.2→v0.9+ roadmap, the **v0.6 agent-to-Workbench bridge** design +
+  concrete proposal schema, the onboarding/session-launcher plan, the Obsidian-like project vault
+  plan (extend `docs/context/`, not a new `.vibe/`), cross-project onboarding, the tighten-only
+  personalization layer, website positioning, the open-core commercial path, an implementation
+  playbook, and copy-paste Fable prompt templates. No code/tests/behavior change — it's the map for
+  the next phases, with security invariants and roadmap as the source of truth. See
+  [`docs/fable/README.md`](../../fable/README.md).
+- **Current focus:** **v0.5.1 tagged; v0.5.2 hardening merged; v0.6 not yet started.** The
+  implementation pack is in place; the leading next code phase is the **v0.6.0 agent bridge**
+  (file/CLI proposal intake, no new network endpoint) per
+  [`docs/fable/05-v0.6-agent-bridge.md`](../../fable/05-v0.6-agent-bridge.md). Deferred as before:
+  personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 
