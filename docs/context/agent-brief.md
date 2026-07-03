@@ -145,7 +145,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   two small display/metadata bugs (`ExecutionResult.dry_run` stayed `true` on real executions; a
   completed/blocked `run_command` card falsely claimed "does not resolve to an allowlisted argv") —
   neither changes what the executor/trust boundary allows. See
-  [manual execution dogfood report](../plans/v0.5.1-manual-execution-dogfood-report.md).
+  [manual execution dogfood report](../plans/v0.5.1-manual-execution-dogfood-report.md). **PR #90**
+  fixed the recurring `uv.lock` self-version drift (plan §8): the lockfile's local `vibe-council`
+  package entry had read a stale `0.2.0` since the pre-v0.3.0 project-rename sync while
+  `pyproject.toml`/`backend/__init__.py` stayed correctly at `0.5.0` — `uv sync` deterministically
+  rewrites exactly that one line, no dependency versions changed, and a second `uv sync` is a no-op.
+  Committed (precedent: an earlier `1d6a3b9` commit did the same kind of self-metadata sync), stopping
+  the accidental `uv.lock` diff several v0.5.1 passes had to avoid staging. This closes v0.5.1's exit
+  criteria — release prep is next.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
