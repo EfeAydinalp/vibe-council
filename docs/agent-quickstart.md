@@ -206,6 +206,17 @@ cheap/balanced/full preset policy; before/after-coding workflow; the Workbench p
 basics; and the never-stage list). `vibe guide claude` with no `--role` still prints the original
 Claude workflow block.
 
+To persist a role guide into a project instruction file, add `--write` (opt-in):
+
+```sh
+vibe guide claude --role coder --write            # append to CLAUDE.md (default)
+vibe guide claude --role coder --write AGENTS.md  # or an explicit file
+```
+
+`--write` **appends** the role's section to the file and reports the path; it **never overwrites** —
+a re-run for the same role is skipped (a distinct marker per role, so multiple roles can coexist in
+one file). Without `--write`, role output stays stdout-only.
+
 ---
 
 ## Copy-paste instruction for AI coding agents
