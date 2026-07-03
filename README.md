@@ -730,17 +730,20 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.5.1 — Workbench dogfood & hardening patch.** The repo reports `0.5.1`; the
-`v0.5.1` git tag and GitHub Release are cut by a maintainer right after the release PR merges. This
-is a checklist-driven hardening pass over v0.5.0 — no new command, no new panel capability, no
-allowlist growth (see [`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md) for the full findings).
-The underlying v0.5.0 Workbench model is unchanged: a task moves through visible stages, an audited
-approval gates it, and an approved bounded file action or exact allowlisted command can be explicitly
-executed — approving never auto-executes, and the deterministic trust boundary re-runs at execution
-time. See [`CHANGELOG.md`](CHANGELOG.md) and [`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md) for
-the notes (v0.5.0: [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md); v0.4.0:
-[`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md); v0.3.1:
-[`docs/releases/v0.3.1.md`](docs/releases/v0.3.1.md)), and
+**Release status:** **v0.5.2 — Workbench security-hardening patch.** The repo reports `0.5.2`; the
+`v0.5.2` git tag and GitHub Release are cut by a maintainer right after the release PR merges. This
+patch adds a DNS-rebinding-class defense on the localhost panel — `Host`-header validation on every
+request (loopback names only; missing/malformed/multiple `Host` fails closed) and a startup-token gate
+on the previously-unauthenticated `GET /api/state` — plus a docs-only implementation pack for planning
+v0.6+ (see [`docs/releases/v0.5.2.md`](docs/releases/v0.5.2.md)). **No executor/trust/payload/allowlist
+behavior change, no new endpoint, no dependency change.** The underlying v0.5.0 Workbench model is
+unchanged: a task moves through visible stages, an audited approval gates it, and an approved bounded
+file action or exact allowlisted command can be explicitly executed — approving never auto-executes,
+and the deterministic trust boundary re-runs at execution time. See [`CHANGELOG.md`](CHANGELOG.md) and
+[`docs/releases/v0.5.2.md`](docs/releases/v0.5.2.md) for the notes (v0.5.1:
+[`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md); v0.5.0:
+[`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md); v0.4.0:
+[`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md)), and
 [`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an
 early `0.x` release — expect breaking changes between minor versions, and see the honest limitations
 below. **No commercial-clearance claim; license/provenance remains "Question 0".**

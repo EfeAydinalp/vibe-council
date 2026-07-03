@@ -5,13 +5,21 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.5.1` is prepared. The repo reports `0.5.1`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.5.1` git tag + GitHub Release are cut by a
+> **Status:** `0.5.2` is prepared. The repo reports `0.5.2`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.5.2` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
 
-_Slated for a `0.5.2` patch (Workbench security hardening; no version bump yet)._
+_Nothing yet. Post-0.5.2 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.5.2] - 2026-07-03
+
+**Workbench security-hardening patch (+ implementation-pack docs).** A small patch on top of the
+v0.5.0/v0.5.1 AI Council Workbench: a DNS-rebinding-class defense on the localhost panel and a token
+gate on `/api/state`, plus a docs-only phase book for planning v0.6+. No executor/trust/payload/
+allowlist behavior change, no new product surface, no new dependency.
 
 ### Security
 

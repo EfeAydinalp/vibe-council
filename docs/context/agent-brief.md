@@ -180,6 +180,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   onboarding, tighten-only personalization, website positioning, open-core path, an implementation
   playbook, and copy-paste prompt templates. It does not change code or behavior; roadmap + security
   invariants remain the source of truth. Leading next code phase: the **v0.6.0 agent bridge**.
+  **PR #94** is v0.5.2 release prep: `backend/__init__.py`/`pyproject.toml` now report `0.5.2`,
+  `uv.lock`'s self-version is synced to match (one line, no dependency-graph change), `CHANGELOG.md`
+  gained a dated `[0.5.2]` section, and [`docs/releases/v0.5.2.md`](../releases/v0.5.2.md) documents
+  the patch (Host-header validation + `/api/state` token gate from PR #92, and the `docs/fable/` pack
+  from PR #93). **No new command surface, no allowlist growth, no tag, no GitHub Release** in this PR
+  — the `v0.5.2` tag and GitHub Release are a separate, manual step once it merges.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
