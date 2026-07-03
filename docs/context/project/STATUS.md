@@ -256,11 +256,26 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   Security posture is explicitly unchanged/strengthened (no executor/trust/payload/allowlist
   behavior change, no new endpoint, no dependency change). **No version bump beyond `0.5.2`, no tag,
   no GitHub Release** — those are manual follow-up steps once this PR merges.
-- **Current focus:** **v0.5.2 prepared, not yet tagged.** The security hardening (PR #92) and
-  implementation pack (PR #93) are done and release prep (PR #94) is in review; next is the manual
-  tag/GitHub Release step, then the **v0.6.0 agent bridge** (file/CLI proposal intake, no new network
-  endpoint) per [`docs/fable/05-v0.6-agent-bridge.md`](../../fable/05-v0.6-agent-bridge.md). Deferred
-  as before: personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **v0.5.2 is tagged.** Release prep (PR #94) merged and the `v0.5.2` annotated tag is pushed; the
+  GitHub Release from [`docs/releases/v0.5.2.md`](../../releases/v0.5.2.md) is the remaining manual
+  step.
+- **v0.6 phase 1 — proposal schema + validation (`backend/workbench_proposals.py`).** The first
+  agent-bridge slice per [`docs/fable/05`](../../fable/05-v0.6-agent-bridge.md)'s PR breakdown:
+  proposal envelope **schema v1** (strict — unknown keys rejected at every level) and pure,
+  fail-closed validation. Allowed kinds: `write_file`/`edit_file` (relative trust-checked targets,
+  exact payload shapes, NUL/size caps mirroring executor bounds — executor stays the final
+  authority) and `run_command` by **exact allowlist label only** (resolver ∧ trust, the executor's
+  two-gate rule; freeform commands/argv/env/cwd/timeout/shell hard-rejected). Server-minted fields
+  (ids, `payload_hash`, statuses, verdicts) reject on sight; `proposal_id` (future dedup key) is
+  strictly charset-validated, never sanitized. **Validation only** — no importer, no store writes,
+  no id minting, no execution, no `subprocess` import, no panel/CLI/network change. 48 new tests
+  (635 total) including the five `docs/fable/06` examples verbatim and writes-nothing /
+  never-imports-subprocess / errors-never-echo-content guarantees.
+- **Current focus:** **v0.6.0 agent bridge, phase by phase.** Phase 1 (schema/validation) is in
+  review; next is the **importer** (`vibe workbench propose` — file/CLI intake, server mints
+  ids/hash, dedup on `proposal_id`, full-review PR), then the panel "proposed by agent" badge, then
+  agent bridge docs. No new network endpoint anywhere in v0.6.0. Deferred as before: personalization
+  (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 
