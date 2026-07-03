@@ -204,10 +204,19 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   relevant): `ExecutionResult.dry_run` stayed `true` on every real execution response, and a completed/
   blocked `run_command` action's card falsely claimed "does not resolve to an allowlisted argv". See
   [`manual execution dogfood report`](../../plans/v0.5.1-manual-execution-dogfood-report.md).
-- **Current focus:** **v0.5.1 dogfood & hardening — panel smoke pass (§4/§11) now complete** (PR
-  #86–#89); remaining exit-criteria work is release prep and the separately-scoped `uv.lock` hygiene
-  fix (plan §8/§9), then triaging any further findings vs. explicitly-deferred v0.6+ scope
-  (agent-to-Workbench bridge, personalization, mobile/LAN/voice, hosted/team).
+- **PR #90 — `uv.lock` self-version drift fixed.** Root cause: `uv.lock`'s local `vibe-council`
+  package entry had read a stale `version = "0.2.0"` since the pre-v0.3.0 `1d6a3b9` project-rename
+  sync — `pyproject.toml`/`backend/__init__.py` stayed correctly at `0.5.0` the whole time, only the
+  lockfile's self-entry lagged. `uv sync` deterministically rewrites exactly that one line; no
+  dependency package versions changed; a second `uv sync` afterward is a no-op (confirmed idempotent).
+  Committed the one-line fix (precedent: `1d6a3b9` did the same kind of self-metadata sync). Stops the
+  recurring accidental `uv.lock` diff several v0.5.1 dogfood passes had to explicitly avoid staging.
+  No version bump, no dependency change, no executor/panel behavior change. See
+  [`v0.5.1 dogfood & hardening`](../../plans/v0.5.1-dogfood-hardening.md) §8.
+- **Current focus:** **v0.5.1 dogfood & hardening — exit criteria complete** (panel smoke pass PR
+  #86–#89, `uv.lock` hygiene PR #90); next is release prep, then triaging any further findings vs.
+  explicitly-deferred v0.6+ scope (agent-to-Workbench bridge, personalization, mobile/LAN/voice,
+  hosted/team).
 
 ## Next actions
 
