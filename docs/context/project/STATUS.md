@@ -224,9 +224,23 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   local/gitignored write-once payload artifacts, fixed-argv `shell=False` commands, no allowlist
   growth). **No version bump beyond `0.5.1`, no tag, no GitHub Release** — those are manual
   follow-up steps once this PR merges.
-- **Current focus:** **v0.5.1 prepared, not yet tagged.** Dogfood/hardening (PR #86–#90) and
-  release prep (PR #91) are done; next is the manual tag/GitHub Release step, then v0.6 scoping
-  (agent-to-Workbench bridge is the leading candidate — not started) vs. explicitly-deferred scope
+- **PR #92 — Workbench Host-header validation + `/api/state` token gate (v0.5.2 hardening).** A Fable
+  architecture review flagged a DNS-rebinding class gap before the v0.6 agent-proposal bridge: the
+  panel binds `127.0.0.1` (good), but localhost binding alone doesn't stop a page whose domain
+  re-resolves to `127.0.0.1` — the browser still sends that page's original `Host`. `GET /api/state`
+  was also unauthenticated. Fix: every request's `Host` header must name a literal loopback host
+  (`127.0.0.1`/`localhost`/`::1`, any port; a missing/malformed/multiple `Host` fails closed) via a
+  new pure `host_header_is_local()` helper, checked before routing on `GET /`, `GET /api/state`, and
+  all POSTs; and `GET /api/state` is now gated on the **same** startup token as the POST endpoints
+  (accepted via `X-Workbench-Token` header or the `?token=` the panel URL already carries; the token
+  is never echoed in JSON). `GET /` stays tokenless so the panel URL loads normally — its guard is
+  Host validation. **No executor/panel execution behavior changed, no new endpoint, no CORS, no
+  allowlist change, no dependency change, no version bump.** 585 tests (+9). Blast radius today is
+  small; fixed before v0.6 fills the runtime store with approved-pending actions.
+- **Current focus:** **v0.5.1 tagged; v0.5.2 Host-header hardening in review (PR #92).** Dogfood/
+  hardening (PR #86–#90), release prep (PR #91), and the v0.5.1 tag are done. PR #92 closes the one
+  pre-v0.6 security item from the Fable review. Next: merge PR #92, then v0.6 scoping (agent-to-
+  Workbench bridge is the leading candidate — not started) vs. explicitly-deferred scope
   (personalization, mobile/LAN/voice, hosted/team).
 
 ## Next actions

@@ -11,8 +11,21 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.5.1 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+_Slated for a `0.5.2` patch (Workbench security hardening; no version bump yet)._
+
+### Security
+
+- **Workbench panel: `Host`-header validation (DNS-rebinding defense) + `/api/state` token gate.**
+  The panel already binds `127.0.0.1`, but localhost binding alone doesn't stop a malicious page whose
+  domain re-resolves to `127.0.0.1` — the browser still sends that page's original `Host`. Every
+  request's `Host` header must now name a literal loopback host (`127.0.0.1`/`localhost`/`::1`, any
+  port); a missing, malformed, or multiple `Host` header fails closed. `GET /api/state` (which exposes
+  runtime tasks/approvals/actions) is now gated on the **same** startup token as the POST endpoints
+  (accepted via `X-Workbench-Token` or the `?token=` the panel URL already carries; never echoed in
+  JSON). `GET /` stays tokenless so the panel URL loads normally — Host validation is its guard.
+  Landed ahead of the v0.6 agent-proposal bridge (which will populate the runtime store with
+  approved-pending actions). No executor/panel **execution** behavior changed, no new endpoint, no
+  CORS, no command-allowlist change, no new dependency.
 
 ## [0.5.1] - 2026-07-03
 
