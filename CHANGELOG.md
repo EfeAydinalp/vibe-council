@@ -11,8 +11,17 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.6.0 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Added
+
+- **Role-aware agent guide** (`vibe guide claude --role <role>`) — the first v0.6.1 onboarding slice:
+  a **read-only stdout generator** (no repo writes, no `--write` for roles yet) that prints a
+  role-tailored Claude instruction block for `task-shaper`, `planner`, `coder`, `reviewer`, or
+  `release-manager`. Each role guide pairs its role-specific workflow with the common rules — this
+  project's CLI is `vibe` (not `/council`, which stays a future idea), council is a reviewer/context/
+  memory layer not an implementer, the cheap/balanced/full preset policy, the before/after-coding
+  workflow, the Workbench proposal-bridge basics (propose → human approves → separate explicit
+  execute), and the never-stage list. `vibe guide claude` with no `--role` is unchanged. No
+  Workbench/importer/executor/trust change, no new dependency, no version bump.
 
 ## [0.6.0] - 2026-07-04
 
