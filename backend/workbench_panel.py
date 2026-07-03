@@ -452,8 +452,28 @@ def render_html(state: Dict, token: str = "") -> str:
 
 
 # --------------------------------------------------------------------------- #
-# HTTP server (localhost-only; POST requires the startup token)
+# HTTP server (localhost-only; POST + /api/state require the startup token)
 # --------------------------------------------------------------------------- #
+
+def host_header_is_local(host_header: Optional[str]) -> bool:
+    """True only if the HTTP ``Host`` header names a loopback host (``127.0.0.1``,
+    ``localhost``, or ``::1``), ignoring any ``:port`` suffix.
+
+    This is the **DNS-rebinding defense**: the socket already binds ``127.0.0.1``, but
+    that alone does not stop a malicious page whose domain re-resolves to ``127.0.0.1``
+    — the browser still sends that page's *original* ``Host`` (the attacker's domain),
+    so refusing any ``Host`` that isn't a literal loopback name blocks the rebind while
+    letting the real localhost panel URL through. A missing, malformed, or non-loopback
+    ``Host`` is rejected (fail closed). Parsing via ``urlsplit`` handles the ``:port``
+    suffix and bracketed IPv6 (``[::1]:port``) forms and never raises for our inputs."""
+    if not host_header:
+        return False
+    try:
+        hostname = urlsplit("//" + host_header).hostname
+    except ValueError:
+        return False
+    return hostname in _LOCAL_HOSTS
+
 
 class _Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):  # keep the server quiet
@@ -482,17 +502,38 @@ class _Handler(BaseHTTPRequestHandler):
             got = (parse_qs(urlsplit(self.path).query).get("token") or [""])[0]
         return secrets.compare_digest(got, want)
 
+    def _host_ok(self) -> bool:
+        """Reject any request whose ``Host`` header isn't a literal loopback host, or
+        that carries more than one ``Host`` header (ambiguous — a request-smuggling/
+        rebinding smell). See ``host_header_is_local``."""
+        hosts = self.headers.get_all("Host") or []
+        if len(hosts) > 1:
+            return False
+        return host_header_is_local(self.headers.get("Host", ""))
+
     def do_GET(self):
+        if not self._host_ok():
+            self._json(403, {"error": "invalid host header"})
+            return
         path = urlsplit(self.path).path
         if path == "/":
             html = render_html(build_state(self._root()), getattr(self.server, "token", ""))
             self._send(200, html.encode("utf-8"), "text/html; charset=utf-8")
         elif path == "/api/state":
+            # State can reveal the panel's runtime tasks/approvals/actions — gate it on
+            # the same startup token as the POST endpoints (accepted via header or the
+            # ?token= query the panel URL already uses). The token is never echoed back.
+            if not self._token_ok():
+                self._json(403, {"error": "missing or invalid token"})
+                return
             self._json(200, build_state(self._root()))
         else:
             self._json(404, {"error": "not found"})
 
     def do_POST(self):
+        if not self._host_ok():
+            self._json(403, {"error": "invalid host header"})
+            return
         if not self._token_ok():
             self._json(403, {"error": "missing or invalid token"})
             return

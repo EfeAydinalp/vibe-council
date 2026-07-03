@@ -159,7 +159,18 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   dogfood, interactive Workbench smoke, localhost bind/shutdown hardening, manual execution
   dogfood, and `uv.lock` hygiene (PR #86–#90), with the security posture explicitly unchanged. **No
   new command surface, no allowlist growth, no tag, no GitHub Release** in this PR — the `v0.5.1`
-  git tag and GitHub Release are a separate, manual step once it merges.
+  git tag and GitHub Release are a separate, manual step once it merges. **v0.5.1 is now tagged.**
+  **PR #92** is a small v0.5.2 security hardening from a Fable architecture review, landed **before**
+  the v0.6 agent-proposal bridge: it closes a DNS-rebinding class gap on the Workbench panel. Binding
+  `127.0.0.1` doesn't stop a page whose domain re-resolves to loopback (the browser still sends that
+  page's original `Host`), so every request's `Host` header must now name a literal loopback host
+  (`127.0.0.1`/`localhost`/`::1`, any port; missing/malformed/multiple `Host` fails closed) —
+  validated by a pure `host_header_is_local()` before routing on `GET /`, `GET /api/state`, and all
+  POSTs. `GET /api/state` (previously unauthenticated, and it exposes runtime tasks/approvals/actions)
+  is now gated on the **same** startup token as the POSTs, via `X-Workbench-Token` or the `?token=`
+  the panel URL already carries; the token is never echoed in JSON. `GET /` stays tokenless (Host
+  validation is its guard) so the panel URL still loads. **No executor/panel execution behavior
+  changed, no new endpoint, no CORS, no allowlist/dependency change, no version bump.**
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

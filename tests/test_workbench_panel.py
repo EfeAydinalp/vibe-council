@@ -208,6 +208,19 @@ class TestPureState(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertEqual(created["httpd"].socket.fileno(), -1)  # closed
 
+    # --- Host-header validation (PR #92; DNS-rebinding defense) -------------- #
+
+    def test_host_header_is_local_accepts_loopback(self):
+        for h in ("127.0.0.1:8765", "localhost:8765", "127.0.0.1", "localhost",
+                  "[::1]:8765", "LOCALHOST:8765"):
+            self.assertTrue(wp.host_header_is_local(h), h)
+
+    def test_host_header_is_local_rejects_non_loopback(self):
+        for h in ("evil.example.com", "attacker.test:8765", "0.0.0.0:8765",
+                  "10.0.0.5:8765", "example.com", "127.0.0.1.evil.com", "", None,
+                  "127.0.0.2:8765"):
+            self.assertFalse(wp.host_header_is_local(h), h)
+
     # --- dogfood usability polish (PR #71) ---------------------------------- #
 
     def test_empty_state_offers_demo(self):
@@ -576,17 +589,108 @@ class TestHttpSmoke(unittest.TestCase):
     def test_binds_localhost(self):
         self.assertEqual(self.httpd.server_address[0], "127.0.0.1")
 
-    def test_get_state_json(self):
-        c = self._conn(); c.request("GET", "/api/state")
+    def test_get_state_json_with_token(self):
+        # /api/state is now token-gated (via the ?token= the panel URL already uses).
+        c = self._conn(); c.request("GET", "/api/state?token=T")
         r = c.getresponse(); data = json.loads(r.read())
         self.assertEqual(r.status, 200)
         self.assertEqual(len(data["pending_approvals"]), 1)
+
+    def test_get_state_json_via_token_header(self):
+        c = self._conn()
+        c.request("GET", "/api/state", headers={"X-Workbench-Token": "T"})
+        r = c.getresponse(); data = json.loads(r.read())
+        self.assertEqual(r.status, 200)
+        self.assertEqual(len(data["pending_approvals"]), 1)
+
+    def test_get_state_without_token_rejected(self):
+        c = self._conn(); c.request("GET", "/api/state")
+        r = c.getresponse(); body = json.loads(r.read())
+        self.assertEqual(r.status, 403)
+        self.assertIn("token", body["error"])
 
     def test_get_html(self):
         c = self._conn(); c.request("GET", "/")
         r = c.getresponse(); body = r.read().decode("utf-8")
         self.assertEqual(r.status, 200)
         self.assertIn("AI Council Workbench", body)
+
+    def test_get_html_needs_no_token(self):
+        # GET / stays tokenless so the panel URL loads normally; Host validation is its
+        # guard. (The token is embedded in the returned HTML for the panel's own POSTs.)
+        c = self._conn(); c.request("GET", "/")
+        r = c.getresponse(); r.read()
+        self.assertEqual(r.status, 200)
+
+    def test_invalid_host_rejects_root(self):
+        c = self._conn(); c.request("GET", "/", headers={"Host": "evil.example.com"})
+        r = c.getresponse(); body = json.loads(r.read())
+        self.assertEqual(r.status, 403)
+        self.assertIn("host", body["error"])
+
+    def test_invalid_host_rejects_state_even_with_token(self):
+        # Host check runs before the token check — a rebinding page that somehow had the
+        # token still can't read state.
+        c = self._conn()
+        c.request("GET", "/api/state?token=T", headers={"Host": "attacker.test"})
+        r = c.getresponse(); body = json.loads(r.read())
+        self.assertEqual(r.status, 403)
+        self.assertIn("host", body["error"])
+
+    def test_invalid_host_rejects_post_even_with_token(self):
+        c = self._conn()
+        c.request("POST", f"/api/approvals/{self.ap.id}/approve",
+                  headers={"Host": "attacker.test", "X-Workbench-Token": "T"})
+        r = c.getresponse(); body = json.loads(r.read())
+        self.assertEqual(r.status, 403)
+        self.assertIn("host", body["error"])
+        self.assertEqual(wr.load_approval(self.ap.id, self.root).status, "pending")  # unchanged
+
+    def test_valid_localhost_host_accepted(self):
+        c = self._conn()
+        c.request("GET", "/api/state?token=T",
+                  headers={"Host": f"localhost:{self.port}"})
+        r = c.getresponse(); r.read()
+        self.assertEqual(r.status, 200)
+
+    def test_multiple_host_headers_rejected(self):
+        # http.client can't send duplicate headers via a dict, so craft the request on a
+        # raw socket: a valid loopback Host *and* an attacker Host is ambiguous -> reject.
+        import socket as _socket
+        raw = (f"GET /api/state?token=T HTTP/1.1\r\n"
+               f"Host: 127.0.0.1:{self.port}\r\n"
+               f"Host: evil.test\r\n"
+               f"Connection: close\r\n\r\n").encode("ascii")
+        s = _socket.create_connection(("127.0.0.1", self.port), timeout=5)
+        try:
+            s.sendall(raw)
+            resp = b""
+            while True:
+                chunk = s.recv(4096)
+                if not chunk:
+                    break
+                resp += chunk
+        finally:
+            s.close()
+        status_line = resp.split(b"\r\n", 1)[0].decode("ascii", "replace")
+        self.assertIn("403", status_line)
+
+    def test_token_never_appears_in_state_json(self):
+        # Use a distinctive token (the class default "T" is too short to detect) on a
+        # throwaway server, and confirm it never leaks into the state response body.
+        token = "ZZ-workbench-secret-9x7q"
+        httpd = wp.make_server(self.root, host="127.0.0.1", port=0, token=token)
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+        try:
+            port = httpd.server_address[1]
+            c = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            c.request("GET", "/api/state", headers={"X-Workbench-Token": token})
+            r = c.getresponse(); raw = r.read().decode("utf-8")
+            self.assertEqual(r.status, 200)
+            self.assertNotIn(token, raw)
+        finally:
+            httpd.shutdown(); httpd.server_close()
 
     def test_post_requires_token(self):
         c = self._conn(); c.request("POST", f"/api/approvals/{self.ap.id}/approve")
@@ -694,7 +798,8 @@ class TestExecuteHttp(unittest.TestCase):
         self.assertNotIn(b"hello", raw)  # only safe summary fields, no file content
 
     def test_get_state_shows_executable_action(self):
-        c = self._conn(); c.request("GET", "/api/state")
+        c = self._conn()
+        c.request("GET", "/api/state", headers={"X-Workbench-Token": "T"})
         r = c.getresponse(); data = json.loads(r.read())
         a = next(x for x in data["actions"] if x["id"] == self.act.id)
         self.assertTrue(a["executable"])
@@ -788,7 +893,8 @@ class TestExecuteCommandHttp(unittest.TestCase):
         self.assertLessEqual(len(body["stdout_summary"]), 5000)
 
     def test_get_state_shows_command_preview(self):
-        c = self._conn(); c.request("GET", "/api/state")
+        c = self._conn()
+        c.request("GET", "/api/state", headers={"X-Workbench-Token": "T"})
         r = c.getresponse(); data = json.loads(r.read())
         a = next(x for x in data["actions"] if x["id"] == self.act.id)
         self.assertTrue(a["executable"])
