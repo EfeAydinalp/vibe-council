@@ -5,7 +5,7 @@ hand-written **dogfood seed**, not generated output — it distills the committe
 under [`docs/decisions/`](../decisions/). Future *generated* agent briefs should default to a
 local, gitignored location and be committed only by explicit, redacted opt-in.
 
-_Last curated: 2026-07-02 (vibe-council 0.4.0)._
+_Last curated: 2026-07-03 (vibe-council 0.5.0)._
 
 ## Project identity
 
@@ -137,7 +137,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   `effective_bind_host()`/`_startup_lines()` make the printed URL provably match what's really bound,
   and a new regression test simulates Ctrl+C and asserts `server_close()` actually closes the socket.
   No change to the blocking serve loop or a new CLI flag — neither was warranted. LAN/mobile + voice
-  remain deferred to v0.6+.
+  remain deferred to v0.6+. **PR #89** closed the last open v0.5.1 exit-criteria item: manually seeded
+  a real `write_file` action and a real `run_command` action in a temp/safe project and drove the
+  panel's actual HTTP execute path (`curl`, no browser) — both executed successfully, both negative
+  cases (non-allowlisted command, missing payload artifact) failed closed, and a crafted request body
+  had **zero effect** on what actually ran (empirically confirmed, not just code-read). Found and fixed
+  two small display/metadata bugs (`ExecutionResult.dry_run` stayed `true` on real executions; a
+  completed/blocked `run_command` card falsely claimed "does not resolve to an allowlisted argv") —
+  neither changes what the executor/trust boundary allows. See
+  [manual execution dogfood report](../plans/v0.5.1-manual-execution-dogfood-report.md).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
