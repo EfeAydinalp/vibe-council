@@ -211,9 +211,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   approval/execution/Host/token/CORS behavior unchanged. **v0.6 phase 4** documents the bridge in
   [`docs/workbench-agent-bridge.md`](workbench-agent-bridge.md) (overview/flow, safety model, CLI
   usage, safe examples, rejected-example/dedup/conflict cases, agent + operator workflows), with
-  README + `docs/agent-quickstart.md` §10 pointers — docs only. **Budget policy from here: Fable is
-  technical lead/architect only; Opus/Sonnet implement routine PRs** — the last v0.6.0 step (v0.6.0
-  release prep) with a copy-paste prompt is in
+  README + `docs/agent-quickstart.md` §10 pointers — docs only. **PR #99** is v0.6.0 release prep:
+  `backend/__init__.py`/`pyproject.toml` now report `0.6.0`, `uv.lock`'s self-version is synced (one
+  line, no dependency-graph change), `CHANGELOG.md` gained a dated `[0.6.0]` section, and
+  [`docs/releases/v0.6.0.md`](../releases/v0.6.0.md) documents the agent-to-Workbench proposal bridge
+  (PR #95–#98) with the security posture unchanged/extended-upstream-of-approval. **No new command
+  surface, no allowlist growth, no tag, no GitHub Release** in this PR — the `v0.6.0` tag and GitHub
+  Release are a separate, manual step once it merges. **Budget policy: Fable is technical
+  lead/architect only; Opus/Sonnet implement routine PRs** — see
   [`docs/fable/v0.6-followup-implementation-plan.md`](fable/v0.6-followup-implementation-plan.md).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See

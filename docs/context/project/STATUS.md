@@ -299,14 +299,24 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   rejected-example/common-mistake cases (freeform command, smuggled fields, denied paths,
   `cloud_call`, dedup/conflict), and the agent + human operator workflows. README and
   `docs/agent-quickstart.md` (new §10) gained pointers. Docs only — no code/test/dependency change.
+- **v0.6.0 release prep (PR #99).** `backend/__init__.py`/`pyproject.toml` now report `0.6.0`;
+  `uv.lock`'s self-version entry synced to match (one line, no dependency-graph change).
+  `CHANGELOG.md` gained a dated `[0.6.0]` section and
+  [`docs/releases/v0.6.0.md`](../../releases/v0.6.0.md) documents the release: the agent-to-Workbench
+  proposal bridge (schema PR #95, importer PR #96, panel visibility PR #97, docs PR #98). Security
+  posture is explicitly unchanged/extended-upstream-of-approval (no network endpoint, no
+  auto-execution, existing guarded executor is the only execution path, deterministic trust boundary
+  remains authoritative, advisory auditor, v0.5.2 Host/token hardening in force, no allowlist
+  growth). README release status → v0.6.0. **No version bump beyond `0.6.0`, no tag, no GitHub
+  Release** — those are manual follow-up steps once this PR merges.
 - **Model budget policy (binding):** **Fable = technical lead/architect only** — routine PRs are
-  implemented by Opus/Sonnet. The remaining v0.6.0 step (v0.6.0 release prep) with a copy-paste
-  implementer prompt and stop conditions lives in
+  implemented by Opus/Sonnet. See
   [`docs/fable/v0.6-followup-implementation-plan.md`](../../fable/v0.6-followup-implementation-plan.md).
-- **Current focus:** **v0.6.0 agent bridge — phases 1–4 done (schema PR #95, importer PR #96, panel
-  visibility PR #97, bridge docs PR #98).** Next and last v0.6.0 step per the follow-up plan: v0.6.0
-  release prep. No new network endpoint anywhere in v0.6.0. Deferred as before: personalization
-  (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **Current focus:** **v0.6.0 prepared, not yet tagged.** The agent bridge (PR #95–#98) is complete
+  and release prep (PR #99) is in review; next is the manual tag/GitHub Release step, then scoping
+  the next roadmap phase (v0.6.1 onboarding launcher → v0.6.2 project vault → v0.6.3 cross-project).
+  No new network endpoint anywhere in v0.6.0. Deferred as before: personalization (v0.7),
+  mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 
