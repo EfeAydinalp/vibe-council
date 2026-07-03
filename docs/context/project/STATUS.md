@@ -213,10 +213,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   recurring accidental `uv.lock` diff several v0.5.1 dogfood passes had to explicitly avoid staging.
   No version bump, no dependency change, no executor/panel behavior change. See
   [`v0.5.1 dogfood & hardening`](../../plans/v0.5.1-dogfood-hardening.md) §8.
-- **Current focus:** **v0.5.1 dogfood & hardening — exit criteria complete** (panel smoke pass PR
-  #86–#89, `uv.lock` hygiene PR #90); next is release prep, then triaging any further findings vs.
-  explicitly-deferred v0.6+ scope (agent-to-Workbench bridge, personalization, mobile/LAN/voice,
-  hosted/team).
+- **PR #91 — v0.5.1 release prep.** `backend/__init__.py`/`pyproject.toml` now report `0.5.1`;
+  `uv.lock`'s self-version entry synced to match (one line, no dependency change — following
+  `docs/release-checklist.md`'s documented-but-previously-unfollowed "run `uv lock` after every
+  version bump" step, so this doesn't recur). `CHANGELOG.md` gained a dated `[0.5.1]` section and
+  [`docs/releases/v0.5.1.md`](../../releases/v0.5.1.md) documents the patch: clean-clone/Windows
+  dogfood (PR #86), interactive Workbench smoke (PR #87), localhost bind/shutdown hardening (PR
+  #88), manual execution dogfood (PR #89), and `uv.lock` hygiene (PR #90). Security posture is
+  explicitly unchanged (approval separate from execution, localhost-only + token-gated panel,
+  local/gitignored write-once payload artifacts, fixed-argv `shell=False` commands, no allowlist
+  growth). **No version bump beyond `0.5.1`, no tag, no GitHub Release** — those are manual
+  follow-up steps once this PR merges.
+- **Current focus:** **v0.5.1 prepared, not yet tagged.** Dogfood/hardening (PR #86–#90) and
+  release prep (PR #91) are done; next is the manual tag/GitHub Release step, then v0.6 scoping
+  (agent-to-Workbench bridge is the leading candidate — not started) vs. explicitly-deferred scope
+  (personalization, mobile/LAN/voice, hosted/team).
 
 ## Next actions
 
