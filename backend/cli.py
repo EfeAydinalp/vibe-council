@@ -49,6 +49,7 @@ from . import operator as operator_mod
 from . import mcp_contract
 from . import mcp_server
 from . import workbench_panel
+from . import workbench_proposal_importer as wb_importer
 
 # Fallback dir for --save when no project workspace is active. Under data/
 # (gitignored), so these are never committed.
@@ -1269,19 +1270,51 @@ def cmd_decisions_local(args) -> int:
 
 
 def cmd_workbench(args) -> int:
-    """`workbench serve`: start the localhost-only Workbench panel (v0.5).
+    """`workbench serve` | `workbench propose`: the local Workbench (v0.5/v0.6).
 
-    Renders task progress + pending approval cards from `.council/runtime/` and lets a
-    human approve/reject/hold. **Records decisions only — no action execution, no
-    provider/model calls, no LAN/mobile.** Binds 127.0.0.1; POSTs require a token."""
+    serve: start the localhost-only progress/approval panel. Renders task progress +
+    pending approval cards from `.council/runtime/` and lets a human
+    approve/reject/hold. **Records decisions only — no action execution, no
+    provider/model calls, no LAN/mobile.** Binds 127.0.0.1; POSTs require a token.
+
+    propose: import an agent proposal (schema v1 JSON, from a file or stdin via
+    `-`) into the runtime store as a pending approval + pending action. **Local
+    intake only — validates, mints ids/hash server-side, never executes, never
+    calls a provider/model, adds no network surface.** Approval/execution stay
+    separate, explicit panel steps."""
     action = getattr(args, "action", None)
-    if action != "serve":
-        _err("Usage: vibe workbench serve [--port N] [--no-token]")
-        return EXIT_USAGE
-    root = pw.caller_cwd()
-    port = getattr(args, "port", None)
-    return workbench_panel.serve(root, port=(port if port is not None else 8765),
-                                 use_token=not getattr(args, "no_token", False))
+    if action == "serve":
+        root = pw.caller_cwd()
+        port = getattr(args, "port", None)
+        return workbench_panel.serve(root, port=(port if port is not None else 8765),
+                                     use_token=not getattr(args, "no_token", False))
+    if action == "propose":
+        src = getattr(args, "file", None)
+        if not src:
+            _err("Usage: vibe workbench propose <proposal.json | ->")
+            return EXIT_USAGE
+        if src == "-":
+            text = sys.stdin.read()
+        else:
+            try:
+                text = Path(src).read_text(encoding="utf-8")
+            except OSError as e:
+                _err(f"[workbench] cannot read proposal file: {type(e).__name__}")
+                return EXIT_RUNTIME
+        root = pw.caller_cwd()
+        result = wb_importer.import_proposal_text(text, project_root=root)
+        # stdout stays machine-readable (JSON result; never raw payload content);
+        # the human-facing summary/next-step goes to stderr.
+        print(json.dumps(wb_importer.result_to_dict(result), ensure_ascii=False,
+                         indent=2, sort_keys=True))
+        _err(f"[workbench] {wb_importer.summarize_import(result)}")
+        if result.ok:
+            _err(f"[workbench] next: {result.next_step}")
+            return EXIT_OK
+        return EXIT_RUNTIME
+    _err("Usage: vibe workbench serve [--port N] [--no-token] | "
+         "vibe workbench propose <proposal.json | ->")
+    return EXIT_USAGE
 
 
 def cmd_mcp(args) -> int:
@@ -1769,13 +1802,20 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_wb = sub.add_parser(
         "workbench",
-        help="Local Workbench panel (localhost-only; approve/reject/hold never auto-execute).",
+        help="Local Workbench panel + agent proposal intake (localhost-only; "
+             "approve/reject/hold never auto-execute).",
         epilog="serve: the panel starts empty; use the 'Create demo task' button in the UI to seed "
                "a safe local approval (runtime-only, executes nothing). Approving stays separate "
                "from execution; a verified bounded write_file/edit_file action or an exact "
-               "allowlisted command can be explicitly executed as a distinct step.")
-    sp_wb.add_argument("action", choices=["serve"],
-                       help="serve: start the localhost-only progress/approval panel.")
+               "allowlisted command can be explicitly executed as a distinct step. "
+               "propose: import an agent proposal (schema v1 JSON; file path or '-' for stdin) "
+               "as a pending approval + pending action — local intake only, ids/hash minted "
+               "server-side, never executes anything.")
+    sp_wb.add_argument("action", choices=["serve", "propose"],
+                       help="serve: start the localhost-only progress/approval panel. "
+                            "propose: import an agent proposal JSON (file or '-').")
+    sp_wb.add_argument("file", nargs="?", metavar="PROPOSAL",
+                       help="propose: path to the proposal JSON, or '-' to read stdin.")
     sp_wb.add_argument("--port", type=int, default=8765,
                        help="serve: localhost port (default 8765).")
     sp_wb.add_argument("--no-token", action="store_true",
