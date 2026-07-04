@@ -353,11 +353,17 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   21/21), and the `vibe guide` commands (`/council` explicitly not-a-real-command). Exit 0 ready /
   non-zero with next steps; git-unavailable degrades to a warning. Writes nothing, creates no
   `.council/`, no model/provider/network call. No context-builder change.
+- **v0.6.3 — agent context export.** `vibe context export --for {claude|codex|fable} [--role <role>]`
+  prints a read-only onboarding context handoff (header with `vibe`-real/`/council`-future, operating
+  rules + agent guidance + never-stage list reused from the guide machinery, project-vault
+  **pointers** not a full dump, an in-memory context-health summary, the Workbench proposal flow, and
+  a `vibe project doctor` recommendation). Stdout by default; `--output FILE` writes it, never
+  overwriting. No `.council/` creation, no model/provider/network call; the existing `context export
+  claude-code` path is unchanged.
 - **Current focus:** **v0.6.x onboarding, phase by phase.** The guide layer (claude/codex/fable ×
-  roles × opt-in write), the project vault scaffold, and `vibe project doctor` are done; next per the
-  roadmap is further cross-project onboarding (e.g. context export for agents) → v0.6.3. No new
-  network endpoint. Deferred as before: personalization (v0.7), mobile/LAN/voice (v0.8),
-  hosted/team (v0.9+).
+  roles × opt-in write), the project vault scaffold, `vibe project doctor`, and `vibe context export
+  --for <agent>` are done — the cross-project onboarding surface is now in place. No new network
+  endpoint. Deferred as before: personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 

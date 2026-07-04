@@ -782,6 +782,12 @@ no model calls) that reports whether a repo is ready for agent onboarding — va
 no dangerous staged files (`.env`/`.council/`/private plans), context health, and the available
 `vibe guide` commands. Exit 0 when ready; non-zero with next steps when something's missing.
 
+**Agent context handoff:** `vibe context export --for {claude|codex|fable} [--role <role>]` prints a
+**read-only** onboarding context pack for a target agent — header (`vibe` real / `/council` future),
+operating rules, project-vault **pointers** (not a full dump), a context-health summary (built
+in-memory, no `.council/`), the Workbench proposal flow, and a `vibe project doctor` recommendation.
+Prints to stdout by default; `--output FILE` writes it (never overwriting an existing file).
+
 **Implementation pack:** the phase-by-phase plan for upcoming work (v0.6 agent-to-Workbench bridge,
 onboarding, project vault, personalization, positioning, and the open-core path) lives in
 [`docs/fable/`](docs/fable/README.md) — a structured pack for driving future implementation with a

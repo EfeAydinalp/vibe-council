@@ -997,14 +997,59 @@ def _cmd_context_check(args) -> int:
     return EXIT_RUNTIME
 
 
+def _cmd_context_export_for_agent(args, agent: str) -> int:
+    """`context export --for <agent>`: build a read-only onboarding context handoff for
+    an agent (claude/codex/fable), optionally `--role`. Prints Markdown to stdout by
+    default; `--output FILE` writes it (never overwriting an existing file). No model/
+    API/network, no `.council/` creation."""
+    root = pw.caller_cwd()
+    role = getattr(args, "role", None)
+    try:
+        text = agent_context_export(agent, role=role, project_root=root)
+    except ValueError as e:
+        _err(f"[context-export] {e}")
+        return EXIT_USAGE
+
+    # belt-and-suspenders: never emit a critical redaction finding.
+    crit = [f for f in redaction.scan_text(text, "<agent-export>")
+            if f.severity == redaction.CRITICAL]
+    if crit:
+        _err(f"[context-export] BLOCKED: {len(crit)} critical redaction finding(s); not writing")
+        for f in crit:
+            _err(f"  - line {f.line} {f.rule_id}: {f.message} (match {f.match})")
+        return EXIT_RUNTIME
+
+    out = getattr(args, "output", None)
+    if not out:
+        print(text)                       # stdout only — writes nothing
+        return EXIT_OK
+
+    path = Path(out)
+    if path.exists():                     # never overwrite silently (no --force)
+        _err(f"[context-export] refusing to overwrite existing file: {path}")
+        _err("[context-export] choose a different --output path, or remove the file first.")
+        return EXIT_USAGE
+    parent = path.parent
+    if str(parent) and not parent.exists():
+        _err(f"[context-export] cannot write '{path}': directory '{parent}' does not exist.")
+        return EXIT_USAGE
+    path.write_text(text, encoding="utf-8")
+    print(str(path))
+    _err(f"[context-export] wrote {agent} onboarding context ({len(text)} chars) to {path}")
+    return EXIT_OK
+
+
 def _cmd_context_export(args) -> int:
-    """`context export claude-code`: wrap the local pack as a Claude Code-friendly
-    context file. Read-only on inputs; writes one gitignored local file. No model/
-    API/network. Blocks on a failing quality check or a critical redaction finding;
-    never modifies CLAUDE.md or writes under docs/ (unless --allow-docs)."""
+    """`context export`: either `--for <agent>` (agent onboarding handoff) or the
+    original `claude-code` pack wrapper. Read-only aside from an explicit `--output`;
+    no model/API/network."""
+    agent = getattr(args, "for_agent", None)
+    if agent:
+        return _cmd_context_export_for_agent(args, agent)
+
     target = getattr(args, "target", None)
     if target != "claude-code":
-        _err("Usage: vibe context export claude-code")
+        _err("Usage: vibe context export claude-code | export --for {claude|codex|fable}")
         return EXIT_USAGE
 
     root = pw.caller_cwd()
@@ -1710,6 +1755,7 @@ Common commands:
   vibe context build                                  # build a local context pack (no model)
   vibe context check                                  # check pack quality (deterministic, no model)
   vibe context export claude-code                     # wrap the pack as a local Claude Code context
+  vibe context export --for claude|codex|fable        # onboarding context handoff for an agent (stdout)
   vibe operator status                                # show local workflow status (no model)
   vibe --version
   vibe help
@@ -2010,6 +2056,101 @@ def topic_guide_section(topic: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# Agent context export (v0.6.3; read-only onboarding handoff — pointers +
+# reused guide content, NOT a full vault dump; writes nothing by itself)
+# --------------------------------------------------------------------------- #
+
+# One-liner per vault file — pointers, not content (the agent reads the files
+# directly; the export must not inline the whole vault).
+_VAULT_POINTERS = (
+    ("docs/context/project/README.md", "vault landing page (identity, boundaries, what not to store)"),
+    ("docs/context/project/STATUS.md", "current state — read first"),
+    ("docs/context/project/ROADMAP.md", "near-term roadmap summary"),
+    ("docs/context/project/DECISIONS.md", "index/pointer into docs/decisions/ (canonical store)"),
+    ("docs/context/project/PROGRESS.md", "curated phase/milestone checklist"),
+    ("docs/context/project/RISKS.md", "active risks / gotchas"),
+    ("docs/context/project/WORKFLOWS.md", "common workflows + the no-stage checklist"),
+    ("docs/context/project/NOTES.md", "durable curated notes only"),
+)
+
+
+def _export_context_health(root: Path) -> str:
+    """A one-line context-health summary built IN-MEMORY (build_pack/check_pack write
+    nothing, create no ``.council/``). Never raises."""
+    try:
+        ddir = root / "docs" / "decisions"
+        status = root / "docs" / "context" / "project" / "STATUS.md"
+        res = context_pack.build_pack(ddir, status)
+        chk = context_pack.check_pack(res.text)
+        state = "healthy" if chk.ok else "advisory (below target)"
+        return (f"Context health: check {chk.passed}/{chk.total} ({state}). Build the full "
+                "budgeted pack locally with `vibe context build` (it is not inlined here).")
+    except Exception as e:  # noqa: BLE001 - health is advisory, never fatal
+        return (f"Context health: unavailable ({type(e).__name__}); run `vibe context build` / "
+                "`vibe context check` locally.")
+
+
+def agent_context_export(agent: str, role: Optional[str] = None,
+                         project_root: Optional[Path] = None) -> str:
+    """Build a **read-only onboarding context handoff** for ``agent`` (claude/codex/
+    fable), optionally role-tailored. Pointers + reused guide content + a context-health
+    summary — deliberately NOT a full vault dump. Pure: reads files (in-memory) and
+    writes nothing. Raises ``ValueError`` on an unknown agent/role."""
+    if agent not in GUIDE_TOPICS:
+        raise ValueError(f"unknown export agent '{agent}' (agents: {', '.join(GUIDE_TOPICS)})")
+    root = Path(project_root) if project_root is not None else Path.cwd()
+    label = _TOPIC_LABEL[agent]
+    role_note = f" — role: {role}" if role else ""
+
+    parts: List[str] = []
+    parts.append(
+        f"# vibe-council onboarding context — {label}{role_note}\n\n"
+        "Generated by vibe-council (`vibe context export --for " + agent + "`). "
+        "The real CLI is **`vibe`**; **`/council` is a possible FUTURE host-command idea — it is "
+        "NOT a real command today.** This is a startup handoff, not the whole project memory: read "
+        "the linked vault files directly when you need detail.")
+
+    parts.append(
+        "## First: check readiness\n\n"
+        "Run **`vibe project doctor`** (read-only) before you start — it confirms the vault/core "
+        "docs are present and that nothing dangerous is staged.")
+
+    vault_lines = "\n".join(f"- [`{rel}`]({_rel_from_export(rel)}) — {desc}"
+                            for rel, desc in _VAULT_POINTERS)
+    parts.append(
+        "## Project vault (read these directly — not inlined here)\n\n" + vault_lines +
+        "\n\nDo not store secrets, API keys, private paths, runtime payloads, raw outputs, or "
+        "private plans in the vault.")
+
+    parts.append("## Current context\n\n" + _export_context_health(root))
+
+    parts.append(
+        "## Workbench proposal bridge\n\n"
+        "To make a bounded change under approval, **propose** it — do not act directly:\n\n"
+        "- `vibe workbench propose <proposal.json | ->` records a *pending* approval and runs "
+        "nothing.\n"
+        "- A human runs `vibe workbench serve`, reviews the proposed-by-agent card, and "
+        "approves/rejects/holds.\n"
+        "- Execution is a separate, explicit step through the existing guarded executor; there is "
+        "**no auto-execution**, no arbitrary shell, and raw payload content is never rendered.\n"
+        "See `docs/workbench-agent-bridge.md`.")
+
+    # Operating rules + agent-specific guidance — reuse the guide machinery so the
+    # never-stage list, preset policy, and (for fable) the budget/architect policy are
+    # included without duplicating text.
+    guide = role_guide(role, agent) if role else topic_guide(agent)
+    parts.append("## Operating rules & agent guide\n\n" + guide.rstrip())
+
+    return "\n\n".join(parts).rstrip() + "\n"
+
+
+def _rel_from_export(rel: str) -> str:
+    """Repo-relative path used as a link target in the export (kept relative so the
+    export is portable and leaks no absolute local path)."""
+    return rel
+
+
+# --------------------------------------------------------------------------- #
 # Argument parsing
 # --------------------------------------------------------------------------- #
 
@@ -2140,6 +2281,12 @@ def _build_parser() -> argparse.ArgumentParser:
     sp_ctx.add_argument("action", choices=["build", "check", "export"])
     sp_ctx.add_argument("target", nargs="?",
                         help="`export`: target (claude-code).")
+    sp_ctx.add_argument("--for", dest="for_agent", choices=list(GUIDE_TOPICS),
+                        help="`export`: build an onboarding context handoff for an agent "
+                             "(claude/codex/fable); prints to stdout unless --output is given.")
+    sp_ctx.add_argument("--role", choices=list(GUIDE_ROLES),
+                        help="`export --for`: optional role tailoring "
+                             "(" + "/".join(GUIDE_ROLES) + ").")
     sp_ctx.add_argument("--input",
                         help="`export`: pack to read (default: .council/context/pack-latest.md).")
     sp_ctx.add_argument("--dry-run", action="store_true",
