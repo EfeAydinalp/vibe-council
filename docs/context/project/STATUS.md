@@ -329,10 +329,20 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   roles coexist in one file). No `--force` needed (append never truncates). Without `--write`, role
   output stays stdout-only; only the explicit target file is touched (no `.council/` created). 691
   tests total. No Workbench/importer/executor/trust change, no dependency change, no version bump.
-- **Current focus:** **v0.6.1 onboarding launcher, phase by phase.** Role-aware `vibe guide` (stdout
-  + opt-in `--write`) is done; next candidates per the roadmap are codex/fable guide topics, then
-  v0.6.2 project vault → v0.6.3 cross-project. No new network endpoint. Deferred as before:
-  personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **v0.6.1 phase 3 — Codex & Fable guide topics.** `vibe guide codex` / `vibe guide fable` (with the
+  same `--role` and opt-in `--write` as `claude`), reusing the role-aware machinery. Codex emphasizes
+  vibe-as-reviewer/guardrail, read-instructions-first, small PRs, tests-before-report, and
+  propose-don't-bypass; Fable emphasizes its cost/technical-lead policy (plan-first, curated packs
+  not broad scans, Opus/Sonnet implement routine PRs, Fable for major planning/critical
+  blockers/high-leverage reviews, don't casually replace the roadmap). Per-topic default `--write`
+  files (`claude`=`CLAUDE.md`, `codex`=`AGENTS.md`, `fable`=`FABLE.md`) with distinct per-topic
+  markers so topics/roles coexist without overwriting. `claude` unchanged; `/council` still a
+  documented future idea only. 705 tests total. No Workbench/importer/executor/trust change, no
+  dependency change, no version bump.
+- **Current focus:** **v0.6.1 onboarding launcher, phase by phase.** The guide layer (claude/codex/
+  fable topics × roles × opt-in write) is now complete; next per the roadmap is v0.6.2 project vault
+  (extend `docs/context/`) → v0.6.3 cross-project onboarding. No new network endpoint. Deferred as
+  before: personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 

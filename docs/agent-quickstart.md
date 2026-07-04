@@ -194,28 +194,33 @@ claim a change was applied until an approved action has actually executed. Full 
 ## 11. Role-aware onboarding guide
 
 To onboard an agent for a specific role, print a role-tailored instruction block (read-only; writes
-nothing):
+nothing). Three host **topics** are supported — `claude`, `codex`, `fable` — each with an
+agent-specific emphasis:
 
 ```sh
 vibe guide claude --role coder          # also: task-shaper | planner | reviewer | release-manager
+vibe guide codex  --role reviewer       # Codex: use vibe as reviewer/guardrail; propose, don't bypass
+vibe guide fable  --role planner        # Fable: expensive → technical-lead/architect, plan-first
 ```
 
-Each role guide carries the role-specific workflow **plus** the common rules (this project's CLI is
-`vibe`, not `/council`; council is a reviewer/context/memory layer, not an implementer; the
-cheap/balanced/full preset policy; before/after-coding workflow; the Workbench proposal-bridge
-basics; and the never-stage list). `vibe guide claude` with no `--role` still prints the original
-Claude workflow block.
+Each guide carries the topic emphasis and (with `--role`) the role-specific workflow, **plus** the
+common rules (this project's CLI is `vibe`, not `/council`; council is a reviewer/context/memory
+layer, not an implementer; the cheap/balanced/full preset policy; before/after-coding workflow; the
+Workbench proposal-bridge basics; and the never-stage list). Each topic with no `--role` prints its
+general guide (`vibe guide claude` is unchanged).
 
-To persist a role guide into a project instruction file, add `--write` (opt-in):
+To persist a guide into a project instruction file, add `--write` (opt-in). Each topic has a default
+file (`claude`=`CLAUDE.md`, `codex`=`AGENTS.md`, `fable`=`FABLE.md`), or pass an explicit path:
 
 ```sh
 vibe guide claude --role coder --write            # append to CLAUDE.md (default)
-vibe guide claude --role coder --write AGENTS.md  # or an explicit file
+vibe guide codex  --write                          # append to AGENTS.md (default)
+vibe guide fable  --role planner --write FABLE.md  # or an explicit file
 ```
 
-`--write` **appends** the role's section to the file and reports the path; it **never overwrites** —
-a re-run for the same role is skipped (a distinct marker per role, so multiple roles can coexist in
-one file). Without `--write`, role output stays stdout-only.
+`--write` **appends** the section to the file and reports the path; it **never overwrites** — a
+re-run for the same topic/role is skipped (a distinct marker per topic+role, so multiple topics and
+roles can coexist in one file). Without `--write`, output stays stdout-only.
 
 ---
 
