@@ -6,7 +6,9 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
 
 ## Normal coding PR
 
-1. Read the vault ([`README.md`](./README.md), [`STATUS.md`](./STATUS.md),
+1. Run `vibe project doctor` (read-only) to confirm the repo is onboarding-ready — vault/core docs
+   present, no dangerous staged files (`.env`/`.council/`/private plans), context health, guides.
+   Then read the vault ([`README.md`](./README.md), [`STATUS.md`](./STATUS.md),
    [`ROADMAP.md`](./ROADMAP.md), [`RISKS.md`](./RISKS.md)) and any `plan.md` before coding.
 2. `vibe status`; for non-trivial work write a short `plan.md` and review it
    (`vibe review --preset cheap|balanced --file plan.md --usage`).
