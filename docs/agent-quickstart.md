@@ -12,10 +12,13 @@ development - from your own project or from an AI coding agent (Claude Code, Cod
 Use vibe-council as a lightweight reviewer, not an implementer.
 
 Before coding:
-1. Write a short `plan.md`.
-2. Run `vibe status`.
-3. Run `vibe review --preset cheap --file plan.md --usage`.
-4. Use `--preset balanced` for non-trivial work.
+1. **Read the project vault** ([`docs/context/project/`](../docs/context/project/README.md) —
+   `STATUS.md`, `ROADMAP.md`, `RISKS.md`, `WORKFLOWS.md`) so you know the project's current state and
+   how it works before you start.
+2. Write a short `plan.md`.
+3. Run `vibe status`.
+4. Run `vibe review --preset cheap --file plan.md --usage`.
+5. Use `--preset balanced` for non-trivial work.
 
 After coding:
 1. Run the project tests.

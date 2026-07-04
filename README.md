@@ -771,6 +771,12 @@ plan-first). Add `--write [FILE]` to **append** the section to a file (per-topic
 `CLAUDE.md`/`AGENTS.md`/`FABLE.md`); it never overwrites (re-runs are skipped, and topics/roles
 coexist in one file). See [`docs/agent-quickstart.md`](docs/agent-quickstart.md) §11.
 
+**Project vault (local project memory):** [`docs/context/project/`](docs/context/project/README.md)
+is the canonical, curated, public-safe Markdown project memory — `STATUS.md`, `ROADMAP.md`,
+`DECISIONS.md` (an index into `docs/decisions/`), `PROGRESS.md`, `RISKS.md`, `WORKFLOWS.md`, `NOTES.md`.
+Agents should **read the vault before planning or coding** so they don't start from zero each session;
+secrets, raw outputs, runtime payloads, and private plans never go there.
+
 **Implementation pack:** the phase-by-phase plan for upcoming work (v0.6 agent-to-Workbench bridge,
 onboarding, project vault, personalization, positioning, and the open-core path) lives in
 [`docs/fable/`](docs/fable/README.md) — a structured pack for driving future implementation with a

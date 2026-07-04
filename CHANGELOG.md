@@ -13,6 +13,18 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Project vault scaffold** (`docs/context/project/`) — the first v0.6.2 slice: a local-first,
+  Markdown, human- and agent-readable project-memory vault. Alongside the existing `README.md`/
+  `STATUS.md`, adds `ROADMAP.md`, `DECISIONS.md` (an **index/pointer** into `docs/decisions/`, never a
+  competing canonical store), `PROGRESS.md` (a curated milestone digest), `RISKS.md`, `WORKFLOWS.md`,
+  and `NOTES.md`. Each file states what belongs there and what must never go there (secrets, API keys,
+  private paths, runtime payloads, raw outputs, private plans). README/agent-brief/agent-quickstart
+  now point agents to read the vault before planning/coding. **The context builder is unchanged** —
+  the pack remains a budgeted projection (STATUS.md + decision index; 21/21 preserved); the vault is
+  read directly and discovered via pointers, not injected into the pack. Not a database, not an
+  Obsidian dependency, not a launcher. No Workbench/importer/executor/trust change, no `/council`
+  command, no dependency, no version bump.
+
 - **Role-aware agent guide** (`vibe guide claude --role <role>`) — the first v0.6.1 onboarding slice:
   a **read-only stdout generator** that prints a role-tailored Claude instruction block for
   `task-shaper`, `planner`, `coder`, `reviewer`, or `release-manager`. Each role guide pairs its

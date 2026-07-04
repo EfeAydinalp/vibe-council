@@ -1,6 +1,17 @@
-# Project memory
+# Project memory (project vault)
 
-The stable landing page for vibe-council's **curated, public-safe project memory**.
+The stable landing page for vibe-council's **curated, public-safe project memory** — the local
+**project vault**. `docs/context/project/` is the **canonical local project-memory area**: plain,
+committed Markdown that both humans and agents read.
+
+> **Agents: read this vault before planning or coding.** Start with [`STATUS.md`](./STATUS.md)
+> (current state), then [`ROADMAP.md`](./ROADMAP.md), [`RISKS.md`](./RISKS.md), and
+> [`WORKFLOWS.md`](./WORKFLOWS.md). It tells you where the project is and how it works so you don't
+> start from zero each session.
+>
+> **Never store here:** secrets / API keys / tokens, private local paths, runtime payloads, raw
+> model/council outputs, generated packs/exports, or private commercial/feasibility detail. Those
+> stay local/gitignored. This folder is curated and public-safe.
 
 ## Project identity
 
@@ -30,15 +41,22 @@ skill/council packs + (later) an optional hosted commercial layer.**
 - **Roadmap direction:** [`docs/plans/track-based-roadmap.md`](../../plans/track-based-roadmap.md).
 - **Latest research addendum:** [`docs/research/skilltree-project-memory-and-multi-agent-addendum.md`](../../research/skilltree-project-memory-and-multi-agent-addendum.md).
 
-## Files here
+## Files here (project vault)
 
 - [`README.md`](./README.md) — this stable landing page (identity, boundaries, pointers).
 - [`STATUS.md`](./STATUS.md) — a short current snapshot: state, next actions, blockers, needs-review.
-- **`PROGRESS.md` — not committed by default.** It is **local/generated** (under gitignored
-  `.council/`) unless explicitly promoted as a milestone digest; git history already records most
-  progress.
-- **No `DECISIONS.md` here.** If a single-file decision rollup is ever generated, it should be **only
-  an index/summary** — `docs/decisions/*.md` remains the canonical store, never a competing file.
+- [`ROADMAP.md`](./ROADMAP.md) — curated near-term roadmap summary (links to `docs/fable/04-roadmap.md`).
+- [`DECISIONS.md`](./DECISIONS.md) — an **index/summary** of high-level decisions. **Not a canonical
+  store** — `docs/decisions/*.md` remains the source of truth; this file only points at it.
+- [`PROGRESS.md`](./PROGRESS.md) — a **curated milestone digest** (phase checklist). Detailed progress
+  stays in git history / `docs/decisions/`; do not paste raw logs here.
+- [`RISKS.md`](./RISKS.md) — current active risks / gotchas.
+- [`WORKFLOWS.md`](./WORKFLOWS.md) — common repeatable workflows (coding PR, guide, Workbench proposal,
+  release prep, the no-stage checklist).
+- [`NOTES.md`](./NOTES.md) — a small scratchpad for **durable, curated** notes only.
+
+These are all **plain, committed, public-safe Markdown**. Curated content only; no raw/generated/
+private artifacts (see the boundary note above and below).
 
 ## Public / private boundary
 
