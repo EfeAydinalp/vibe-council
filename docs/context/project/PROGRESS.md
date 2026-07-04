@@ -13,9 +13,11 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
       importer + `vibe workbench propose`, panel proposed-by-agent visibility, bridge docs.
 - [x] **v0.6.1 — role-aware onboarding guide.** `vibe guide {claude|codex|fable}` with `--role` and
       opt-in `--write` (append-only).
-- [ ] **v0.6.2 — project vault scaffold** *(current).* This folder: Markdown project-memory files
-      (README, STATUS, ROADMAP, DECISIONS index, PROGRESS, RISKS, WORKFLOWS, NOTES).
-- [ ] **v0.6.3 — cross-project onboarding** *(not started).*
+- [x] **v0.6.2 — project vault scaffold + project doctor.** This folder (README, STATUS, ROADMAP,
+      DECISIONS index, PROGRESS, RISKS, WORKFLOWS, NOTES) plus `vibe project doctor` (read-only
+      readiness check).
+- [x] **v0.6.3 — cross-project onboarding.** `vibe context export --for {claude|codex|fable}`
+      (read-only onboarding handoff). Bundled into the `v0.6.3` release (prepared; tag/Release manual).
 - [ ] **v0.7+ — personalization / mobile / hosted** *(deferred; separate planning).*
 
 ## How to update

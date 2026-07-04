@@ -6,24 +6,22 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.6.2 — Obsidian-like project vault** *(in progress).* A local-first, Markdown, human- and
-  agent-readable project-memory scaffold under `docs/context/project/` (this folder). Not a database,
-  not an Obsidian plugin, not a launcher — just curated committed Markdown that agents read before
-  planning/coding. See [`docs/fable/08-obsidian-project-vault.md`](../../fable/08-obsidian-project-vault.md).
+- **v0.7 — personalization** *(next; not started).* Personal profile / project preferences, built on
+  the onboarding surface. See [`docs/fable/10-personalization-layer.md`](../../fable/10-personalization-layer.md).
+  Preferences may **tighten but never loosen** a guardrail.
 
 ## Recently shipped
 
 - **v0.6.0 — agent-to-Workbench proposal bridge** *(released).* Agents propose bounded actions via
   `vibe workbench propose`; a human approves and executes through the existing guarded executor.
-- **v0.6.1 — role-aware onboarding guide.** `vibe guide {claude|codex|fable} [--role <role>]
-  [--write [FILE]]` — read-only stdout generators (opt-in append-only file write) to reduce
-  per-session re-onboarding.
+- **v0.6.1–v0.6.3 — cross-project agent onboarding** *(prepared as the `v0.6.3` release).* A role-aware
+  `vibe guide {claude|codex|fable} [--role <role>] [--write [FILE]]` layer (read-only generators;
+  opt-in append-only write), a local-first Markdown **project vault** (`docs/context/project/`), a
+  read-only **`vibe project doctor`** readiness check, and a read-only **`vibe context export --for
+  <agent>`** onboarding handoff. All read-only/local; `/council` stays a future idea, not a command.
 
 ## Next (near-term, not started)
 
-- **Onboarding / session-launcher improvements** — build on the guide layer (e.g. `vibe project
-  doctor`, cross-project export). Still a **generator**, not an interactive launcher; `/council`
-  stays a future host-specific idea, **not** a real `vibe` command.
 - **Workbench hardening** — continued dogfood/hardening of the proposal→approval→execute path within
   the existing security model (no new network surface, no allowlist growth by default).
 

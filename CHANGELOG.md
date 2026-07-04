@@ -5,11 +5,23 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.6.0` is prepared. The repo reports `0.6.0`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.6.0` git tag + GitHub Release are cut by a
+> **Status:** `0.6.3` is prepared. The repo reports `0.6.3`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.6.3` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+_Nothing yet. Post-0.6.3 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.6.3] - 2026-07-04
+
+**Cross-project agent onboarding.** Bundles the v0.6.1–v0.6.3 onboarding arc on top of the v0.6.0
+agent-to-Workbench bridge: a role-aware `vibe guide` layer (claude/codex/fable topics, opt-in
+append-only `--write`), a local-first Markdown **project vault** under `docs/context/project/`, a
+read-only `vibe project doctor` readiness check, and a read-only `vibe context export --for <agent>`
+onboarding handoff. All read-only/local: no model/provider/network call, no Workbench trust-boundary
+change, no `/council` command (`vibe` remains the real CLI), no new dependency.
 
 ### Added
 
