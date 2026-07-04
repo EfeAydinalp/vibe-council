@@ -10,6 +10,7 @@ Commands:
     init                              create a .council/ workspace
     diff                             review the caller repo's git diff
     projects list                    list registered projects
+    project doctor                   onboarding-readiness diagnostics (read-only)
     status                           show active workspace info
     last [review|decision|diff|run]  print the latest saved artifact
     help                             usage + workflow help
@@ -645,6 +646,151 @@ def cmd_projects(args) -> int:
         print(f"      path:      {p.get('project_path', '?')}")
         print(f"      last_used: {p.get('last_used_at', '?')}")
     return EXIT_OK
+
+
+# --------------------------------------------------------------------------- #
+# `project doctor` — read-only onboarding-readiness diagnostics (no writes,
+# no .council/ creation, no model/provider/network calls)
+# --------------------------------------------------------------------------- #
+
+# Required for a repo to be "onboarding-ready" (missing any -> non-zero).
+PROJECT_VAULT_FILES = (
+    "docs/context/project/README.md",
+    "docs/context/project/STATUS.md",
+    "docs/context/project/ROADMAP.md",
+    "docs/context/project/DECISIONS.md",
+    "docs/context/project/PROGRESS.md",
+    "docs/context/project/RISKS.md",
+    "docs/context/project/WORKFLOWS.md",
+    "docs/context/project/NOTES.md",
+)
+PROJECT_CORE_DOCS = (
+    "docs/context/agent-brief.md",
+    "docs/agent-quickstart.md",
+    "README.md",
+)
+# Paths that must never be *staged* (dangerous -> fail). uv.lock is handled
+# separately as an advisory warning (its changes are sometimes intentional).
+_DOCTOR_DANGEROUS_STAGED = (".env", ".council/", ".council/runtime/",
+                            ".council/runtime/payloads/")
+_DOCTOR_PRIVATE_PLANS = (
+    "docs/plans/commercialization-and-hosted-platform-feasibility.md",
+    "docs/plans/v0.3.1-hardening-and-dogfood.md",
+)
+
+
+def _git_porcelain(project_path: Path):
+    """Return ``git status --porcelain`` lines for the repo, or ``None`` if git is
+    unavailable / this isn't a git repo. Read-only; never raises."""
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(project_path), "status", "--porcelain"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    return r.stdout.splitlines()
+
+
+def project_doctor_report(project_root: Path):
+    """Read-only onboarding-readiness inspection. Returns ``(lines, ok)`` where
+    ``lines`` is the human-readable report and ``ok`` is True when all required files
+    exist and no dangerous file is staged. Pure aside from reading files + a read-only
+    ``git status`` call; writes nothing and never creates ``.council/``."""
+    root = Path(project_root)
+    lines: List[str] = [f"vibe project doctor — onboarding readiness for '{root.name}'", ""]
+    ok = True
+
+    def _files_section(title: str, rels) -> None:
+        nonlocal ok
+        lines.append(title)
+        for rel in rels:
+            present = (root / rel).is_file()
+            lines.append(f"  [{'ok ' if present else 'MISS'}] {rel}")
+            if not present:
+                ok = False
+        lines.append("")
+
+    _files_section("Project vault files:", PROJECT_VAULT_FILES)
+    _files_section("Core onboarding docs:", PROJECT_CORE_DOCS)
+
+    # Safety indicators (git-based; warn, don't fail, if git is unavailable).
+    lines.append("Safety (staged-file check):")
+    porcelain = _git_porcelain(root)
+    if porcelain is None:
+        lines.append("  [warn] git unavailable or not a git repo — skipped staged-file "
+                     "checks.")
+    else:
+        dangerous, uvlock_staged = [], False
+        for entry in porcelain:
+            if len(entry) < 4:
+                continue
+            index_status, path = entry[0], entry[3:].strip().strip('"')
+            staged = index_status not in (" ", "?")  # ?? = untracked (not staged)
+            if not staged:
+                continue
+            norm = path.replace("\\", "/")
+            if norm == "uv.lock":
+                uvlock_staged = True
+            elif (any(norm == d or norm.startswith(d) for d in _DOCTOR_DANGEROUS_STAGED)
+                  or norm in _DOCTOR_PRIVATE_PLANS):
+                dangerous.append(norm)
+        for d in dangerous:
+            lines.append(f"  [FAIL] staged file must never be committed: {d}")
+            ok = False
+        if uvlock_staged:
+            lines.append("  [warn] uv.lock is staged — confirm this is an intentional "
+                         "version/lock change.")
+        if not dangerous and not uvlock_staged:
+            lines.append("  [ok ] no dangerous staged files (.env / .council/ / private "
+                         "plans) detected.")
+    lines.append("")
+
+    # Context health (advisory only; in-memory, writes nothing).
+    lines.append("Context health (advisory):")
+    try:
+        ddir = root / "docs" / "decisions"
+        status = root / "docs" / "context" / "project" / "STATUS.md"
+        res = context_pack.build_pack(ddir, status)
+        chk = context_pack.check_pack(res.text)
+        lines.append(f"  [{'ok ' if chk.ok else 'warn'}] context check "
+                     f"{chk.passed}/{chk.total}"
+                     + ("" if chk.ok else " (advisory; not a doctor failure)"))
+    except Exception as e:  # never let advisory health fail the command
+        lines.append(f"  [warn] context health unavailable ({type(e).__name__}).")
+    lines.append("")
+
+    # Guide availability (informational).
+    lines.append("Agent onboarding guides (read-only generators):")
+    lines.append("  vibe guide claude --role coder --write")
+    lines.append("  vibe guide codex  --role coder --write")
+    lines.append("  vibe guide fable  --role planner --write")
+    lines.append("  note: `/council` is a possible FUTURE host-command idea — it is "
+                 "NOT a real vibe CLI command today.")
+    lines.append("")
+
+    if ok:
+        lines.append("Result: READY — required vault/core docs present, no dangerous "
+                     "staged files.")
+    else:
+        lines.append("Result: NOT READY.")
+        lines.append("Next steps: create any [MISS] files (see docs/context/project/ for "
+                     "the vault, and docs/agent-quickstart.md), and unstage any [FAIL] "
+                     "files (never commit .env / .council/ / private plans).")
+    return lines, ok
+
+
+def cmd_project(args) -> int:
+    """`project doctor`: read-only onboarding-readiness diagnostics. No writes, no
+    `.council/` creation, no model/provider/network calls."""
+    if getattr(args, "action", None) != "doctor":
+        _err("Usage: vibe project doctor")
+        return EXIT_USAGE
+    lines, ok = project_doctor_report(pw.caller_cwd())
+    print("\n".join(lines))
+    return EXIT_OK if ok else EXIT_RUNTIME
 
 
 _PRESET_GUIDANCE = {
@@ -1549,6 +1695,7 @@ Common commands:
   vibe status                                         # workspace info + guards
   vibe last [review|decision|diff|run]                # print latest artifact
   vibe projects list                                  # list registered projects
+  vibe project doctor                                 # onboarding-readiness check (read-only, no writes)
   vibe decisions list                                 # list curated docs/decisions records
   vibe decisions show <id>                            # print a curated decision record
   vibe decisions new --title "..."                    # print a new decision-record template
@@ -1928,6 +2075,11 @@ def _build_parser() -> argparse.ArgumentParser:
     sp_projects = sub.add_parser("projects", help="List registered projects.")
     sp_projects.add_argument("action", choices=["list"])
 
+    sp_project = sub.add_parser(
+        "project", help="Project onboarding diagnostics (read-only; no writes).")
+    sp_project.add_argument("action", choices=["doctor"],
+                            help="doctor: check whether this repo is agent-onboarding ready.")
+
     sub.add_parser("models", help="Show configured model IDs per preset (no model call).")
     sub.add_parser("presets", help="Show available presets and intended use (no model call).")
 
@@ -2098,6 +2250,8 @@ def main(argv=None) -> int:
         return cmd_diff(args)
     if cmd == "init":
         return cmd_init(args)
+    if cmd == "project":
+        return cmd_project(args)
     if cmd == "projects":
         return cmd_projects(args)
     if cmd == "models":

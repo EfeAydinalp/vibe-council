@@ -345,10 +345,19 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   markers so topics/roles coexist without overwriting. `claude` unchanged; `/council` still a
   documented future idea only. 705 tests total. No Workbench/importer/executor/trust change, no
   dependency change, no version bump.
-- **Current focus:** **v0.6.1 onboarding launcher, phase by phase.** The guide layer (claude/codex/
-  fable topics × roles × opt-in write) is now complete; next per the roadmap is v0.6.2 project vault
-  (extend `docs/context/`) → v0.6.3 cross-project onboarding. No new network endpoint. Deferred as
-  before: personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **v0.6.2 — project vault scaffold + onboarding doctor.** The vault (`docs/context/project/*.md`)
+  is scaffolded (README/STATUS/ROADMAP/DECISIONS-index/PROGRESS/RISKS/WORKFLOWS/NOTES). `vibe project
+  doctor` (read-only, new `project` subcommand distinct from the provider `vibe doctor`) reports
+  onboarding readiness: vault/core docs present, no dangerous **staged** files (`.env`/`.council/`/
+  private plans → fail; staged `uv.lock` → warn), context health (in-memory `build_pack`/`check_pack`,
+  21/21), and the `vibe guide` commands (`/council` explicitly not-a-real-command). Exit 0 ready /
+  non-zero with next steps; git-unavailable degrades to a warning. Writes nothing, creates no
+  `.council/`, no model/provider/network call. No context-builder change.
+- **Current focus:** **v0.6.x onboarding, phase by phase.** The guide layer (claude/codex/fable ×
+  roles × opt-in write), the project vault scaffold, and `vibe project doctor` are done; next per the
+  roadmap is further cross-project onboarding (e.g. context export for agents) → v0.6.3. No new
+  network endpoint. Deferred as before: personalization (v0.7), mobile/LAN/voice (v0.8),
+  hosted/team (v0.9+).
 
 ## Next actions
 

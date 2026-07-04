@@ -244,7 +244,13 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   agents read before planning/coding. **The context builder is unchanged** (pack = STATUS.md +
   decision index, still 21/21; the vault is read directly / discovered via pointers, not injected
   into the budgeted pack). Not a database/Obsidian-dep/launcher. No Workbench/importer/executor/trust/
-  dependency change.
+  dependency change. **v0.6.2 phase 2** adds **`vibe project doctor`** — a read-only onboarding-
+  readiness diagnostic (new `project` subcommand, distinct from the provider `vibe doctor`): checks
+  the vault + core docs are present, no dangerous **staged** file (`.env`/`.council/`/private plans →
+  fail, staged `uv.lock` → warn), context health (in-memory `build_pack`/`check_pack`, 21/21), and
+  the `vibe guide` commands (`/council` explicitly not-a-real-command). Exit 0 ready / non-zero with
+  next steps; git-unavailable → warning. Writes nothing, creates no `.council/`, no model/provider/
+  network call. No context-builder change.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

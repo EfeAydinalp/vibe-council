@@ -777,6 +777,11 @@ is the canonical, curated, public-safe Markdown project memory — `STATUS.md`, 
 Agents should **read the vault before planning or coding** so they don't start from zero each session;
 secrets, raw outputs, runtime payloads, and private plans never go there.
 
+**Onboarding readiness:** `vibe project doctor` is a **read-only** check (no writes, no `.council/`,
+no model calls) that reports whether a repo is ready for agent onboarding — vault/core docs present,
+no dangerous staged files (`.env`/`.council/`/private plans), context health, and the available
+`vibe guide` commands. Exit 0 when ready; non-zero with next steps when something's missing.
+
 **Implementation pack:** the phase-by-phase plan for upcoming work (v0.6 agent-to-Workbench bridge,
 onboarding, project vault, personalization, positioning, and the open-core path) lives in
 [`docs/fable/`](docs/fable/README.md) — a structured pack for driving future implementation with a

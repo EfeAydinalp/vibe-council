@@ -13,6 +13,18 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`vibe project doctor`** — a read-only onboarding-readiness diagnostic (new `project` subcommand,
+  distinct from the provider `vibe doctor`). It reports whether a repo is ready for agent onboarding:
+  the project vault files + core onboarding docs are present; no dangerous file is **staged**
+  (`.env`, `.council/`, `.council/runtime/`, private plan files → fail; a staged `uv.lock` → advisory
+  warning); context health (reusing `context_pack.build_pack`/`check_pack` **in-memory**, e.g. 21/21);
+  and the available `vibe guide {claude|codex|fable}` commands (with an explicit note that `/council`
+  is a future idea, **not** a real CLI command). Exit 0 when ready; non-zero with next steps when a
+  required file is missing or a dangerous file is staged; git-unavailable degrades to a warning, not a
+  failure. **Read-only:** writes no files, creates no `.council/`, makes no model/provider/network
+  call. No context-builder change, no Workbench/importer/executor/trust change, no dependency, no
+  version bump.
+
 - **Project vault scaffold** (`docs/context/project/`) — the first v0.6.2 slice: a local-first,
   Markdown, human- and agent-readable project-memory vault. Alongside the existing `README.md`/
   `STATUS.md`, adds `ROADMAP.md`, `DECISIONS.md` (an **index/pointer** into `docs/decisions/`, never a
