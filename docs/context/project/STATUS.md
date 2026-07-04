@@ -378,9 +378,20 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   (`docs/context/project/PROFILE.md`/`PREFERENCES.md`/`AGENTS.md`), **tighten-only** safety invariants,
   the council-in-the-loop production workflow, an A–E PR breakdown, open questions, and a copy-paste
   future-Fable prompt. **No code/behavior change, no version bump, no implementation yet.**
-- **Current focus:** **v0.7 personalization is in planning, not implementation.** The brief is the
-  source of truth; PR A (PROFILE/PREFERENCES scaffold) is the next candidate, implemented by
-  Opus/Sonnet. No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **v0.7 PR A — project profile/preferences scaffold (in progress).** Adds the public-safe,
+  Markdown-first committed scaffold under `docs/context/project/`:
+  [`PROFILE.md`](./PROFILE.md) (project identity/shape/stance/release state),
+  [`PREFERENCES.md`](./PREFERENCES.md) (review-preset policy, Fable usage policy, implementation style,
+  no-stage policy, tighten-only principle), and [`AGENT-ROLES.md`](./AGENT-ROLES.md) (per-agent role
+  expectations, `MODEL:` header convention, council-in-the-loop workflow). Deliberately a vault
+  **`AGENT-ROLES.md`, not a root `AGENTS.md`** (balanced-review corruption-risk guidance). **Scaffold
+  only — documentation an agent reads; no command reads/enforces it yet.** No guide/context-export/
+  project-doctor behavior change, no Workbench/trust change, no dependency, no version bump.
+- **Current focus:** **v0.7 personalization — PR A (scaffold) is the active slice.** The
+  [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) is the source of truth;
+  behavior integration (doctor presence check, context-export pointers, guide personalization) is
+  deferred to later v0.7 PRs (B–E). No new network endpoint. Deferred: mobile/LAN/voice (v0.8),
+  hosted/team (v0.9+).
 
 ## Next actions
 
