@@ -28,7 +28,10 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
     - [x] **PR B — `vibe project doctor` reports profile/preferences presence (advisory).** New
           "Personalization scaffold (advisory)" section: present → `[ok ]`, missing → `[warn]` (never a
           failure); root `AGENTS.md` not required (advisory warn only). Read-only; no behavior enforced.
-    - [ ] PR C — `vibe context export` references profile/preferences (pointers-only).
+    - [x] **PR C — `vibe context export` references profile/preferences (pointers-only).** New
+          "Project profile & preferences" section: pointers to `PROFILE.md`/`PREFERENCES.md`/
+          `AGENT-ROLES.md` (never inlined), tighten-only note, root-`AGENTS.md`-not-canonical note,
+          `vibe project doctor` recommendation. Reads no `.council/profile.*`; graceful if missing.
     - [ ] PR D — `vibe guide` reflects preferences (advisory, tighten-only).
     - [ ] PR E — v0.7.0 release prep.
 - [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*

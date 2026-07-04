@@ -274,8 +274,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   vault file, **not** a root `AGENTS.md` — balanced-review corruption-risk guidance). Documentation
   only — no command reads/enforces them yet. **v0.7 PR B** made `vibe project doctor` **advisory**ly
   report those scaffold files (present → ok, missing → warn, never a failure; root `AGENTS.md` not
-  required, warns if present) — still read-only, no `.council/`, no model call. Further behavior
-  integration (context-export pointers, guide personalization) is later v0.7 PRs (C–E).
+  required, warns if present). **v0.7 PR C** added a "Project profile & preferences" section to
+  `vibe context export --for <agent>` — **pointers only** to `PROFILE.md`/`PREFERENCES.md`/
+  `AGENT-ROLES.md` (never inlined), a tighten-only note, a root-`AGENTS.md`-not-canonical note, and a
+  `vibe project doctor` recommendation; reads no `.council/profile.*`, degrades gracefully if missing.
+  All still read-only, no `.council/`, no model call. Further integration (guide personalization,
+  release prep) is later v0.7 PRs (D–E).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

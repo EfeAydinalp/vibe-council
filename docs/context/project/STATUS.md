@@ -390,18 +390,22 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
 - **v0.7 PR A — scaffold merged.** The public-safe `PROFILE.md` / `PREFERENCES.md` /
   [`AGENT-ROLES.md`](./AGENT-ROLES.md) scaffold is on `master` (documentation only; no root
   `AGENTS.md`).
-- **v0.7 PR B — project doctor personalization-scaffold checks (in progress).** `vibe project doctor`
-  gains an **advisory** "Personalization scaffold" section for `PROFILE.md`/`PREFERENCES.md`/
-  `AGENT-ROLES.md`: present → `[ok ]`, missing → `[warn]` with a next-step pointer — **never a doctor
-  failure** (READY/NOT-READY still depends only on required vault/core docs + the dangerous-staged
-  check). Root `AGENTS.md` is not required; if present, an advisory `[warn]` points to the vault
-  `AGENT-ROLES.md` convention. Still **read-only** (no writes, no `.council/`, no model/network call;
-  context health stays advisory/in-memory). No context-export/guide/Workbench/trust change.
-- **Current focus:** **v0.7 personalization — PR B (project doctor advisory checks) is the active
+- **v0.7 PR B — project doctor personalization-scaffold checks (merged).** `vibe project doctor` has
+  an **advisory** "Personalization scaffold" section for `PROFILE.md`/`PREFERENCES.md`/`AGENT-ROLES.md`
+  (present → `[ok ]`, missing → `[warn]` — never a doctor failure); root `AGENTS.md` not required
+  (advisory warn only). Read-only; no context-export/guide/Workbench/trust change.
+- **v0.7 PR C — profile pointers in context export (in progress).** `vibe context export --for
+  {claude|codex|fable}` gains a "Project profile & preferences" section with **pointers** to
+  `PROFILE.md`/`PREFERENCES.md`/[`AGENT-ROLES.md`](./AGENT-ROLES.md) — **pointers only, never inlined**;
+  states tighten-only, that root `AGENTS.md` is not the canonical preference source, and recommends
+  `vibe project doctor`. Reads **no** `.council/profile.*`, degrades gracefully if the scaffold is
+  missing, stays deterministic (no timestamp), read-only (stdout by default; `--output` never
+  overwrites). No preference application, no guide/project-doctor semantics change, no
+  context-builder/Workbench/trust change.
+- **Current focus:** **v0.7 personalization — PR C (context-export profile pointers) is the active
   slice.** The [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) is the source
-  of truth; further behavior integration (context-export pointers, guide personalization) is deferred
-  to later v0.7 PRs (C–E). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team
-  (v0.9+).
+  of truth; further behavior integration (guide personalization, release prep) is deferred to later
+  v0.7 PRs (D–E). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 

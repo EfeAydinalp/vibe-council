@@ -2107,6 +2107,21 @@ _VAULT_POINTERS = (
     ("docs/context/project/NOTES.md", "durable curated notes only"),
 )
 
+# v0.7 personalization scaffold — POINTERS ONLY in the export (never inlined). Short,
+# generic labels (no distinctive file content). See docs/context/project/README.md.
+#
+# DO NOT inline PROFILE.md/PREFERENCES.md/AGENT-ROLES.md content here (now or in a later
+# PR): the export is a lean, deterministic handoff, and inlining would risk leaking
+# reconnaissance-adjacent project metadata and bloat the pack. Agents read the pointed-to
+# files directly. The export also never reads a local/private profile (`.council/profile.*`).
+_PROFILE_POINTERS = (
+    ("docs/context/project/PROFILE.md", "public-safe project identity/profile"),
+    ("docs/context/project/PREFERENCES.md",
+     "review-preset / Fable-usage / implementation-style policy"),
+    ("docs/context/project/AGENT-ROLES.md",
+     "per-agent roles + the MODEL: header convention"),
+)
+
 
 def _export_context_health(root: Path) -> str:
     """A one-line context-health summary built IN-MEMORY (build_pack/check_pack write
@@ -2155,6 +2170,22 @@ def agent_context_export(agent: str, role: Optional[str] = None,
         "## Project vault (read these directly — not inlined here)\n\n" + vault_lines +
         "\n\nDo not store secrets, API keys, private paths, runtime payloads, raw outputs, or "
         "private plans in the vault.")
+
+    profile_lines = "\n".join(f"- [`{rel}`]({_rel_from_export(rel)}) — {desc}"
+                              for rel, desc in _PROFILE_POINTERS)
+    parts.append(
+        "## Project profile & preferences (v0.7 personalization)\n\n"
+        "Public-safe Markdown **project-memory** files — **pointers only; not inlined here.** "
+        "Read them directly when you need detail; this export does **not** dump their full contents "
+        "by default:\n\n" + profile_lines + "\n\n"
+        "- **Personalization is tighten-only** — a project preference may make a rule *stricter* but "
+        "can **never loosen** a security/safety rule (the deterministic trust boundary ignores "
+        "preferences entirely).\n"
+        "- **Root `AGENTS.md` is not the canonical preference source** — it may exist as a "
+        "`vibe guide --write` output target, but per-agent role preferences live in "
+        "`docs/context/project/AGENT-ROLES.md`.\n"
+        "- This export reads no local/private profile (never `.council/profile.*`). Run "
+        "**`vibe project doctor`** to check whether the scaffold files are present.")
 
     parts.append("## Current context\n\n" + _export_context_health(root))
 
