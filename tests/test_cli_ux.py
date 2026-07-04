@@ -300,5 +300,129 @@ class TestRoleAwareGuideWrite(unittest.TestCase):
             self.assertFalse(f.exists())
 
 
+class TestCodexFableGuideTopics(unittest.TestCase):
+    """Codex and Fable guide topics reuse the role-aware guide machinery (v0.6.1).
+    claude behavior is preserved; codex/fable add their own emphasis + default files."""
+
+    def test_claude_topic_unchanged(self):
+        r = run_cli(["guide", "claude"])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Claude Code instructions for vibe-council", r.stdout)
+
+    def test_codex_topic_prints_codex_guidance(self):
+        r = run_cli(["guide", "codex"])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Codex instructions for vibe-council", r.stdout)
+        self.assertIn("Codex-specific notes", r.stdout)
+        self.assertIn("reviewer, context, and guardrail", r.stdout)
+        self.assertIn("vibe workbench propose", r.stdout)  # Workbench flow
+
+    def test_fable_topic_prints_budget_lead_guidance(self):
+        r = run_cli(["guide", "fable"])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Fable instructions for vibe-council", r.stdout)
+        self.assertIn("Fable is expensive", r.stdout)
+        self.assertIn("technical lead / architect", r.stdout)
+        self.assertIn("Opus/Sonnet implement routine PRs", r.stdout)
+
+    def test_role_works_for_codex_and_fable(self):
+        r = run_cli(["guide", "codex", "--role", "reviewer"])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Codex instructions for vibe-council", r.stdout)
+        self.assertIn("role: reviewer", r.stdout)
+        self.assertIn("### Role: reviewer", r.stdout)
+        self.assertIn("Codex-specific notes", r.stdout)  # topic framing present
+        r2 = run_cli(["guide", "fable", "--role", "planner"])
+        self.assertEqual(r2.returncode, 0, r2.stderr)
+        self.assertIn("Fable instructions for vibe-council", r2.stdout)
+        self.assertIn("role: planner", r2.stdout)
+        self.assertIn("### Role: planner", r2.stdout)
+
+    def test_all_topics_say_vibe_not_council(self):
+        for topic in ("codex", "fable"):
+            r = run_cli(["guide", topic])
+            self.assertIn("CLI is `vibe`, not `/council`", r.stdout, topic)
+            self.assertIn("does NOT exist today", r.stdout, topic)
+            self.assertIn(".council/runtime/payloads/", r.stdout, topic)  # never-stage
+            self.assertIn("secrets", r.stdout, topic)
+
+    def test_invalid_topic_fails_clearly(self):
+        r = run_cli(["guide", "gemini"])
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("invalid choice", r.stderr)
+
+    def test_invalid_role_still_fails_for_codex(self):
+        r = run_cli(["guide", "codex", "--role", "nope"])
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("invalid choice", r.stderr)
+
+    def test_codex_write_default_file_is_agents_md(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "AGENTS.md"
+            r = run_cli(["guide", "codex", "--write", str(f), "--yes"], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue(f.exists())
+            self.assertIn("[written]", r.stderr)
+            self.assertIn("Codex-specific notes", f.read_text(encoding="utf-8"))
+
+    def test_fable_role_write_marker_skip_and_coexist(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "AGENTS.md"
+            run_cli(["guide", "codex", "--write", str(f), "--yes"], caller_cwd=root)
+            run_cli(["guide", "fable", "--role", "coder", "--write", str(f), "--yes"],
+                    caller_cwd=root)
+            text = f.read_text(encoding="utf-8")
+            self.assertIn("## vibe-council agent guide (codex)", text)
+            self.assertIn("## vibe-council agent guide (fable, role: coder)", text)
+            # re-run does not overwrite/duplicate
+            r = run_cli(["guide", "fable", "--role", "coder", "--write", str(f),
+                         "--yes"], caller_cwd=root)
+            self.assertIn("already contains", r.stderr)
+            self.assertEqual(f.read_text(encoding="utf-8"), text)  # byte-identical
+
+    def test_stdout_only_topic_mode_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            before = set(p.name for p in root.iterdir())
+            run_cli(["guide", "codex"], caller_cwd=root)
+            run_cli(["guide", "fable", "--role", "planner"], caller_cwd=root)
+            self.assertEqual(before, set(p.name for p in root.iterdir()))
+
+    def test_topic_write_creates_no_council_dir(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            run_cli(["guide", "fable", "--write", str(root / "FABLE.md"), "--yes"],
+                    caller_cwd=root)
+            self.assertFalse((root / ".council").exists())
+
+    def test_help_lists_topics(self):
+        r = run_cli(["guide", "--help"])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("codex", r.stdout)
+        self.assertIn("fable", r.stdout)
+
+    def test_write_to_missing_parent_dir_fails_cleanly(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            target = root / "nope" / "AGENTS.md"  # parent dir does not exist
+            r = run_cli(["guide", "codex", "--write", str(target), "--yes"],
+                        caller_cwd=root)
+            self.assertNotEqual(r.returncode, 0)
+            self.assertIn("does not exist", r.stderr)
+            self.assertFalse(target.exists())
+
+    def test_public_helpers_are_topic_aware_and_defensive(self):
+        from backend import cli
+        self.assertEqual(set(cli.GUIDE_TOPICS), {"claude", "codex", "fable"})
+        self.assertIn("Codex", cli.topic_guide("codex"))
+        self.assertIn("Fable", cli.role_guide("coder", "fable"))
+        with self.assertRaises(ValueError):
+            cli.role_guide("coder", "gemini")
+        with self.assertRaises(ValueError):
+            cli.topic_guide("gemini")
+
+
 if __name__ == "__main__":
     unittest.main()

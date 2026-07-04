@@ -28,6 +28,17 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
   per-role marker means a re-run for the same role is skipped (and different roles can coexist in one
   file). Without `--write`, role output stays stdout-only. Only the explicit target file is touched;
   no `.council/` or other project files are created.
+- **Codex and Fable guide topics** — `vibe guide codex` and `vibe guide fable` (with the same
+  `--role` and opt-in `--write` support as `claude`), reusing the role-aware guide machinery. Codex
+  emphasizes using vibe as a reviewer/context/guardrail, reading project instructions first, small
+  scoped PRs, running tests before the final report, and proposing Workbench actions instead of
+  bypassing approval. Fable emphasizes its cost/technical-lead policy: plan-first, use curated
+  `docs/context/`/`docs/fable/` packs (not broad repo scans), let Opus/Sonnet implement routine PRs,
+  and reserve Fable for major phase planning / critical architecture-security blockers / high-leverage
+  reviews. Each topic has a default `--write` file (`claude`=`CLAUDE.md`, `codex`=`AGENTS.md`,
+  `fable`=`FABLE.md`) and a distinct per-topic marker so topics and roles coexist in one file without
+  overwriting. `claude` behavior is unchanged; `/council` stays a documented future idea, not a
+  command. No Workbench/importer/executor/trust change, no new dependency, no version bump.
 
 ## [0.6.0] - 2026-07-04
 

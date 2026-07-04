@@ -31,15 +31,16 @@ File emission is opt-in and later:
 vibe guide claude                       # print an instruction pack (exists today)
 vibe guide claude --role coder          # role-specialized pack — IMPLEMENTED (v0.6.1 phase 1)
 vibe guide claude --role coder --write  # opt-in write (append) — IMPLEMENTED (v0.6.1 phase 2)
-vibe guide codex                        # (proposed) print a Codex pack
-vibe guide fable                        # (proposed) print a Fable pack
+vibe guide codex                        # Codex pack — IMPLEMENTED (v0.6.1 phase 3)
+vibe guide fable                        # Fable pack — IMPLEMENTED (v0.6.1 phase 3)
 ```
 
-> **Status:** the **role-aware `vibe guide claude --role <role>`** slice is **implemented** —
-> read-only stdout for `task-shaper`/`planner`/`coder`/`reviewer`/`release-manager`, plus **opt-in
-> `--write`** (appends the role's section to a `CLAUDE.md`-style file, default `CLAUDE.md`; never
-> overwrites — per-role marker skips re-runs and lets roles coexist). No `vibe council start`/
-> `/council`. Codex/Fable topics remain proposed/later.
+> **Status:** the **role-aware guide** is **implemented** for topics `claude`, `codex`, and `fable`
+> — read-only stdout for `task-shaper`/`planner`/`coder`/`reviewer`/`release-manager`, plus **opt-in
+> `--write`** (appends the section to a file; per-topic defaults `CLAUDE.md`/`AGENTS.md`/`FABLE.md`;
+> never overwrites — distinct per-topic+role markers skip re-runs and let topics/roles coexist).
+> Codex emphasizes reviewer/guardrail + propose-don't-bypass; Fable emphasizes its cost/technical-lead
+> policy. No `vibe council start`/`/council`.
 
 `--write` must never overwrite an existing file without confirmation (see
 [09-cross-project-onboarding.md](09-cross-project-onboarding.md)).

@@ -230,7 +230,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   append + marker-skip convention as the plain `--write` (never overwrites; per-role marker lets
   roles coexist and skips re-runs; no `--force` needed). Without `--write`, role output stays
   stdout-only; only the explicit target file is touched. `vibe guide claude` with no role is
-  unchanged. No Workbench/importer/executor/trust/dependency change.
+  unchanged. **v0.6.1 phase 3** adds **Codex & Fable guide topics** (`vibe guide codex` /
+  `vibe guide fable`, same `--role` + `--write` machinery): Codex emphasizes vibe-as-reviewer/
+  guardrail, read-first, small PRs, tests-before-report, propose-don't-bypass; Fable emphasizes its
+  cost/technical-lead policy (plan-first, curated packs not broad scans, Opus/Sonnet implement
+  routine PRs, Fable for major planning/critical blockers/high-leverage reviews). Per-topic default
+  write files (`CLAUDE.md`/`AGENTS.md`/`FABLE.md`) with distinct markers so topics/roles coexist.
+  `claude` unchanged; `/council` still a documented future idea only. No Workbench/importer/executor/
+  trust/dependency change.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

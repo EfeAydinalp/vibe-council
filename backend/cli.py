@@ -13,7 +13,7 @@ Commands:
     status                           show active workspace info
     last [review|decision|diff|run]  print the latest saved artifact
     help                             usage + workflow help
-    guide claude [--role ROLE] [--write FILE]   Claude Code instruction block (optionally role-aware)
+    guide {claude|codex|fable} [--role ROLE] [--write [FILE]]   agent instruction block (optionally role-aware)
 
 Output goes to stdout; diagnostics (verbose logs, saved paths, model errors,
 workspace notices) go to stderr so stdout stays clean for piping. The API key
@@ -1474,63 +1474,63 @@ def cmd_help(args) -> int:
     return EXIT_OK
 
 
+def _guide_append(target: str, marker: str, body: str, what: str, args) -> int:
+    """Append a guide section to ``target`` using the shared append + marker-skip
+    convention: never overwrites/truncates, skips if ``marker`` already present (so a
+    re-run is a no-op and no ``--force`` is needed), and only touches the explicit file.
+    ``errors='replace'`` on the read so a non-UTF-8 target can't crash the marker check."""
+    path = Path(target)
+    # The target is a user-chosen path (like the existing plain `--write`); we don't
+    # restrict where it goes, but fail cleanly instead of tracebacking if its parent
+    # directory doesn't exist.
+    parent = path.parent
+    if str(parent) and not parent.exists():
+        _err(f"cannot write '{path}': directory '{parent}' does not exist.")
+        return EXIT_USAGE
+    existing = ""
+    if path.exists():
+        existing = path.read_text(encoding="utf-8", errors="replace")
+    if marker in existing:
+        _err(f"'{path}' already contains {what}; not modifying.")
+        return EXIT_OK
+    if _interactive(args) and not _confirm(f"Append {what} to '{path}'?"):
+        _err("Aborted.")
+        return EXIT_OK
+    # Only separate from prior content when the file already has some.
+    prefix = "\n\n" if existing.strip() else ""
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(prefix + body.rstrip() + "\n")
+    _err(f"[written] appended {what} to {path}")
+    return EXIT_OK
+
+
 def cmd_guide(args) -> int:
-    if args.topic != "claude":
-        _err("Usage: vibe guide claude [--role ROLE] [--write FILE]")
+    topic = getattr(args, "topic", None)
+    if topic not in GUIDE_TOPICS:
+        _err("Usage: vibe guide {" + "|".join(GUIDE_TOPICS) + "} [--role ROLE] [--write [FILE]]")
         return EXIT_USAGE
 
     role = getattr(args, "role", None)
+    write = getattr(args, "write", None)
+    # `--write` with no value yields the sentinel -> resolve to the topic's default file.
+    if write == _WRITE_DEFAULT:
+        write = _TOPIC_DEFAULT_WRITE[topic]
+
     if role:
-        target = getattr(args, "write", None)
-        if not target:
-            # Default: read-only stdout generator (writes nothing).
-            print(role_guide(role))
+        if not write:
+            print(role_guide(role, topic))   # read-only stdout; writes nothing
             return EXIT_OK
-        # Opt-in write: append a role section to a CLAUDE.md-style file, following the
-        # same append + marker-skip convention as the plain `--write` below. Never
-        # overwrites/truncates; a re-run for the same role is skipped (so no --force is
-        # needed). Only the explicit target file is touched — no .council/ or other
-        # project files.
-        path = Path(target)
-        marker = _role_guide_marker(role)
-        existing = ""
-        if path.exists():
-            # errors="replace" so a non-UTF-8 target can't crash the marker check.
-            existing = path.read_text(encoding="utf-8", errors="replace")
-        if marker in existing:
-            _err(f"'{path}' already contains a role '{role}' guide section; not modifying.")
-            return EXIT_OK
-        if _interactive(args) and not _confirm(
-                f"Append the '{role}' agent guide to '{path}'?"):
-            _err("Aborted.")
-            return EXIT_OK
-        # Only separate from prior content when the file already has some.
-        prefix = "\n\n" if existing.strip() else ""
-        section = prefix + role_guide_section(role).rstrip() + "\n"
-        with open(path, "a", encoding="utf-8") as f:
-            f.write(section)
-        _err(f"[written] appended the '{role}' agent guide to {path}")
-        return EXIT_OK
+        what = f"the {topic} '{role}' agent guide"
+        return _guide_append(write, _role_guide_marker(role, topic),
+                             role_guide_section(role, topic), what, args)
 
-    target = getattr(args, "write", None)
-    if not target:
-        print(_GUIDE_CLAUDE)
+    if not write:
+        print(topic_guide(topic))            # read-only stdout; writes nothing
         return EXIT_OK
-
-    path = Path(target)
-    section = "\n\n" + _GUIDE_CLAUDE_SECTION + "\n"
-    if path.exists() and _GUIDE_MARKER in path.read_text(encoding="utf-8"):
-        _err(f"'{path}' already contains a Vibe Council Workflow section; not modifying.")
-        return EXIT_OK
-
-    if _interactive(args) and not _confirm(f"Append Vibe Council Workflow section to '{path}'?"):
-        _err("Aborted.")
-        return EXIT_OK
-
-    with open(path, "a", encoding="utf-8") as f:
-        f.write(section)
-    _err(f"[written] appended Vibe Council Workflow section to {path}")
-    return EXIT_OK
+    what = (f"a Vibe Council Workflow section" if topic == "claude"
+            else f"the {topic} agent guide")
+    return _guide_append(write, _topic_guide_marker(topic),
+                         topic_guide_section(topic), what, args)
 
 
 # --------------------------------------------------------------------------- #
@@ -1566,7 +1566,7 @@ Common commands:
   vibe operator status                                # show local workflow status (no model)
   vibe --version
   vibe help
-  vibe guide claude [--role task-shaper|planner|coder|reviewer|release-manager] [--write FILE]
+  vibe guide {claude|codex|fable} [--role task-shaper|planner|coder|reviewer|release-manager] [--write [FILE]]
 
 Examples:
   vibe review --preset balanced --file plan.md --yes
@@ -1755,30 +1755,111 @@ _GUIDE_COMMON = """### Common rules (every role)
   `.council/` gitignored; never print the `OPENROUTER_API_KEY`."""
 
 
-def role_guide(role: str) -> str:
-    """Build the role-aware Claude guide text (role-specific block + common rules). Pure;
-    writes nothing. Raises ``ValueError`` for an unknown role — argparse already
-    restricts the CLI to ``GUIDE_ROLES``, but this keeps the public helper safe for
-    any direct caller."""
+# Guide topics (host agents). Each maps to a display label, a default --write file,
+# and an agent-specific intro block. `claude` output is preserved exactly (empty intro,
+# `CLAUDE.md` default) so its existing behavior does not change.
+GUIDE_TOPICS = ("claude", "codex", "fable")
+
+# Internal sentinel: `--write` given without a value -> resolve to the topic's default
+# file in cmd_guide (argparse `const` is static, so it can't be topic-aware itself).
+_WRITE_DEFAULT = "\x00write-default"
+
+_TOPIC_LABEL = {"claude": "Claude Code", "codex": "Codex", "fable": "Fable"}
+_TOPIC_DEFAULT_WRITE = {"claude": "CLAUDE.md", "codex": "AGENTS.md", "fable": "FABLE.md"}
+
+_TOPIC_INTRO = {
+    "claude": "",
+    "codex": """### Codex-specific notes
+
+- Use vibe-council as a **reviewer, context, and guardrail** — not an implementer. Its output is
+  advice you filter and decide on.
+- **Read the project's own instruction files** (`AGENTS.md`, `docs/context/`, any `plan.md`) BEFORE
+  coding.
+- Make **small, scoped PRs**; match the surrounding code style.
+- **Run the project's tests before your final report** — never claim success on unrun code.
+- Review the working diff with `vibe diff --preset cheap --usage` normally; use `--preset balanced`
+  for security-relevant or non-trivial diffs.
+- **Never stage** `.council/`, runtime/payload artifacts, secrets, `.env`, or private local plans.
+- For Workbench actions, **`vibe workbench propose`** a bounded action instead of bypassing
+  approval; a human approves and executes it separately.""",
+    "fable": """### Fable-specific notes (cost + role policy)
+
+- **Fable is expensive — act as technical lead / architect by DEFAULT, not a routine implementer.**
+- **Plan first.** Do not implement unless implementation is explicitly approved; when it is, keep to
+  **one scoped phase/PR and stop**.
+- **Read curated context** (`docs/context/`, `docs/fable/` packs) instead of broad, expensive repo
+  scans.
+- Write an **implementation-plan Markdown file at the start of a phase** so Opus/Sonnet can execute
+  it.
+- **Opus/Sonnet implement routine PRs.** Use Fable for **major phase planning, critical
+  architecture/security blockers, or high-leverage reviews** — not for routine release prep or
+  docs-only implementation.
+- **Do not casually replace the roadmap** — challenge it explicitly (must-change / strong-rec /
+  optional / not-now), but the roadmap and the maintainer remain the source of truth.""",
+}
+
+
+def topic_guide(topic: str = "claude") -> str:
+    """Build the plain (no-role) guide text for a topic. ``claude`` returns the exact
+    existing guide; other topics get their intro + the common rules. Pure."""
+    if topic == "claude":
+        return _GUIDE_CLAUDE
+    if topic not in GUIDE_TOPICS:
+        raise ValueError(f"unknown guide topic '{topic}' (topics: {', '.join(GUIDE_TOPICS)})")
+    label = _TOPIC_LABEL[topic]
+    intro = _TOPIC_INTRO.get(topic, "").rstrip()
+    return f"{label} instructions for vibe-council\n\n{intro}\n\n{_GUIDE_COMMON}\n"
+
+
+def role_guide(role: str, topic: str = "claude") -> str:
+    """Build the role-aware guide text (topic framing + role-specific block + common
+    rules). Pure; writes nothing. ``claude`` output is unchanged from before. Raises
+    ``ValueError`` for an unknown role/topic — argparse already restricts CLI input, but
+    this keeps the public helper safe for any direct caller."""
     block = _ROLE_BLOCKS.get(role)
     if block is None:
         raise ValueError(f"unknown guide role '{role}' (roles: {', '.join(GUIDE_ROLES)})")
-    return (f"Claude Code instructions for vibe-council — role: {role}\n\n"
-            f"{block}\n\n{_GUIDE_COMMON}\n")
+    if topic not in GUIDE_TOPICS:
+        raise ValueError(f"unknown guide topic '{topic}' (topics: {', '.join(GUIDE_TOPICS)})")
+    label = _TOPIC_LABEL[topic]
+    intro = _TOPIC_INTRO.get(topic, "").rstrip()
+    intro_part = (intro + "\n\n") if intro else ""
+    return (f"{label} instructions for vibe-council — role: {role}\n\n"
+            f"{intro_part}{block}\n\n{_GUIDE_COMMON}\n")
 
 
-def _role_guide_marker(role: str) -> str:
+def _role_guide_marker(role: str, topic: str = "claude") -> str:
     """The Markdown heading that marks a role's guide section in a written file — used
     for idempotent, non-destructive appends (skip if already present). Deliberately
-    distinct from ``_GUIDE_MARKER`` so a role section and the plain workflow section
-    never collide."""
-    return f"## vibe-council agent guide (role: {role})"
+    distinct from ``_GUIDE_MARKER``; topic-qualified for non-``claude`` topics so a
+    ``claude`` section and a ``codex``/``fable`` section can coexist. ``claude`` keeps
+    its original (non-topic-qualified) marker for backward compatibility with
+    ``CLAUDE.md`` files already written by earlier versions."""
+    if topic == "claude":
+        return f"## vibe-council agent guide (role: {role})"
+    return f"## vibe-council agent guide ({topic}, role: {role})"
 
 
-def role_guide_section(role: str) -> str:
+def role_guide_section(role: str, topic: str = "claude") -> str:
     """A Markdown section (heading + role guide) suitable for appending to a
     ``CLAUDE.md``-style file. Pure; writes nothing."""
-    return f"{_role_guide_marker(role)}\n\n{role_guide(role)}"
+    return f"{_role_guide_marker(role, topic)}\n\n{role_guide(role, topic)}"
+
+
+def _topic_guide_marker(topic: str) -> str:
+    """Marker for a plain (no-role) topic section in a written file. ``claude`` keeps
+    its existing ``_GUIDE_MARKER``; other topics are topic-qualified."""
+    if topic == "claude":
+        return _GUIDE_MARKER
+    return f"## vibe-council agent guide ({topic})"
+
+
+def topic_guide_section(topic: str) -> str:
+    """A Markdown section (heading + plain topic guide) for appending. ``claude`` keeps
+    its existing section body exactly. Pure; writes nothing."""
+    if topic == "claude":
+        return _GUIDE_CLAUDE_SECTION
+    return f"{_topic_guide_marker(topic)}\n\n{topic_guide(topic)}"
 
 
 # --------------------------------------------------------------------------- #
@@ -1984,15 +2065,16 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_guide = sub.add_parser(
         "guide",
-        help="Print an agent guide (e.g. 'guide claude', 'guide claude --role coder').")
-    sp_guide.add_argument("topic", choices=["claude"])
+        help="Print an agent guide (e.g. 'guide claude', 'guide codex --role coder').")
+    sp_guide.add_argument("topic", choices=list(GUIDE_TOPICS))
     sp_guide.add_argument("--role", choices=list(GUIDE_ROLES),
                           help="Print a role-specific guide (stdout by default; add --write to "
                                "append it to a file). Roles: " + ", ".join(GUIDE_ROLES) + ".")
-    sp_guide.add_argument("--write", nargs="?", const="CLAUDE.md", metavar="FILE",
-                          help="Append the workflow section to FILE (default CLAUDE.md); with "
-                               "--role, appends that role's guide section. Skips if the section "
-                               "already exists (never overwrites).")
+    sp_guide.add_argument("--write", nargs="?", const=_WRITE_DEFAULT, metavar="FILE",
+                          help="Append the guide section to FILE. Default file per topic "
+                               "(claude=CLAUDE.md, codex=AGENTS.md, fable=FABLE.md); with --role, "
+                               "appends that role's section. Skips if the section already exists "
+                               "(never overwrites).")
     sp_guide.add_argument("--yes", action="store_true", help="Assume yes for writing.")
 
     return parser
