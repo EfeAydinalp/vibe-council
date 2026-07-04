@@ -13,6 +13,20 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.7 PR C — profile pointers in `vibe context export`** — the agent context handoff
+  (`vibe context export --for {claude|codex|fable}`) now includes a **"Project profile & preferences
+  (v0.7 personalization)"** section with **pointers** to `docs/context/project/PROFILE.md` /
+  `PREFERENCES.md` / `AGENT-ROLES.md`. It states they are public-safe Markdown project-memory files
+  read directly by agents; the export **does not dump their full contents** (pointers only), notes
+  that **personalization is tighten-only** (never loosens a security/safety rule), that **root
+  `AGENTS.md` is not the canonical preference source** (it may be a `vibe guide --write` output
+  target; role preferences live in `AGENT-ROLES.md`), and recommends `vibe project doctor` to check
+  scaffold presence. The export reads **no** local/private profile (never `.council/profile.*`),
+  inlines no distinctive file content, degrades gracefully if the scaffold is absent, stays
+  deterministic (no timestamp), and remains read-only (stdout by default; `--output FILE` still never
+  overwrites). No preference application, no guide/project-doctor semantics change, no context-builder
+  change, no Workbench/importer/executor/trust change, no dependency, no version bump.
+
 - **v0.7 PR B — project doctor personalization-scaffold checks** — `vibe project doctor` now reports a
   **"Personalization scaffold (advisory)"** section for the v0.7 scaffold files
   (`docs/context/project/PROFILE.md` / `PREFERENCES.md` / `AGENT-ROLES.md`): present → `[ok ]`, missing

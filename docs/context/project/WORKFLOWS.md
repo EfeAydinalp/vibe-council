@@ -29,9 +29,11 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
 - Add `--write [FILE]` to append it to a file (per-topic defaults `CLAUDE.md`/`AGENTS.md`/`FABLE.md`);
   it never overwrites — re-runs are skipped and topics/roles coexist.
 - `vibe context export --for {claude|codex|fable} [--role <role>] [--output FILE]` prints a read-only
-  onboarding context handoff (operating rules + **vault pointers** + context-health summary +
+  onboarding context handoff (operating rules + **vault pointers** + **project profile/preferences
+  pointers** to [`PROFILE.md`](./PROFILE.md) / [`PREFERENCES.md`](./PREFERENCES.md) /
+  [`AGENT-ROLES.md`](./AGENT-ROLES.md) — pointers only, never inlined + context-health summary +
   Workbench flow + a `vibe project doctor` reminder). Stdout by default; `--output` never overwrites.
-  Writes no `.council/`; makes no model call.
+  Writes no `.council/`; reads no `.council/profile.*`; makes no model call.
 - `vibe project doctor` also reports an **advisory** "Personalization scaffold" section for
   [`PROFILE.md`](./PROFILE.md) / [`PREFERENCES.md`](./PREFERENCES.md) / [`AGENT-ROLES.md`](./AGENT-ROLES.md)
   (present → ok, missing → warn with a next step). It is advisory — a missing scaffold never makes the
