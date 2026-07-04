@@ -5,6 +5,12 @@ _Snapshot date: **2026-07-03**._
 A short, current snapshot of where vibe-council is. See [`README.md`](./README.md) for what this
 folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision records.
 
+> **v0.6.2 project-vault scaffold — in progress.** This folder is now the project vault: alongside
+> `README.md`/`STATUS.md` it adds [`ROADMAP.md`](./ROADMAP.md), [`DECISIONS.md`](./DECISIONS.md)
+> (index only), [`PROGRESS.md`](./PROGRESS.md), [`RISKS.md`](./RISKS.md),
+> [`WORKFLOWS.md`](./WORKFLOWS.md), and [`NOTES.md`](./NOTES.md). Curated, committed, public-safe
+> Markdown — no secrets/raw/generated/private artifacts.
+
 ## Current state
 
 - **v0.2.0 released** (multi-provider milestone; 118 tests).

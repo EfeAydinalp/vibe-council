@@ -237,7 +237,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   routine PRs, Fable for major planning/critical blockers/high-leverage reviews). Per-topic default
   write files (`CLAUDE.md`/`AGENTS.md`/`FABLE.md`) with distinct markers so topics/roles coexist.
   `claude` unchanged; `/council` still a documented future idea only. No Workbench/importer/executor/
-  trust/dependency change.
+  trust/dependency change. **v0.6.2 phase 1** scaffolds the **project vault** under
+  `docs/context/project/`: alongside `README.md`/`STATUS.md`, adds `ROADMAP.md`, `DECISIONS.md`
+  (index/pointer into `docs/decisions/`, not a canonical store), `PROGRESS.md` (curated milestone
+  digest), `RISKS.md`, `WORKFLOWS.md`, `NOTES.md` — curated, committed, public-safe Markdown that
+  agents read before planning/coding. **The context builder is unchanged** (pack = STATUS.md +
+  decision index, still 21/21; the vault is read directly / discovered via pointers, not injected
+  into the budgeted pack). Not a database/Obsidian-dep/launcher. No Workbench/importer/executor/trust/
+  dependency change.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
