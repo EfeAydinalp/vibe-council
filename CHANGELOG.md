@@ -11,8 +11,16 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.6.3 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Added
+
+- **v0.7 personalization planning brief** — `docs/fable/v0.7-personalization-and-project-profile-plan.md`,
+  a **docs-only, council-in-the-loop** source brief for the v0.7 personalization / project-profile
+  phase. It defines the purpose, non-goals (no vector DB / database / hosted stack / auto-execution /
+  trust-boundary relaxation), the Markdown-first data model (`docs/context/project/PROFILE.md` /
+  `PREFERENCES.md` / `AGENTS.md`), tighten-only safety invariants (personalization may tighten but
+  never loosen a guardrail), the council-in-the-loop production workflow, a small A–E PR breakdown,
+  open questions, and a copy-paste future-Fable architecture prompt. **No implementation, no code or
+  behavior change, no version bump, no dependency change.**
 
 ## [0.6.3] - 2026-07-04
 
