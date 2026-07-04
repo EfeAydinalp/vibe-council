@@ -367,11 +367,20 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   onboarding" release. README release status → v0.6.3. Everything read-only/local; no model/network
   call, no Workbench trust change, no `/council`, no dependency change. **No version bump beyond
   `0.6.3`, no tag, no GitHub Release** — those are manual follow-up steps once this PR merges.
-- **Current focus:** **v0.6.3 prepared, not yet tagged.** The cross-project onboarding surface (guide
-  × roles × write, project vault, `vibe project doctor`, `vibe context export --for <agent>`) is
-  complete and release prep is in review; next is the manual tag/GitHub Release step, then scoping
-  personalization (v0.7). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team
-  (v0.9+).
+- **v0.6.3 released** (`v0.6.3` annotated tag pushed to `origin`; GitHub Release from
+  [`docs/releases/v0.6.3.md`](../../releases/v0.6.3.md) is the remaining manual step). Closes the
+  cross-project onboarding arc (guide × roles × write, project vault, `vibe project doctor`, `vibe
+  context export --for <agent>`).
+- **v0.7 personalization planning started (docs-only).** A **council-in-the-loop** source brief —
+  [`docs/fable/v0.7-personalization-and-project-profile-plan.md`](../../fable/v0.7-personalization-and-project-profile-plan.md)
+  — now scopes the personalization / project-profile phase: purpose, non-goals (no vector DB /
+  database / hosted stack / auto-execution / trust relaxation), a **Markdown-first** data model
+  (`docs/context/project/PROFILE.md`/`PREFERENCES.md`/`AGENTS.md`), **tighten-only** safety invariants,
+  the council-in-the-loop production workflow, an A–E PR breakdown, open questions, and a copy-paste
+  future-Fable prompt. **No code/behavior change, no version bump, no implementation yet.**
+- **Current focus:** **v0.7 personalization is in planning, not implementation.** The brief is the
+  source of truth; PR A (PROFILE/PREFERENCES scaffold) is the next candidate, implemented by
+  Opus/Sonnet. No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 

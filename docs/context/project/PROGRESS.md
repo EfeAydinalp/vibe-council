@@ -18,7 +18,10 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
       readiness check).
 - [x] **v0.6.3 — cross-project onboarding.** `vibe context export --for {claude|codex|fable}`
       (read-only onboarding handoff). Bundled into the `v0.6.3` release (prepared; tag/Release manual).
-- [ ] **v0.7+ — personalization / mobile / hosted** *(deferred; separate planning).*
+- [ ] **v0.7 — personalization / project profile** *(planning started, not implemented).* Source
+      brief: [`docs/fable/v0.7-personalization-and-project-profile-plan.md`](../../fable/v0.7-personalization-and-project-profile-plan.md)
+      (Markdown-first data model, A–E PR breakdown, tighten-only invariants).
+- [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*
 
 ## How to update
 

@@ -6,9 +6,12 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.7 — personalization** *(next; not started).* Personal profile / project preferences, built on
-  the onboarding surface. See [`docs/fable/10-personalization-layer.md`](../../fable/10-personalization-layer.md).
-  Preferences may **tighten but never loosen** a guardrail.
+- **v0.7 — personalization** *(planning started; not implemented).* Personal profile / project
+  preferences, built on the onboarding surface. The source brief is
+  [`docs/fable/v0.7-personalization-and-project-profile-plan.md`](../../fable/v0.7-personalization-and-project-profile-plan.md)
+  (Markdown-first data model, A–E PR breakdown, tighten-only invariants); background in
+  [`docs/fable/10-personalization-layer.md`](../../fable/10-personalization-layer.md). Preferences may
+  **tighten but never loosen** a guardrail.
 
 ## Recently shipped
 

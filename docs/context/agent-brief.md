@@ -262,7 +262,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   [`docs/releases/v0.6.3.md`](../releases/v0.6.3.md) bundling the onboarding arc (guide layer, project
   vault, project doctor, context export) as the "cross-project agent onboarding" release. All
   read-only/local; no Workbench trust change, no `/council`, no dependency change. **No tag / GitHub
-  Release** in the PR — those are a separate manual step once it merges.
+  Release** in the PR — those are a separate manual step once it merges. **v0.6.3 is now
+  tagged/released.** **v0.7 personalization planning has started (docs-only):**
+  [`docs/fable/v0.7-personalization-and-project-profile-plan.md`](../fable/v0.7-personalization-and-project-profile-plan.md)
+  is the **source brief** — a council-in-the-loop plan for a Markdown-first personalization /
+  project-profile layer (`docs/context/project/PROFILE.md`/`PREFERENCES.md`/`AGENTS.md`), **tighten-only**
+  (personalization may tighten but never loosen a guardrail), with explicit non-goals (no vector DB /
+  database / hosted stack / auto-execution / trust relaxation), an A–E PR breakdown, and a
+  future-Fable architecture prompt. No implementation yet.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
