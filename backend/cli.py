@@ -669,6 +669,14 @@ PROJECT_CORE_DOCS = (
     "docs/agent-quickstart.md",
     "README.md",
 )
+# v0.7 personalization scaffold — ADVISORY only (present -> ok, missing -> warn; never a
+# doctor failure). These are read-as-documentation today; no command reads/enforces them
+# yet. See docs/context/project/README.md and the v0.7 brief.
+PROJECT_PROFILE_FILES = (
+    "docs/context/project/PROFILE.md",
+    "docs/context/project/PREFERENCES.md",
+    "docs/context/project/AGENT-ROLES.md",
+)
 # Paths that must never be *staged* (dangerous -> fail). uv.lock is handled
 # separately as an advisory warning (its changes are sometimes intentional).
 _DOCTOR_DANGEROUS_STAGED = (".env", ".council/", ".council/runtime/",
@@ -715,6 +723,32 @@ def project_doctor_report(project_root: Path):
 
     _files_section("Project vault files:", PROJECT_VAULT_FILES)
     _files_section("Core onboarding docs:", PROJECT_CORE_DOCS)
+
+    # Personalization scaffold (v0.7) — ADVISORY only: present -> ok, missing -> warn.
+    # These files are read-as-documentation today; no command enforces them yet, so a
+    # missing scaffold is NOT a doctor failure (it never touches `ok`).
+    lines.append("Personalization scaffold (advisory):")
+    missing_profile = []
+    for rel in PROJECT_PROFILE_FILES:
+        present = (root / rel).is_file()
+        lines.append(f"  [{'ok ' if present else 'warn'}] {rel}")
+        if not present:
+            missing_profile.append(rel)
+    if missing_profile:
+        lines.append("  next: Create the v0.7 project profile scaffold or see "
+                     "docs/context/project/README.md")
+    else:
+        lines.append("  [ok ] project profile / preferences / agent-roles present "
+                     "(advisory; read-as-documentation, not yet enforced).")
+    # Root AGENTS.md is NOT required. If present, note the vault convention (per-agent
+    # role preferences live in docs/context/project/AGENT-ROLES.md) to avoid a root
+    # host-file / preference-source collision. Advisory — never a doctor failure.
+    if (root / "AGENTS.md").is_file():
+        lines.append("  [warn] root AGENTS.md present — vibe-council stores project agent "
+                     "roles in docs/context/project/AGENT-ROLES.md to avoid a root "
+                     "host-file collision (root AGENTS.md is a guide-output target, not a "
+                     "preference source).")
+    lines.append("")
 
     # Safety indicators (git-based; warn, don't fail, if git is unavailable).
     lines.append("Safety (staged-file check):")

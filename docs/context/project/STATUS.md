@@ -387,11 +387,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   **`AGENT-ROLES.md`, not a root `AGENTS.md`** (balanced-review corruption-risk guidance). **Scaffold
   only — documentation an agent reads; no command reads/enforces it yet.** No guide/context-export/
   project-doctor behavior change, no Workbench/trust change, no dependency, no version bump.
-- **Current focus:** **v0.7 personalization — PR A (scaffold) is the active slice.** The
-  [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) is the source of truth;
-  behavior integration (doctor presence check, context-export pointers, guide personalization) is
-  deferred to later v0.7 PRs (B–E). No new network endpoint. Deferred: mobile/LAN/voice (v0.8),
-  hosted/team (v0.9+).
+- **v0.7 PR A — scaffold merged.** The public-safe `PROFILE.md` / `PREFERENCES.md` /
+  [`AGENT-ROLES.md`](./AGENT-ROLES.md) scaffold is on `master` (documentation only; no root
+  `AGENTS.md`).
+- **v0.7 PR B — project doctor personalization-scaffold checks (in progress).** `vibe project doctor`
+  gains an **advisory** "Personalization scaffold" section for `PROFILE.md`/`PREFERENCES.md`/
+  `AGENT-ROLES.md`: present → `[ok ]`, missing → `[warn]` with a next-step pointer — **never a doctor
+  failure** (READY/NOT-READY still depends only on required vault/core docs + the dangerous-staged
+  check). Root `AGENTS.md` is not required; if present, an advisory `[warn]` points to the vault
+  `AGENT-ROLES.md` convention. Still **read-only** (no writes, no `.council/`, no model/network call;
+  context health stays advisory/in-memory). No context-export/guide/Workbench/trust change.
+- **Current focus:** **v0.7 personalization — PR B (project doctor advisory checks) is the active
+  slice.** The [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) is the source
+  of truth; further behavior integration (context-export pointers, guide personalization) is deferred
+  to later v0.7 PRs (C–E). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team
+  (v0.9+).
 
 ## Next actions
 

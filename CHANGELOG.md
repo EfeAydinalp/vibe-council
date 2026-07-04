@@ -13,6 +13,19 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.7 PR B — project doctor personalization-scaffold checks** — `vibe project doctor` now reports a
+  **"Personalization scaffold (advisory)"** section for the v0.7 scaffold files
+  (`docs/context/project/PROFILE.md` / `PREFERENCES.md` / `AGENT-ROLES.md`): present → `[ok ]`, missing
+  → `[warn]` with the next step `Create the v0.7 project profile scaffold or see
+  docs/context/project/README.md`. **Advisory only** — a missing scaffold is **not** a doctor failure
+  (READY/NOT-READY still depends solely on the required vault/core docs and the dangerous-staged
+  check). Root `AGENTS.md` is **not required**; if present, the doctor emits an advisory `[warn]` that
+  vibe-council keeps project agent roles in `docs/context/project/AGENT-ROLES.md` (avoiding a root
+  host-file / preference-source collision) — never a failure. The command stays **read-only**: writes
+  no files, creates no `.council/`, makes no model/provider/network call; context health remains
+  advisory/in-memory. No context-export / guide / Workbench / importer / executor / trust change, no
+  dependency, no version bump.
+
 - **v0.7 PR A — project profile/preferences scaffold** — public-safe, Markdown-first committed vault
   files under `docs/context/project/`: `PROFILE.md` (project identity/shape/local-first stance/release
   state), `PREFERENCES.md` (review-preset policy, Fable usage policy, implementation style, no-stage
