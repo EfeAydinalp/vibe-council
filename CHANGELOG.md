@@ -13,6 +13,17 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`vibe context export --for {claude|codex|fable}`** — a read-only agent onboarding context
+  handoff (with optional `--role`). Prints Markdown to stdout by default, or writes an explicit
+  `--output FILE` (never overwriting an existing file). It bundles: a header (`vibe` is the real CLI;
+  `/council` is a future idea, not a command), the operating rules + agent-specific guidance + the
+  never-stage list (reusing the `vibe guide` machinery — Fable gets its budget/technical-lead policy),
+  **pointers** to the project vault (deliberately **not** a full vault dump), a context-health
+  summary built **in-memory** (no `.council/` written), the Workbench proposal flow, and a
+  `vibe project doctor` recommendation. Read-only: no `.council/` creation, no model/provider/network
+  call. The existing `vibe context export claude-code` behavior is unchanged. No context-builder
+  change, no Workbench/importer/executor/trust change, no dependency, no version bump.
+
 - **`vibe project doctor`** — a read-only onboarding-readiness diagnostic (new `project` subcommand,
   distinct from the provider `vibe doctor`). It reports whether a repo is ready for agent onboarding:
   the project vault files + core onboarding docs are present; no dangerous file is **staged**

@@ -227,6 +227,20 @@ vibe guide fable  --role planner --write FABLE.md  # or an explicit file
 re-run for the same topic/role is skipped (a distinct marker per topic+role, so multiple topics and
 roles can coexist in one file). Without `--write`, output stays stdout-only.
 
+### Starting a new agent session (context handoff)
+
+For a one-shot onboarding handoff to paste into a fresh agent session, use the read-only export:
+
+```sh
+vibe context export --for claude                 # onboarding pack to stdout
+vibe context export --for codex --role reviewer  # role-tailored
+vibe context export --for fable --output onboard.md   # write to a file (never overwrites)
+```
+
+The export bundles the operating rules, **pointers** to the project vault (not a full dump), a
+context-health summary (built in-memory — no `.council/` is created), the Workbench proposal flow,
+and a reminder to run `vibe project doctor` first. It makes no model/provider/network call.
+
 ---
 
 ## Copy-paste instruction for AI coding agents

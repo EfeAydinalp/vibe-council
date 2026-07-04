@@ -250,7 +250,13 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   fail, staged `uv.lock` → warn), context health (in-memory `build_pack`/`check_pack`, 21/21), and
   the `vibe guide` commands (`/council` explicitly not-a-real-command). Exit 0 ready / non-zero with
   next steps; git-unavailable → warning. Writes nothing, creates no `.council/`, no model/provider/
-  network call. No context-builder change.
+  network call. No context-builder change. **v0.6.3** adds **`vibe context export --for
+  {claude|codex|fable} [--role <role>]`** — a read-only onboarding context handoff: header
+  (`vibe`-real/`/council`-future), operating rules + agent guidance + never-stage list (reused from
+  the guide machinery), project-vault **pointers** (not a full dump), an in-memory context-health
+  summary, the Workbench proposal flow, and a `vibe project doctor` reminder. Stdout by default;
+  `--output FILE` writes it, never overwriting. No `.council/` creation, no model/provider/network
+  call; the existing `context export claude-code` path is unchanged.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

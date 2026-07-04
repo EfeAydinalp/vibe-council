@@ -19,11 +19,15 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
    `vibe context check` (21/21), `vibe mcp inspect --context --health` (21/21).
 6. Stage only intended files; run the **no-stage checklist** below; commit; push; open a PR.
 
-## Guide generation
+## Guide generation & agent onboarding
 
 - `vibe guide {claude|codex|fable} [--role <role>]` prints a role/topic-tailored onboarding pack.
 - Add `--write [FILE]` to append it to a file (per-topic defaults `CLAUDE.md`/`AGENTS.md`/`FABLE.md`);
   it never overwrites — re-runs are skipped and topics/roles coexist.
+- `vibe context export --for {claude|codex|fable} [--role <role>] [--output FILE]` prints a read-only
+  onboarding context handoff (operating rules + **vault pointers** + context-health summary +
+  Workbench flow + a `vibe project doctor` reminder). Stdout by default; `--output` never overwrites.
+  Writes no `.council/`; makes no model call.
 
 ## Workbench proposal flow
 
