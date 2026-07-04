@@ -15,7 +15,12 @@ REPO = Path(__file__).resolve().parents[1]
 VAULT = REPO / "docs" / "context" / "project"
 
 VAULT_FILES = ("README.md", "STATUS.md", "ROADMAP.md", "DECISIONS.md", "PROGRESS.md",
-               "RISKS.md", "WORKFLOWS.md", "NOTES.md")
+               "RISKS.md", "WORKFLOWS.md", "NOTES.md",
+               # v0.7 PR A — project profile/preferences scaffold (documentation only).
+               "PROFILE.md", "PREFERENCES.md", "AGENT-ROLES.md")
+
+# The v0.7 personalization scaffold files (public-safe, committed, read-as-documentation).
+PROFILE_FILES = ("PROFILE.md", "PREFERENCES.md", "AGENT-ROLES.md")
 
 PRIVATE_PLAN_NAMES = (
     "commercialization-and-hosted-platform-feasibility.md",
@@ -89,6 +94,65 @@ class TestVaultContentGuardrails(unittest.TestCase):
         self.assertIn("local-first", d)
         self.assertIn("fable", d)                          # architect/lead policy
         self.assertIn("project-vault root", d)
+
+
+class TestProfilePreferencesScaffold(unittest.TestCase):
+    """v0.7 PR A — the PROFILE/PREFERENCES/AGENT-ROLES scaffold (documentation only)."""
+
+    def test_scaffold_files_exist_and_are_markdown(self):
+        for name in PROFILE_FILES:
+            p = VAULT / name
+            self.assertTrue(p.is_file(), f"missing scaffold file: {name}")
+            text = _read(name)
+            self.assertGreater(len(text.strip()), 0, name)
+            self.assertTrue(text.lstrip().startswith("#"), f"{name} should start with a heading")
+
+    def test_readme_lists_the_scaffold_files(self):
+        r = _read("README.md")
+        for name in PROFILE_FILES:
+            self.assertIn(name, r, f"vault README does not list {name}")
+
+    def test_each_scaffold_file_has_safe_to_commit_and_never_store_boundary(self):
+        for name in PROFILE_FILES:
+            t = _read(name).lower()
+            self.assertIn("safe to commit", t, f"{name} missing safe-to-commit boundary")
+            # never-store list mentions the core forbidden categories
+            self.assertIn("never", t, f"{name} missing never-store guidance")
+            self.assertIn("secret", t, f"{name} should name secrets in never-store list")
+            self.assertIn(".council/runtime", t, f"{name} should name runtime payloads/artifacts")
+
+    def test_each_scaffold_file_states_tighten_only_principle(self):
+        for name in PROFILE_FILES:
+            t = _read(name).lower()
+            self.assertIn("tighten", t, f"{name} missing tighten-only principle")
+            self.assertIn("never loosen", t, f"{name} should say it never loosens safety/security")
+
+    def test_preferences_states_review_and_fable_policy(self):
+        t = _read("PREFERENCES.md").lower()
+        for token in ("cheap", "balanced", "full"):
+            self.assertIn(token, t, f"PREFERENCES.md missing review preset '{token}'")
+        self.assertIn("fable", t)                 # Fable usage policy
+        self.assertIn("small", t)                 # small scoped PRs
+
+    def test_agent_roles_states_model_header_convention(self):
+        t = _read("AGENT-ROLES.md")
+        self.assertIn("MODEL: OPUS/SONNET CODE", t)
+        self.assertIn("MODEL: FABLE CODE", t)
+
+    def test_scaffold_never_frames_council_as_a_real_command(self):
+        # /council must be framed as a future idea, never a real CLI command.
+        for name in PROFILE_FILES:
+            t = _read(name)
+            if "/council" in t:
+                self.assertTrue(
+                    ("does **not** exist" in t) or ("does not exist" in t)
+                    or ("not a real" in t.lower()) or ("future" in t.lower()),
+                    f"{name} mentions /council without framing it as future/not-real")
+
+    def test_no_root_agents_md_created_by_this_scaffold(self):
+        # PR A deliberately uses a vault AGENT-ROLES.md, NOT a root AGENTS.md (corruption risk).
+        self.assertFalse((REPO / "AGENTS.md").exists(),
+                         "root AGENTS.md must not be created by the profile scaffold")
 
 
 class TestContextPackDoesNotLeakPrivatePlans(unittest.TestCase):

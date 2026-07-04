@@ -54,6 +54,14 @@ skill/council packs + (later) an optional hosted commercial layer.**
 - [`WORKFLOWS.md`](./WORKFLOWS.md) — common repeatable workflows (coding PR, guide, Workbench proposal,
   release prep, the no-stage checklist).
 - [`NOTES.md`](./NOTES.md) — a small scratchpad for **durable, curated** notes only.
+- [`PROFILE.md`](./PROFILE.md) — public-safe project identity/profile (what the project is, product
+  shape, local-first stance, current release state). *(v0.7 personalization scaffold — documentation
+  only; no command reads it yet.)*
+- [`PREFERENCES.md`](./PREFERENCES.md) — project working preferences (review-preset policy, Fable usage
+  policy, implementation style, no-stage policy, tighten-only principle). *(v0.7 scaffold.)*
+- [`AGENT-ROLES.md`](./AGENT-ROLES.md) — per-agent role expectations + the `MODEL:` header convention
+  and council-in-the-loop workflow. Deliberately a **vault file, not a root `AGENTS.md`**. *(v0.7
+  scaffold.)*
 
 These are all **plain, committed, public-safe Markdown**. Curated content only; no raw/generated/
 private artifacts (see the boundary note above and below).

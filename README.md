@@ -772,9 +772,12 @@ coexist in one file). See [`docs/agent-quickstart.md`](docs/agent-quickstart.md)
 
 **Project vault (local project memory):** [`docs/context/project/`](docs/context/project/README.md)
 is the canonical, curated, public-safe Markdown project memory — `STATUS.md`, `ROADMAP.md`,
-`DECISIONS.md` (an index into `docs/decisions/`), `PROGRESS.md`, `RISKS.md`, `WORKFLOWS.md`, `NOTES.md`.
-Agents should **read the vault before planning or coding** so they don't start from zero each session;
-secrets, raw outputs, runtime payloads, and private plans never go there.
+`DECISIONS.md` (an index into `docs/decisions/`), `PROGRESS.md`, `RISKS.md`, `WORKFLOWS.md`, `NOTES.md`,
+plus the v0.7 personalization scaffold `PROFILE.md` (project identity/profile), `PREFERENCES.md`
+(review-preset / Fable-usage / implementation-style policy), and `AGENT-ROLES.md` (per-agent roles +
+the `MODEL:` header convention). Agents should **read the vault before planning or coding** so they
+don't start from zero each session; the profile/preferences are read-as-documentation and tighten-only
+(no command enforces them yet). Secrets, raw outputs, runtime payloads, and private plans never go there.
 
 **Onboarding readiness:** `vibe project doctor` is a **read-only** check (no writes, no `.council/`,
 no model calls) that reports whether a repo is ready for agent onboarding — vault/core docs present,

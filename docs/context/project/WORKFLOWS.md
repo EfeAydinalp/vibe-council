@@ -9,7 +9,11 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
 1. Run `vibe project doctor` (read-only) to confirm the repo is onboarding-ready — vault/core docs
    present, no dangerous staged files (`.env`/`.council/`/private plans), context health, guides.
    Then read the vault ([`README.md`](./README.md), [`STATUS.md`](./STATUS.md),
-   [`ROADMAP.md`](./ROADMAP.md), [`RISKS.md`](./RISKS.md)) and any `plan.md` before coding.
+   [`ROADMAP.md`](./ROADMAP.md), [`RISKS.md`](./RISKS.md)) and any `plan.md` before coding. Also skim
+   [`PROFILE.md`](./PROFILE.md) (what the project is), [`PREFERENCES.md`](./PREFERENCES.md) (review-preset
+   / Fable-usage / implementation-style policy), and [`AGENT-ROLES.md`](./AGENT-ROLES.md) (who does what
+   + the `MODEL:` header convention) so you match this project's working preferences. These are
+   **read-as-documentation** — tighten-only, and no command enforces them yet (v0.7 scaffold).
 2. `vibe status`; for non-trivial work write a short `plan.md` and review it
    (`vibe review --preset cheap|balanced --file plan.md --usage`).
 3. Implement a **small, scoped** change; match surrounding style.

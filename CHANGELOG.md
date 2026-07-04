@@ -13,6 +13,18 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.7 PR A — project profile/preferences scaffold** — public-safe, Markdown-first committed vault
+  files under `docs/context/project/`: `PROFILE.md` (project identity/shape/local-first stance/release
+  state), `PREFERENCES.md` (review-preset policy, Fable usage policy, implementation style, no-stage
+  policy, tighten-only principle), and `AGENT-ROLES.md` (per-agent role expectations, the `MODEL:`
+  header convention, and the council-in-the-loop workflow). Deliberately a vault **`AGENT-ROLES.md`,
+  not a root `AGENTS.md`** (the balanced review flagged a write-target/read-source corruption risk).
+  Each file carries a safe-to-commit boundary, a never-store list, and the tighten-only principle
+  (personalization may tighten but never loosen safety/security rules). The vault README, WORKFLOWS,
+  STATUS, PROGRESS, ROADMAP, and the agent-brief point at the new files. **Scaffold/documentation only
+  — no command reads or enforces these files yet; no guide/context-export/project-doctor behavior
+  change, no Workbench/importer/executor/trust change, no dependency, no version bump.**
+
 - **v0.7 personalization planning brief** — `docs/fable/v0.7-personalization-and-project-profile-plan.md`,
   a **docs-only, council-in-the-loop** source brief for the v0.7 personalization / project-profile
   phase. It defines the purpose, non-goals (no vector DB / database / hosted stack / auto-execution /

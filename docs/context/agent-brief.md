@@ -269,7 +269,10 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   project-profile layer (`docs/context/project/PROFILE.md`/`PREFERENCES.md`/`AGENTS.md`), **tighten-only**
   (personalization may tighten but never loosen a guardrail), with explicit non-goals (no vector DB /
   database / hosted stack / auto-execution / trust relaxation), an A–E PR breakdown, and a
-  future-Fable architecture prompt. No implementation yet.
+  future-Fable architecture prompt. **v0.7 PR A landed the project profile/preferences scaffold**:
+  public-safe committed `docs/context/project/PROFILE.md` / `PREFERENCES.md` / `AGENT-ROLES.md` (a
+  vault file, **not** a root `AGENTS.md` — balanced-review corruption-risk guidance). Documentation
+  only — no command reads/enforces them yet; behavior integration is later v0.7 PRs (B–E).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
