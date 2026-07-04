@@ -32,6 +32,10 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
   onboarding context handoff (operating rules + **vault pointers** + context-health summary +
   Workbench flow + a `vibe project doctor` reminder). Stdout by default; `--output` never overwrites.
   Writes no `.council/`; makes no model call.
+- `vibe project doctor` also reports an **advisory** "Personalization scaffold" section for
+  [`PROFILE.md`](./PROFILE.md) / [`PREFERENCES.md`](./PREFERENCES.md) / [`AGENT-ROLES.md`](./AGENT-ROLES.md)
+  (present → ok, missing → warn with a next step). It is advisory — a missing scaffold never makes the
+  repo "NOT READY"; root `AGENTS.md` is not required (warns only if present).
 
 ## Workbench proposal flow
 

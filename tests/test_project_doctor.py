@@ -23,8 +23,16 @@ _GIT = shutil.which("git")
 
 def _seed_ready_repo(root: Path) -> None:
     """Create every required vault + core file (empty-ish) so the doctor reports READY
-    on file presence."""
+    on file presence. Does NOT seed the v0.7 personalization scaffold (advisory)."""
     for rel in cli.PROJECT_VAULT_FILES + cli.PROJECT_CORE_DOCS:
+        p = root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(f"# {p.name}\n\nplaceholder\n", encoding="utf-8")
+
+
+def _seed_profile_scaffold(root: Path) -> None:
+    """Create the v0.7 personalization scaffold (PROFILE/PREFERENCES/AGENT-ROLES)."""
+    for rel in cli.PROJECT_PROFILE_FILES:
         p = root / rel
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(f"# {p.name}\n\nplaceholder\n", encoding="utf-8")
@@ -92,6 +100,99 @@ class TestDoctorPureReport(unittest.TestCase):
                        for p in self.root.rglob("*") if p.is_file())
         self.assertEqual(before, after)                      # nothing written
         self.assertFalse((self.root / ".council").exists())   # no .council/ created
+
+
+class TestDoctorProfileScaffold(unittest.TestCase):
+    """v0.7 PR B — advisory personalization-scaffold checks. Present -> ok, missing ->
+    warn (never a doctor failure); root AGENTS.md is not required and only warns."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_present_scaffold_shows_ok_and_stays_ready(self):
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)
+        self.assertIn("Personalization scaffold (advisory):", text)
+        for rel in cli.PROJECT_PROFILE_FILES:
+            self.assertIn(f"[ok ] {rel}", text)
+
+    def test_missing_scaffold_warns_but_does_not_fail(self):
+        # required core/vault docs present, profile scaffold ABSENT -> warn, still READY.
+        _seed_ready_repo(self.root)  # does NOT seed the profile scaffold
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)                       # advisory: missing != failure
+        self.assertIn("READY", text)
+        for rel in cli.PROJECT_PROFILE_FILES:
+            self.assertIn(f"[warn] {rel}", text)
+        self.assertIn("Create the v0.7 project profile scaffold", text)
+        self.assertIn("docs/context/project/README.md", text)
+        # advisory section uses [warn], never [MISS] (which would imply a hard failure).
+        self.assertNotIn("[MISS]", text)
+
+    def test_partial_scaffold_warns_on_missing_only_and_stays_ready(self):
+        # A partial scaffold (one file missing) shows [ok ] for present files, [warn] for
+        # the missing one, still emits the next-step, and stays READY (advisory).
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+        (self.root / "docs/context/project/AGENT-ROLES.md").unlink()
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)
+        self.assertIn("[ok ] docs/context/project/PROFILE.md", text)
+        self.assertIn("[ok ] docs/context/project/PREFERENCES.md", text)
+        self.assertIn("[warn] docs/context/project/AGENT-ROLES.md", text)
+        self.assertIn("Create the v0.7 project profile scaffold", text)
+        self.assertNotIn("[MISS]", text)
+
+    def test_missing_required_vault_file_still_fails_even_with_scaffold(self):
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+        (self.root / "docs/context/project/ROADMAP.md").unlink()
+        lines, ok = cli.project_doctor_report(self.root)
+        self.assertFalse(ok)
+        self.assertIn("[MISS] docs/context/project/ROADMAP.md", "\n".join(lines))
+
+    def test_root_agents_md_is_not_required(self):
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+        self.assertFalse((self.root / "AGENTS.md").exists())
+        lines, ok = cli.project_doctor_report(self.root)
+        self.assertTrue(ok, "\n".join(lines))           # absence is fine
+
+    def test_root_agents_md_presence_warns_not_fails(self):
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+        (self.root / "AGENTS.md").write_text("# roles\n", encoding="utf-8")
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)                       # warning, not failure
+        self.assertIn("root AGENTS.md present", text)
+        self.assertIn("docs/context/project/AGENT-ROLES.md", text)
+
+    def test_scaffold_check_writes_nothing_and_no_council(self):
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+        before = sorted(p.relative_to(self.root).as_posix()
+                        for p in self.root.rglob("*") if p.is_file())
+        cli.project_doctor_report(self.root)
+        after = sorted(p.relative_to(self.root).as_posix()
+                       for p in self.root.rglob("*") if p.is_file())
+        self.assertEqual(before, after)                  # nothing written
+        self.assertFalse((self.root / ".council").exists())  # no .council/ created
+
+    def test_real_repo_output_mentions_scaffold_files(self):
+        r = run_cli(["project", "doctor"], caller_cwd=REPO)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        for rel in cli.PROJECT_PROFILE_FILES:
+            self.assertIn(rel, r.stdout)
 
 
 class TestDoctorCli(unittest.TestCase):
