@@ -360,10 +360,18 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   a `vibe project doctor` recommendation). Stdout by default; `--output FILE` writes it, never
   overwriting. No `.council/` creation, no model/provider/network call; the existing `context export
   claude-code` path is unchanged.
-- **Current focus:** **v0.6.x onboarding, phase by phase.** The guide layer (claude/codex/fable ×
-  roles × opt-in write), the project vault scaffold, `vibe project doctor`, and `vibe context export
-  --for <agent>` are done — the cross-project onboarding surface is now in place. No new network
-  endpoint. Deferred as before: personalization (v0.7), mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **v0.6.3 release prep.** `backend/__init__.py`/`pyproject.toml` now report `0.6.3`; `uv.lock`'s
+  self-version synced to match (one line, no dependency-graph change). `CHANGELOG.md` gained a dated
+  `[0.6.3]` section and [`docs/releases/v0.6.3.md`](../../releases/v0.6.3.md) bundles the onboarding
+  arc (guide layer, project vault, project doctor, context export) as the "cross-project agent
+  onboarding" release. README release status → v0.6.3. Everything read-only/local; no model/network
+  call, no Workbench trust change, no `/council`, no dependency change. **No version bump beyond
+  `0.6.3`, no tag, no GitHub Release** — those are manual follow-up steps once this PR merges.
+- **Current focus:** **v0.6.3 prepared, not yet tagged.** The cross-project onboarding surface (guide
+  × roles × write, project vault, `vibe project doctor`, `vibe context export --for <agent>`) is
+  complete and release prep is in review; next is the manual tag/GitHub Release step, then scoping
+  personalization (v0.7). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team
+  (v0.9+).
 
 ## Next actions
 

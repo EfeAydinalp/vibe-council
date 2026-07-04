@@ -730,23 +730,22 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.6.0 — agent-to-Workbench proposal bridge.** The repo reports `0.6.0`; the
-`v0.6.0` git tag and GitHub Release are cut by a maintainer right after the release PR merges. AI
-agents can now **propose** a bounded code action into the local Workbench (`vibe workbench propose
-<file | ->`) instead of acting directly: the proposal is validated against a strict schema v1, ids and
-the payload hash are minted **server-side**, and a **pending** approval is recorded — a human still
-approves and explicitly executes it through the **existing, unchanged** guarded executor. It is
-**local file/CLI intake only (no network endpoint)**, no command-allowlist growth, no auto-execution,
-no new dependency (see [`docs/releases/v0.6.0.md`](docs/releases/v0.6.0.md) and
-[`docs/workbench-agent-bridge.md`](docs/workbench-agent-bridge.md)). The v0.5.2 panel hardening
-(`Host`-header validation + `/api/state` token gate) remains in force, and the underlying Workbench
-model is unchanged: a task moves through visible stages, an audited approval gates it, and an approved
-bounded file action or exact allowlisted command can be explicitly executed — approving never
-auto-executes, and the deterministic trust boundary re-runs at execution time. See
-[`CHANGELOG.md`](CHANGELOG.md) and [`docs/releases/v0.6.0.md`](docs/releases/v0.6.0.md) for the notes
-(v0.5.2: [`docs/releases/v0.5.2.md`](docs/releases/v0.5.2.md); v0.5.1:
-[`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md); v0.5.0:
-[`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md)), and
+**Release status:** **v0.6.3 — cross-project agent onboarding.** The repo reports `0.6.3`; the
+`v0.6.3` git tag and GitHub Release are cut by a maintainer right after the release PR merges. On top
+of the v0.6.0 agent-to-Workbench proposal bridge, this bundles the onboarding arc — a role-aware
+`vibe guide {claude|codex|fable}` layer (opt-in append-only `--write`), a local-first Markdown
+**project vault** (`docs/context/project/`), a read-only `vibe project doctor` readiness check, and a
+read-only `vibe context export --for <agent>` handoff. All read-only/local: no model/provider/network
+call, no Workbench trust-boundary change, no `/council` command (`vibe` is the real CLI), no new
+dependency (see [`docs/releases/v0.6.3.md`](docs/releases/v0.6.3.md)). The v0.6.0 bridge and v0.5.2
+panel hardening remain in force, and the underlying Workbench model is unchanged: a task moves through
+visible stages, an audited approval gates it, and an approved bounded file action or exact allowlisted
+command can be explicitly executed — approving never auto-executes, and the deterministic trust
+boundary re-runs at execution time. See [`CHANGELOG.md`](CHANGELOG.md) and
+[`docs/releases/v0.6.3.md`](docs/releases/v0.6.3.md) for the notes (v0.6.0:
+[`docs/releases/v0.6.0.md`](docs/releases/v0.6.0.md); v0.5.2:
+[`docs/releases/v0.5.2.md`](docs/releases/v0.5.2.md); v0.5.1:
+[`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md)), and
 [`docs/release-checklist.md`](docs/release-checklist.md) for the process. It's an
 early `0.x` release — expect breaking changes between minor versions, and see the honest limitations
 below. **No commercial-clearance claim; license/provenance remains "Question 0".**

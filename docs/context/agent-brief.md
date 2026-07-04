@@ -256,7 +256,13 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   the guide machinery), project-vault **pointers** (not a full dump), an in-memory context-health
   summary, the Workbench proposal flow, and a `vibe project doctor` reminder. Stdout by default;
   `--output FILE` writes it, never overwriting. No `.council/` creation, no model/provider/network
-  call; the existing `context export claude-code` path is unchanged.
+  call; the existing `context export claude-code` path is unchanged. **v0.6.3 release prep** bumps
+  `backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version to `0.6.3` (one line, no
+  dependency-graph change), adds a dated `CHANGELOG.md` `[0.6.3]` section, and
+  [`docs/releases/v0.6.3.md`](../releases/v0.6.3.md) bundling the onboarding arc (guide layer, project
+  vault, project doctor, context export) as the "cross-project agent onboarding" release. All
+  read-only/local; no Workbench trust change, no `/council`, no dependency change. **No tag / GitHub
+  Release** in the PR — those are a separate manual step once it merges.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
