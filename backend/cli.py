@@ -734,20 +734,40 @@ def project_doctor_report(project_root: Path):
         lines.append(f"  [{'ok ' if present else 'warn'}] {rel}")
         if not present:
             missing_profile.append(rel)
-    if missing_profile:
+    # Consistency summary: all-present -> ok; none -> "missing" warn; some -> "incomplete"
+    # warn listing the missing files. All three cases are advisory (never touch `ok`).
+    if not missing_profile:
+        lines.append("  [ok ] project profile / preferences / agent-roles present "
+                     "(advisory; read-as-documentation, not yet enforced).")
+    elif len(missing_profile) == len(PROJECT_PROFILE_FILES):
+        lines.append("  [warn] the v0.7 project profile scaffold is missing (advisory, "
+                     "not a failure).")
         lines.append("  next: Create the v0.7 project profile scaffold or see "
                      "docs/context/project/README.md")
     else:
-        lines.append("  [ok ] project profile / preferences / agent-roles present "
-                     "(advisory; read-as-documentation, not yet enforced).")
+        lines.append("  [warn] the project profile scaffold is incomplete (advisory, not "
+                     "a failure) — missing: " + ", ".join(missing_profile) + ".")
+        lines.append("  next: Create the missing scaffold file(s) or see "
+                     "docs/context/project/README.md")
     # Root AGENTS.md is NOT required. If present, note the vault convention (per-agent
     # role preferences live in docs/context/project/AGENT-ROLES.md) to avoid a root
-    # host-file / preference-source collision. Advisory — never a doctor failure.
+    # host-file / preference-source collision. The wording is stronger when the vault
+    # AGENT-ROLES.md is ALSO missing (a likely configuration mismatch). Advisory — never a
+    # doctor failure, and never advises removing root AGENTS.md (it is legitimate guide
+    # output).
     if (root / "AGENTS.md").is_file():
-        lines.append("  [warn] root AGENTS.md present — vibe-council stores project agent "
-                     "roles in docs/context/project/AGENT-ROLES.md to avoid a root "
-                     "host-file collision (root AGENTS.md is a guide-output target, not a "
-                     "preference source).")
+        agent_roles_present = (root / "docs/context/project/AGENT-ROLES.md").is_file()
+        if agent_roles_present:
+            lines.append("  [warn] root AGENTS.md present — vibe-council stores project "
+                         "agent roles in docs/context/project/AGENT-ROLES.md to avoid a "
+                         "root host-file collision (root AGENTS.md is a guide-output "
+                         "target, not a preference source).")
+        else:
+            lines.append("  [warn] root AGENTS.md exists but "
+                         "docs/context/project/AGENT-ROLES.md does not — this suggests a "
+                         "configuration mismatch. Root AGENTS.md is a guide-output target "
+                         "only; keep agent-role preferences in "
+                         "docs/context/project/AGENT-ROLES.md.")
     lines.append("")
 
     # Safety indicators (git-based; warn, don't fail, if git is unavailable).
@@ -801,6 +821,7 @@ def project_doctor_report(project_root: Path):
     lines.append("  vibe guide claude --role coder --write")
     lines.append("  vibe guide codex  --role coder --write")
     lines.append("  vibe guide fable  --role planner --write")
+    lines.append("  vibe context export --for <agent> --role <role>")
     lines.append("  note: `/council` is a possible FUTURE host-command idea — it is "
                  "NOT a real vibe CLI command today.")
     lines.append("")

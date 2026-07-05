@@ -13,6 +13,24 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.7.1 PR 2 — project doctor profile-scaffold consistency polish** (per
+  `docs/fable/v0.7.1-hardening-architecture-plan.md` §4B). `vibe project doctor`'s
+  **"Personalization scaffold (advisory)"** section now gives a **state-differentiated summary**:
+  all three files present → an OK summary; **none** present → a "the v0.7 project profile scaffold is
+  missing" warn + a create/README next step; **partial** → a "scaffold is incomplete" warn that
+  **lists the missing file(s)** + a next step. The root-`AGENTS.md` advisory is now also
+  state-aware: if root `AGENTS.md` is present **and** the vault `AGENT-ROLES.md` exists it keeps the
+  informational "guide-output target, not a preference source" note; if `AGENT-ROLES.md` is
+  **missing** it uses a stronger "configuration mismatch" wording — but **never** advises removing
+  root `AGENTS.md` (it is legitimate guide output). The doctor's informational guide block also lists
+  `vibe context export --for <agent> --role <role>`. **All of this is advisory** — READY/NOT-READY
+  still depends solely on required vault/core docs + the dangerous-staged check (a staged
+  `.council/profile.*` / `.council/runtime/…` still FAILs), git-unavailable still warns, context
+  health stays in-memory/advisory. The command remains **read-only**: writes no files, creates no
+  `.council/`, makes no model/provider/network call. No `--fix`/init, no profile store, no preference
+  parser/application, no context-export/guide behavior change, no Workbench/importer/executor/trust
+  change, no dependency, no version bump.
+
 - **v0.7.1 PR 1 — local-profile redaction hardening** (per
   `docs/fable/v0.7.1-hardening-architecture-plan.md` §4A). `vibe lint --redaction` gains a
   `local-profile-path` **WARNING** rule that flags a **concrete** local/private profile filename

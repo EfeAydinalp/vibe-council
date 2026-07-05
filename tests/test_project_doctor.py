@@ -132,14 +132,17 @@ class TestDoctorProfileScaffold(unittest.TestCase):
         self.assertIn("READY", text)
         for rel in cli.PROJECT_PROFILE_FILES:
             self.assertIn(f"[warn] {rel}", text)
+        # none-present -> a "scaffold is missing" summary + the create/README next step.
+        self.assertIn("the v0.7 project profile scaffold is missing", text)
         self.assertIn("Create the v0.7 project profile scaffold", text)
         self.assertIn("docs/context/project/README.md", text)
         # advisory section uses [warn], never [MISS] (which would imply a hard failure).
         self.assertNotIn("[MISS]", text)
 
-    def test_partial_scaffold_warns_on_missing_only_and_stays_ready(self):
+    def test_partial_scaffold_warns_incomplete_and_lists_missing_and_stays_ready(self):
         # A partial scaffold (one file missing) shows [ok ] for present files, [warn] for
-        # the missing one, still emits the next-step, and stays READY (advisory).
+        # the missing one, an "incomplete" summary that lists the missing file(s), and
+        # stays READY (advisory).
         _seed_ready_repo(self.root)
         _seed_profile_scaffold(self.root)
         (self.root / "docs/context/project/AGENT-ROLES.md").unlink()
@@ -149,7 +152,10 @@ class TestDoctorProfileScaffold(unittest.TestCase):
         self.assertIn("[ok ] docs/context/project/PROFILE.md", text)
         self.assertIn("[ok ] docs/context/project/PREFERENCES.md", text)
         self.assertIn("[warn] docs/context/project/AGENT-ROLES.md", text)
-        self.assertIn("Create the v0.7 project profile scaffold", text)
+        self.assertIn("the project profile scaffold is incomplete", text)
+        # the incomplete summary lists the missing file
+        self.assertIn("missing: docs/context/project/AGENT-ROLES.md", text)
+        self.assertIn("Create the missing scaffold file(s)", text)
         self.assertNotIn("[MISS]", text)
 
     def test_missing_required_vault_file_still_fails_even_with_scaffold(self):
@@ -167,7 +173,17 @@ class TestDoctorProfileScaffold(unittest.TestCase):
         lines, ok = cli.project_doctor_report(self.root)
         self.assertTrue(ok, "\n".join(lines))           # absence is fine
 
+    def test_all_present_shows_ok_summary(self):
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+        text = "\n".join(cli.project_doctor_report(self.root)[0])
+        self.assertIn("project profile / preferences / agent-roles present", text)
+        self.assertNotIn("scaffold is missing", text)
+        self.assertNotIn("scaffold is incomplete", text)
+
     def test_root_agents_md_presence_warns_not_fails(self):
+        # root AGENTS.md present AND vault AGENT-ROLES.md present -> informational warn
+        # (guide-output target, not a preference source); never a failure.
         _seed_ready_repo(self.root)
         _seed_profile_scaffold(self.root)
         (self.root / "AGENTS.md").write_text("# roles\n", encoding="utf-8")
@@ -176,6 +192,29 @@ class TestDoctorProfileScaffold(unittest.TestCase):
         self.assertTrue(ok, text)                       # warning, not failure
         self.assertIn("root AGENTS.md present", text)
         self.assertIn("docs/context/project/AGENT-ROLES.md", text)
+        # it must NOT advise removing root AGENTS.md (legitimate guide output).
+        self.assertNotIn("remove", text.lower())
+
+    def test_root_agents_md_present_but_agent_roles_missing_stronger_warn(self):
+        # root AGENTS.md present but the vault AGENT-ROLES.md missing -> the stronger
+        # "configuration mismatch" wording; still a warn, never a failure.
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+        (self.root / "docs/context/project/AGENT-ROLES.md").unlink()
+        (self.root / "AGENTS.md").write_text("# roles\n", encoding="utf-8")
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)                       # still not a failure
+        self.assertIn("root AGENTS.md exists but", text)
+        self.assertIn("configuration mismatch", text)
+        self.assertIn("guide-output target only", text)
+        self.assertNotIn("remove", text.lower())
+
+    def test_doctor_lists_context_export_command(self):
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+        text = "\n".join(cli.project_doctor_report(self.root)[0])
+        self.assertIn("vibe context export --for", text)
 
     def test_scaffold_check_writes_nothing_and_no_council(self):
         _seed_ready_repo(self.root)

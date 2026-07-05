@@ -39,8 +39,11 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
   Writes no `.council/`; reads no `.council/profile.*`; makes no model call.
 - `vibe project doctor` also reports an **advisory** "Personalization scaffold" section for
   [`PROFILE.md`](./PROFILE.md) / [`PREFERENCES.md`](./PREFERENCES.md) / [`AGENT-ROLES.md`](./AGENT-ROLES.md)
-  (present → ok, missing → warn with a next step). It is advisory — a missing scaffold never makes the
-  repo "NOT READY"; root `AGENTS.md` is not required (warns only if present).
+  with a state-differentiated summary (all-present ok / none-present "missing" warn / partial
+  "incomplete" warn listing the missing files). It is advisory — a missing/partial scaffold never
+  makes the repo "NOT READY"; root `AGENTS.md` is not required (a present-but-`AGENT-ROLES.md`-missing
+  state gets a "configuration mismatch" warn, never a removal instruction). The doctor also lists
+  `vibe guide` and `vibe context export --for <agent> --role <role>` for onboarding.
 
 ## Workbench proposal flow
 
