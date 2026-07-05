@@ -5,11 +5,27 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.6.3` is prepared. The repo reports `0.6.3`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.6.3` git tag + GitHub Release are cut by a
+> **Status:** `0.7.0` is prepared. The repo reports `0.7.0`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.7.0` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+_Nothing yet. Post-0.7.0 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.7.0] - 2026-07-06
+
+**Safe personalization / project-profile scaffold.** Bundles the v0.7 A–D personalization slice on top
+of the v0.6.x onboarding arc: a council-in-the-loop planning brief, a public-safe project
+profile/preferences scaffold (`docs/context/project/PROFILE.md` / `PREFERENCES.md` / `AGENT-ROLES.md`),
+and **advisory pointers** to that scaffold from `vibe project doctor`, `vibe context export`, and
+`vibe guide`. Everything is **advisory, read-only, local, and tighten-only** — personalization can
+never loosen a security/safety/no-stage/trust rule. No model/provider/network call, no Workbench
+trust-boundary change, no `/council` command, no new dependency. Root `AGENTS.md` is deliberately not
+the canonical preference source. Deferred (explicit non-goals): vector DB / database / hosted stack /
+cloud sync / secret storage, a local `.council/profile.*` store, and a preference parser/application
+engine. See [`docs/releases/v0.7.0.md`](docs/releases/v0.7.0.md).
 
 ### Added
 

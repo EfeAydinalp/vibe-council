@@ -6,17 +6,20 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.7 — personalization** *(in progress; PR A landed the scaffold).* Personal profile / project
-  preferences, built on the onboarding surface. The source brief is
-  [`docs/fable/v0.7-personalization-and-project-profile-plan.md`](../../fable/v0.7-personalization-and-project-profile-plan.md)
-  (Markdown-first data model, A–E PR breakdown, tighten-only invariants); background in
-  [`docs/fable/10-personalization-layer.md`](../../fable/10-personalization-layer.md). PR A added the
-  public-safe committed scaffold ([`PROFILE.md`](./PROFILE.md) / [`PREFERENCES.md`](./PREFERENCES.md) /
-  [`AGENT-ROLES.md`](./AGENT-ROLES.md), documentation only); behavior integration is later PRs.
-  Preferences may **tighten but never loosen** a guardrail.
+- **v0.7 tag/GitHub Release (manual).** v0.7.0 is **prepared** (repo reports `0.7.0`); the annotated
+  `v0.7.0` tag and the GitHub Release from [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md) are the
+  remaining manual maintainer step. After that, scope the next personalization slice from the brief.
 
 ## Recently shipped
 
+- **v0.7 — safe personalization / project-profile scaffold** *(prepared as the `v0.7.0` release).* A
+  council-in-the-loop planning brief, a public-safe committed scaffold ([`PROFILE.md`](./PROFILE.md) /
+  [`PREFERENCES.md`](./PREFERENCES.md) / [`AGENT-ROLES.md`](./AGENT-ROLES.md)), and **advisory pointers**
+  to it from `vibe project doctor`, `vibe context export`, and `vibe guide`. All advisory/read-only/
+  local and **tighten-only** — preferences may tighten but never loosen a guardrail; no preference
+  parser/store yet, no root `AGENTS.md` as the canonical source. Source brief:
+  [`docs/fable/v0.7-personalization-and-project-profile-plan.md`](../../fable/v0.7-personalization-and-project-profile-plan.md);
+  background in [`docs/fable/10-personalization-layer.md`](../../fable/10-personalization-layer.md).
 - **v0.6.0 — agent-to-Workbench proposal bridge** *(released).* Agents propose bounded actions via
   `vibe workbench propose`; a human approves and executes through the existing guarded executor.
 - **v0.6.1–v0.6.3 — cross-project agent onboarding** *(prepared as the `v0.6.3` release).* A role-aware
