@@ -73,6 +73,111 @@ class TestDetection(unittest.TestCase):
         self.assertIn("obsidian-workspace", _rule_ids(f))
 
 
+class TestLocalProfilePathRule(unittest.TestCase):
+    """v0.7.1 PR 1 — the `local-profile-path` WARNING rule. Concrete
+    `.council/profile.<ext>` references are flagged (advisory, never critical); the
+    glob form and public vault profile files are not."""
+
+    def _finds_profile(self, text):
+        return [x for x in redaction.scan_text(text) if x.rule_id == "local-profile-path"]
+
+    def test_warns_on_each_concrete_extension(self):
+        for ext in ("json", "toml", "yaml", "yml", "md"):
+            f = self._finds_profile(f"see .council/profile.{ext} here")
+            self.assertEqual(len(f), 1, f".council/profile.{ext} should warn once")
+
+    def test_backslash_separator_also_matches(self):
+        self.assertEqual(len(self._finds_profile(r".council\profile.json")), 1)
+
+    def test_severity_is_warning_not_critical_and_not_blocking(self):
+        f = self._finds_profile(".council/profile.json")
+        self.assertTrue(f)
+        self.assertTrue(all(x.severity == redaction.WARNING for x in f))
+        # advisory: does not block the 0-critical gate, but fails under --strict.
+        all_f = redaction.scan_text(".council/profile.json")
+        self.assertFalse(redaction.has_blocking(all_f))
+        self.assertTrue(redaction.has_blocking(all_f, strict=True))
+
+    def test_glob_form_is_not_flagged(self):
+        # operational/policy text uses the glob form — the discriminator must ignore it.
+        self.assertEqual(self._finds_profile("never commit `.council/profile.*`"), [])
+
+    def test_public_vault_profile_files_are_not_flagged(self):
+        # the committed, public-safe scaffold files must not trip the LOCAL-profile rule.
+        for rel in ("docs/context/project/PROFILE.md",
+                    "docs/context/project/PREFERENCES.md",
+                    "docs/context/project/AGENT-ROLES.md"):
+            self.assertEqual(self._finds_profile(f"read {rel} first"), [],
+                             f"{rel} must not be flagged as a local/private profile")
+
+    def test_no_extensionless_or_other_path_false_positive(self):
+        self.assertEqual(self._finds_profile(".council/profile"), [])
+        self.assertEqual(self._finds_profile(".council/runtime/task.json"), [])
+
+
+class TestScaffoldSecretsAlwaysCritical(unittest.TestCase):
+    """v0.7.1 PR 1 lock-in — a secret-shaped value in a (public, committed) scaffold
+    file always produces a CRITICAL finding. Fixtures below are OBVIOUSLY FAKE,
+    test-only values — never real keys."""
+
+    def test_fake_key_in_scaffold_like_file_is_critical(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            proj = root / "docs" / "context" / "project"
+            proj.mkdir(parents=True)
+            # a PROFILE.md-shaped file with a planted, clearly-synthetic key
+            (proj / "PROFILE.md").write_text(
+                "# Project profile\n\n"
+                f"OPENROUTER_API_KEY={FAKE_OR_KEY}  # TEST-ONLY FAKE VALUE\n",
+                encoding="utf-8")
+            findings = redaction.scan_paths(
+                [str(proj / "PROFILE.md")], root)
+            crit = [x for x in findings if x.severity == redaction.CRITICAL]
+            self.assertTrue(crit, "a secret in a scaffold file must be CRITICAL")
+            self.assertTrue(redaction.has_blocking(findings))
+
+    def test_fake_secret_assignment_in_scaffold_is_critical(self):
+        # a synthetic token-shaped assignment also blocks.
+        f = redaction.scan_text(f"AUTH_TOKEN={FAKE_LONG}  # fake, test-only")
+        self.assertTrue(any(x.severity == redaction.CRITICAL for x in f))
+
+
+class TestRealRepoLocalProfileFindingsAreEnumerated(unittest.TestCase):
+    """v0.7.1 PR 1 — pin the expected `local-profile-path` findings on the real repo so
+    the +N warning-count change is intentional and drift is caught. The rule fires only
+    on the known design/plan docs that quote the concrete filename; operational docs use
+    the glob form and must stay clean."""
+
+    # Design/plan docs that legitimately reference the concrete `.council/profile.<ext>`
+    # filename (enumerated per the v0.7.1 plan §4A). Everything else must use the glob.
+    EXPECTED_FILES = {
+        "docs/fable/10-personalization-layer.md",
+        "docs/fable/v0.7-personalization-and-project-profile-plan.md",
+        "docs/fable/v0.7.1-hardening-architecture-plan.md",
+    }
+
+    def test_local_profile_rule_fires_only_in_known_design_docs(self):
+        repo = Path(__file__).resolve().parents[1]
+        targets = redaction.default_targets(repo)
+        findings = redaction.scan_paths([str(p) for p in targets], repo)
+        profile_hits = [f for f in findings if f.rule_id == "local-profile-path"]
+        hit_files = {Path(f.path).resolve().relative_to(repo).as_posix()
+                     for f in profile_hits}
+        self.assertEqual(hit_files, self.EXPECTED_FILES,
+                         "local-profile-path fired on unexpected files (or stopped "
+                         "firing on a known one) — update docs to the glob form or "
+                         "adjust EXPECTED_FILES intentionally.")
+        # all such findings are advisory WARNINGs, never critical.
+        self.assertTrue(all(f.severity == redaction.WARNING for f in profile_hits))
+
+    def test_no_new_critical_from_the_rule(self):
+        repo = Path(__file__).resolve().parents[1]
+        targets = redaction.default_targets(repo)
+        findings = redaction.scan_paths([str(p) for p in targets], repo)
+        self.assertFalse(redaction.has_blocking(findings),
+                         "the real repo must stay 0-critical")
+
+
 class TestMasking(unittest.TestCase):
     def test_masks_secret_output(self):
         f = redaction.scan_text(FAKE_OR_KEY)

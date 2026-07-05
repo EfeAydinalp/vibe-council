@@ -292,7 +292,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   narrow `.council/profile.*` redaction rule + lock-in tests, doctor root-`AGENTS.md` consistency
   polish, export/guide invariant tests, and v0.7.1 release prep, in a 4-PR Opus/Sonnet breakdown with
   copy-paste prompts. Non-goals: no preference parser/application, no local profile store, no vector
-  DB/hosted stack, no trust change. No implementation yet.
+  DB/hosted stack, no trust change. **v0.7.1 PR 1 landed the local-profile redaction hardening:** a
+  `local-profile-path` WARNING rule flagging concrete `.council/` profile filenames in tracked docs
+  (advisory; glob form `.council/profile.*` ignored; public scaffold files not flagged;
+  WARNING→CRITICAL promotion path) plus lock-in tests (secret-in-scaffold → CRITICAL; staged
+  local-profile → doctor FAIL; enumerated real-repo findings). Warning count 22 → 30; no behavior/
+  trust/dependency change. PRs 2–4 (doctor polish, invariant tests, release prep) remain.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

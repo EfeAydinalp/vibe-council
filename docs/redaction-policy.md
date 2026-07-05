@@ -47,6 +47,15 @@ Advisory — review before committing; redact unless clearly public-safe:
 - Internal project or customer names.
 - Exact private infrastructure details.
 - Internal cost/pricing tables (public, third-party pricing in a research doc is usually fine).
+- **Local/private profile artifacts** — the machine-local personalization profile lives under
+  `.council/` (a gitignored, per-machine store) and must never be committed. The guard flags a
+  **concrete** local-profile filename (e.g. the `json`/`toml`/`yaml`/`yml`/`md` form) in a tracked
+  doc as an advisory `local-profile-path` warning. Operational and policy text should refer to it by
+  the **glob form** `.council/profile.*` (which the rule deliberately does not match); only genuine
+  design/plan docs that must name a concrete file trip the warning. **Promotion path:** once a real
+  local profile store actually ships, a concrete reference in public docs becomes a live-artifact
+  leak — this rule is promoted to **critical** at that point and the remaining design docs move to
+  the glob form.
 
 ## What is usually OK
 

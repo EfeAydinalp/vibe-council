@@ -13,6 +13,23 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.7.1 PR 1 — local-profile redaction hardening** (per
+  `docs/fable/v0.7.1-hardening-architecture-plan.md` §4A). `vibe lint --redaction` gains a
+  `local-profile-path` **WARNING** rule that flags a **concrete** local/private profile filename
+  (the `.council/` machine-local personalization store, in its `json`/`toml`/`yaml`/`yml`/`md` form)
+  when it appears in a tracked public doc. It is **advisory** (never critical, blocks only under
+  `--strict`), following the `private-plan-filename` precedent, so legitimate design/plan-doc
+  references don't break the 0-critical gate; operational/policy text uses the glob form
+  `.council/profile.*`, which the rule deliberately does not match. Public committed scaffold files
+  (`docs/context/project/PROFILE.md`/`PREFERENCES.md`/`AGENT-ROLES.md`) are **not** flagged. A stated
+  **promotion path** takes the rule to CRITICAL once a real local profile store ships. Lock-in tests
+  also pin existing protections: a secret-shaped value in a scaffold file is always CRITICAL, a
+  staged local-profile file FAILs `vibe project doctor` (via the existing `.council/` prefix check),
+  and the rule's real-repo findings are enumerated so the warning-count change (22 → 30) is
+  intentional. **No profile store, no preference parser/application, no context-export/guide/
+  project-doctor behavior change, no Workbench/importer/executor/trust change, no dependency, no
+  version bump.**
+
 - **v0.7.1 hardening architecture plan** — `docs/fable/v0.7.1-hardening-architecture-plan.md`, a
   **docs-only Fable architecture pass** planning the v0.7.1 hardening phase (hardening, not feature
   expansion): grounded evaluation of redaction/no-stage handling for `.council/profile.*`, project
