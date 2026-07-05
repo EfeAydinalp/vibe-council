@@ -42,6 +42,9 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.7.0]` section,
           [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md), README release status. No tag/Release
           (manual follow-up).
+- [ ] **v0.7.1 — hardening** *(planning done; implementation not started).* Source plan:
+      [`docs/fable/v0.7.1-hardening-architecture-plan.md`](../../fable/v0.7.1-hardening-architecture-plan.md)
+      (redaction rule → doctor polish → invariant tests → release prep; all Opus/Sonnet).
 - [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*
 
 ## How to update

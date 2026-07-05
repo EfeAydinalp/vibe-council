@@ -11,8 +11,17 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.7.0 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Added
+
+- **v0.7.1 hardening architecture plan** — `docs/fable/v0.7.1-hardening-architecture-plan.md`, a
+  **docs-only Fable architecture pass** planning the v0.7.1 hardening phase (hardening, not feature
+  expansion): grounded evaluation of redaction/no-stage handling for `.council/profile.*`, project
+  doctor consistency polish (root-`AGENTS.md`/`AGENT-ROLES.md` confusion states), context-export/guide
+  invariant tests, and vault consistency — with explicit non-goals (no preference parser/application,
+  no local profile store, no vector DB/database/hosted stack, no trust-boundary change), a 4-PR
+  breakdown (redaction rule → doctor polish → invariant tests → release prep), risk analysis,
+  council-review policy, copy-paste Opus/Sonnet implementation prompts, and a Fable stop rule.
+  **No implementation, no code or behavior change, no version bump, no dependency change.**
 
 ## [0.7.0] - 2026-07-06
 
