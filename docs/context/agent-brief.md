@@ -281,7 +281,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   **v0.7 PR D** added the same "Project profile & preferences" pointer section to `vibe guide
   {claude|codex|fable}` output (base topic, role-specific, and `--write` sections) — pointers only, no
   preference parsing/application, reads no `.council/profile.*`, `--write` marker-skip unchanged.
-  All still read-only, no `.council/`, no model call. The remaining v0.7 slice is PR E (release prep).
+  All still read-only, no `.council/`, no model call. **v0.7 PR E (release prep)** bumped
+  `backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version to `0.7.0` (one line, no
+  dependency-graph change), added a dated `CHANGELOG.md` `[0.7.0]` section, and
+  [`docs/releases/v0.7.0.md`](../releases/v0.7.0.md) bundling the v0.7 A–D personalization arc as the
+  "safe personalization / project-profile scaffold" release; README release status → v0.7.0. **No tag /
+  GitHub Release** in the PR — a separate manual step once it merges. **v0.7.0 prepared, not yet tagged.**
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

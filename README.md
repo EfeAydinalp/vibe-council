@@ -730,19 +730,22 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.6.3 — cross-project agent onboarding.** The repo reports `0.6.3`; the
-`v0.6.3` git tag and GitHub Release are cut by a maintainer right after the release PR merges. On top
-of the v0.6.0 agent-to-Workbench proposal bridge, this bundles the onboarding arc — a role-aware
-`vibe guide {claude|codex|fable}` layer (opt-in append-only `--write`), a local-first Markdown
-**project vault** (`docs/context/project/`), a read-only `vibe project doctor` readiness check, and a
-read-only `vibe context export --for <agent>` handoff. All read-only/local: no model/provider/network
+**Release status:** **v0.7.0 — safe personalization / project-profile scaffold.** The repo reports
+`0.7.0`; the `v0.7.0` git tag and GitHub Release are cut by a maintainer right after the release PR
+merges. On top of the v0.6.x cross-project onboarding arc, this bundles the v0.7 personalization slice
+— a council-in-the-loop planning brief, a public-safe **project profile/preferences scaffold**
+(`docs/context/project/PROFILE.md` / `PREFERENCES.md` / `AGENT-ROLES.md`), and **advisory pointers** to
+it from `vibe project doctor`, `vibe context export`, and `vibe guide`. Everything is **advisory,
+read-only, local, and tighten-only** — personalization can never loosen a security/safety/no-stage/trust
+rule; root `AGENTS.md` is deliberately not the canonical preference source. No model/provider/network
 call, no Workbench trust-boundary change, no `/council` command (`vibe` is the real CLI), no new
-dependency (see [`docs/releases/v0.6.3.md`](docs/releases/v0.6.3.md)). The v0.6.0 bridge and v0.5.2
+dependency (see [`docs/releases/v0.7.0.md`](docs/releases/v0.7.0.md)). The v0.6.0 bridge and v0.5.2
 panel hardening remain in force, and the underlying Workbench model is unchanged: a task moves through
 visible stages, an audited approval gates it, and an approved bounded file action or exact allowlisted
 command can be explicitly executed — approving never auto-executes, and the deterministic trust
 boundary re-runs at execution time. See [`CHANGELOG.md`](CHANGELOG.md) and
-[`docs/releases/v0.6.3.md`](docs/releases/v0.6.3.md) for the notes (v0.6.0:
+[`docs/releases/v0.7.0.md`](docs/releases/v0.7.0.md) for the notes (v0.6.3:
+[`docs/releases/v0.6.3.md`](docs/releases/v0.6.3.md); v0.6.0:
 [`docs/releases/v0.6.0.md`](docs/releases/v0.6.0.md); v0.5.2:
 [`docs/releases/v0.5.2.md`](docs/releases/v0.5.2.md); v0.5.1:
 [`docs/releases/v0.5.1.md`](docs/releases/v0.5.1.md)), and

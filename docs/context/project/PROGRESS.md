@@ -18,7 +18,8 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
       readiness check).
 - [x] **v0.6.3 — cross-project onboarding.** `vibe context export --for {claude|codex|fable}`
       (read-only onboarding handoff). Bundled into the `v0.6.3` release (prepared; tag/Release manual).
-- [ ] **v0.7 — personalization / project profile** *(in progress).* Source brief:
+- [x] **v0.7 — personalization / project profile** *(prepared as the `v0.7.0` release; tag/Release
+      manual).* Source brief:
       [`docs/fable/v0.7-personalization-and-project-profile-plan.md`](../../fable/v0.7-personalization-and-project-profile-plan.md)
       (Markdown-first data model, A–E PR breakdown, tighten-only invariants).
     - [x] **PR A — project profile/preferences scaffold.** Public-safe committed
@@ -37,7 +38,10 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `PROFILE.md`/`PREFERENCES.md`/`AGENT-ROLES.md` (never inlined), tighten-only note,
           root-`AGENTS.md`-not-canonical note, doctor/context-export recommendations. No preference
           parsing/application; reads no `.council/profile.*`; `--write` marker-skip unchanged.
-    - [ ] PR E — v0.7.0 release prep.
+    - [x] **PR E — v0.7.0 release prep.** Version → `0.7.0` (`backend/__init__.py`/`pyproject.toml`/
+          `uv.lock` self-version), dated `CHANGELOG.md` `[0.7.0]` section,
+          [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md), README release status. No tag/Release
+          (manual follow-up).
 - [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*
 
 ## How to update

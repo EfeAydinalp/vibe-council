@@ -398,19 +398,25 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   {claude|codex|fable}` has a "Project profile & preferences" section with **pointers** to
   `PROFILE.md`/`PREFERENCES.md`/[`AGENT-ROLES.md`](./AGENT-ROLES.md) — pointers only, never inlined;
   reads no `.council/profile.*`; graceful if missing.
-- **v0.7 PR D — profile pointers in agent guides (in progress).** `vibe guide {claude|codex|fable}`
-  output (base topic, role-specific, and `--write` sections) now carries the same "Project profile &
-  preferences" section: **pointers** to `PROFILE.md`/`PREFERENCES.md`/[`AGENT-ROLES.md`](./AGENT-ROLES.md),
-  a tighten-only note (preferences are advice to read, never commands; the trust boundary ignores
-  them), that root `AGENTS.md` is not the canonical preference source, and `vibe project doctor` /
-  `vibe context export` recommendations. **Pointers only** (no inlining, no preference parsing/
-  application), reads **no** `.council/profile.*`, deterministic, and `--write` append + marker-skip
-  is unchanged (no duplication). No context-export/project-doctor semantics change, no Workbench/trust
-  change, no dependency, no version bump.
-- **Current focus:** **v0.7 personalization — PR D (guide profile pointers) is the active slice.** The
-  [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) is the source of truth;
-  the remaining v0.7 slice is PR E (release prep). No new network endpoint. Deferred: mobile/LAN/voice
-  (v0.8), hosted/team (v0.9+).
+- **v0.7 PR D — profile pointers in agent guides (merged).** `vibe guide {claude|codex|fable}` output
+  (base topic, role-specific, and `--write` sections) carries the same "Project profile & preferences"
+  pointer section — pointers only, no preference parsing/application, reads no `.council/profile.*`,
+  `--write` marker-skip unchanged.
+- **v0.7 PR E — v0.7.0 release prep (in progress).** `backend/__init__.py`/`pyproject.toml` now report
+  `0.7.0`; `uv.lock`'s self-version synced to match (one line, no dependency-graph change).
+  `CHANGELOG.md` gained a dated `[0.7.0]` section and
+  [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md) bundles the v0.7 A–D personalization slice
+  (planning brief + profile/preferences scaffold + advisory pointers in doctor/context-export/guide)
+  as the "safe personalization / project-profile scaffold" release. README release status → v0.7.0.
+  Everything advisory/tighten-only/local; no model/network call, no Workbench trust change, no
+  `/council`, no dependency change. **No tag / GitHub Release** in the PR — those are a separate manual
+  step once it merges.
+- **Current focus:** **v0.7.0 prepared, not yet tagged.** The v0.7 personalization/profile arc (brief,
+  scaffold, advisory pointers) is complete and release prep is in review; next is the manual
+  tag/GitHub Release step. The
+  [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) remains the source of
+  truth for later slices (a local `.council/profile.*` store + a preference reader/applier, still
+  tighten-only). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 
