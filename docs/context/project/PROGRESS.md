@@ -49,7 +49,11 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `.council/` profile filenames in tracked docs (advisory; glob form ignored; public scaffold
           not flagged; WARNING→CRITICAL promotion path) + lock-in tests (secret-in-scaffold → CRITICAL,
           staged local-profile → doctor FAIL, enumerated real-repo findings). Warning count 22 → 30.
-    - [ ] PR 2 — project doctor consistency polish for the profile scaffold.
+    - [x] **PR 2 — project doctor consistency polish for the profile scaffold.** State-differentiated
+          scaffold summary (all-present OK / none "missing" / partial "incomplete" listing missing
+          files), state-aware root-`AGENTS.md` advisory (informational vs. "configuration mismatch";
+          never advises removal), and lists `vibe context export` in the guide block. Advisory-only;
+          READY/NOT-READY, dangerous-staged FAIL, git-unavailable warn unchanged; read-only.
     - [ ] PR 3 — context-export / guide invariant tests + vault consistency.
     - [ ] PR 4 — v0.7.1 release prep.
 - [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*

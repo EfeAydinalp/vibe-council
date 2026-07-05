@@ -297,7 +297,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   (advisory; glob form `.council/profile.*` ignored; public scaffold files not flagged;
   WARNING→CRITICAL promotion path) plus lock-in tests (secret-in-scaffold → CRITICAL; staged
   local-profile → doctor FAIL; enumerated real-repo findings). Warning count 22 → 30; no behavior/
-  trust/dependency change. PRs 2–4 (doctor polish, invariant tests, release prep) remain.
+  trust/dependency change. **v0.7.1 PR 2 landed the project-doctor consistency polish:** a
+  state-differentiated scaffold summary (all-present / none "missing" / partial "incomplete" listing
+  missing files), a state-aware root-`AGENTS.md` advisory (informational vs. "configuration
+  mismatch"; never advises removal), and a `vibe context export` line in the guide block — all
+  advisory (READY/NOT-READY and dangerous-staged FAIL unchanged), read-only, no `--fix`. PRs 3–4
+  (invariant tests, release prep) remain.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
