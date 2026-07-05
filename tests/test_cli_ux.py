@@ -424,5 +424,107 @@ class TestCodexFableGuideTopics(unittest.TestCase):
             cli.topic_guide("gemini")
 
 
+class TestGuideProfilePointers(unittest.TestCase):
+    """v0.7 PR D — advisory project profile/preferences POINTERS in guide output. Present
+    in base topic guides, role guides, and --write sections; pointers only (never inlined),
+    never reads a local/private profile, never parses/applies preferences."""
+
+    PROFILE_FILES = (
+        "docs/context/project/PROFILE.md",
+        "docs/context/project/PREFERENCES.md",
+        "docs/context/project/AGENT-ROLES.md",
+    )
+    # distinctive phrases that live ONLY in the scaffold bodies (verified in PR C) — the
+    # guide must not inline them.
+    NON_INLINE_NEEDLES = ("began as a fork of",              # PROFILE.md
+                          "Which council review level to run",  # PREFERENCES.md
+                          "who does what")                    # AGENT-ROLES.md
+
+    def _all_guide_texts(self):
+        from backend import cli
+        texts = []
+        for topic in cli.GUIDE_TOPICS:
+            texts.append(cli.topic_guide(topic))                     # base topic guide
+            for role in cli.GUIDE_ROLES:
+                texts.append(cli.role_guide(role, topic))            # role guide
+        return texts
+
+    def test_all_base_and_role_guides_include_profile_pointers(self):
+        for text in self._all_guide_texts():
+            self.assertIn("Project profile & preferences", text)
+            for rel in self.PROFILE_FILES:
+                self.assertIn(rel, text)
+
+    def test_written_sections_include_profile_pointers(self):
+        from backend import cli
+        # role section (append form) and plain topic section both carry the pointers.
+        self.assertIn("Project profile & preferences",
+                      cli.role_guide_section("coder", "claude"))
+        self.assertIn("docs/context/project/PREFERENCES.md",
+                      cli.topic_guide_section("codex"))
+        # claude's plain written section (special-cased) also carries it.
+        self.assertIn("Project profile & preferences", cli.topic_guide_section("claude"))
+
+    def test_mentions_tighten_only(self):
+        from backend import cli
+        text = cli.topic_guide("claude").lower()
+        self.assertIn("tighten-only", text)
+        self.assertIn("never loosen", text)
+
+    def test_says_root_agents_md_not_canonical_preference_source(self):
+        from backend import cli
+        text = cli.role_guide("coder", "fable")
+        self.assertIn("Root `AGENTS.md` is not the canonical preference source", text)
+        self.assertIn("docs/context/project/AGENT-ROLES.md", text)
+
+    def test_recommends_doctor_and_context_export(self):
+        from backend import cli
+        text = cli.topic_guide("codex")
+        self.assertIn("vibe project doctor", text)
+        self.assertIn("vibe context export --for", text)
+
+    def test_does_not_inline_distinctive_scaffold_content(self):
+        for text in self._all_guide_texts():
+            for needle in self.NON_INLINE_NEEDLES:
+                self.assertNotIn(needle, text)
+
+    def test_does_not_reference_or_read_local_profile(self):
+        # The guide is static text: it must not mention/read a local private profile path.
+        for text in self._all_guide_texts():
+            self.assertNotIn(".council/profile", text)
+
+    def test_guide_output_is_static_and_never_reads_scaffold(self):
+        # Guides don't read the scaffold at all (pure text), so a totally empty cwd still
+        # produces the section — missing scaffold never fails guide output.
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            r = run_cli(["guide", "claude", "--role", "coder"], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("Project profile & preferences", r.stdout)
+            for rel in self.PROFILE_FILES:
+                self.assertIn(rel, r.stdout)
+
+    def test_stdout_mode_writes_nothing_and_no_council(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            before = set(p.name for p in root.iterdir())
+            run_cli(["guide", "fable"], caller_cwd=root)
+            self.assertEqual(before, set(p.name for p in root.iterdir()))
+            self.assertFalse((root / ".council").exists())
+
+    def test_write_section_present_and_marker_skip_no_duplicate(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            f = root / "CLAUDE.md"
+            run_cli(["guide", "claude", "--role", "coder", "--write", str(f), "--yes"],
+                    caller_cwd=root)
+            text1 = f.read_text(encoding="utf-8")
+            self.assertEqual(text1.count("Project profile & preferences"), 1)
+            # re-run: marker-skip -> byte-identical, still exactly one profile section.
+            run_cli(["guide", "claude", "--role", "coder", "--write", str(f), "--yes"],
+                    caller_cwd=root)
+            self.assertEqual(f.read_text(encoding="utf-8"), text1)
+
+
 if __name__ == "__main__":
     unittest.main()
