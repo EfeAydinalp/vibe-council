@@ -23,6 +23,12 @@ Concise and current; retire an entry when it no longer applies. No secrets or pr
 - **Raw payload / output leakage.** Raw file content lives only in the local write-once payload
   artifact and is never rendered in the panel HTML or `/api/state`. Never commit raw model/council
   outputs or paste them into curated docs; run `vibe lint --redaction` before committing public docs.
+- **Local/private profile leakage.** The machine-local personalization profile (`.council/profile.*`,
+  gitignored) must never be committed. Defenses: gitignore, `vibe project doctor` FAILs a staged
+  `.council/` file, and `vibe lint --redaction` flags a **concrete** local-profile filename in a
+  tracked doc (advisory `local-profile-path` warning). Refer to it by the glob form
+  `.council/profile.*` in operational docs. Note: no local profile store exists yet — this is
+  forward-looking hardening (v0.7.1).
 - **Hosted / network scope creep.** The Workbench is localhost-only; agent intake is file/CLI only
   (no network endpoint). Do not add LAN/mobile/hosted surface outside an explicitly-scoped phase.
 

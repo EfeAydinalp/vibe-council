@@ -263,6 +263,19 @@ class TestDoctorStagedFileDetection(unittest.TestCase):
         self.assertIn("[FAIL]", text)
         self.assertIn(".council/runtime/", text)
 
+    def test_staged_local_profile_is_flagged(self):
+        # v0.7.1 PR 1 lock-in: a staged .council/profile.* (the future machine-local
+        # profile store) FAILs the doctor via the existing .council/ prefix check.
+        prof = self.root / ".council"
+        prof.mkdir(parents=True)
+        (prof / "profile.json").write_text('{"pref": "x"}\n', encoding="utf-8")
+        self._git("add", "-f", ".council/profile.json")
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertFalse(ok, text)
+        self.assertIn("[FAIL]", text)
+        self.assertIn(".council/profile.json", text)
+
     def test_clean_git_repo_is_ready(self):
         # required files present, nothing dangerous staged -> READY.
         self._git("add", "docs")

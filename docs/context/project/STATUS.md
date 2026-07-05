@@ -422,9 +422,18 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   Explicit non-goals: no preference parser/application, no local `.council/profile.*` store, no
   vector DB/database/hosted stack, no trust-boundary change. Implementation is Opus/Sonnet per the
   plan's copy-paste prompts; **no code/behavior change in the planning PR.**
-- **Current focus:** **v0.7.1 hardening is in planning; PR 1 (redaction hardening) is the next
-  implementation candidate.** No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team
-  (v0.9+).
+- **v0.7.1 PR 1 — local-profile redaction hardening (in progress).** `vibe lint --redaction` gains a
+  `local-profile-path` **WARNING** rule flagging a concrete local/private profile filename (the
+  `.council/` machine-local store) in tracked public docs — advisory (never critical), following the
+  `private-plan-filename` precedent; operational text uses the glob form `.council/profile.*`, which
+  the rule deliberately ignores; public scaffold files are not flagged; documented WARNING→CRITICAL
+  promotion path. Lock-in tests pin existing protections (secret-in-scaffold → CRITICAL; staged
+  local-profile file → doctor FAIL) and enumerate the real-repo findings so the warning count change
+  (22 → 30) is intentional. **No profile store, no preference parser/application, no
+  context-export/guide/project-doctor behavior change, no Workbench/trust change, no dependency.**
+- **Current focus:** **v0.7.1 hardening — PR 1 (redaction hardening) is the active slice.** Next per
+  the plan: PR 2 (doctor consistency polish), PR 3 (export/guide invariant tests), PR 4 (release
+  prep). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 

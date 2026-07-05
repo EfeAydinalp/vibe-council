@@ -42,9 +42,16 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.7.0]` section,
           [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md), README release status. No tag/Release
           (manual follow-up).
-- [ ] **v0.7.1 — hardening** *(planning done; implementation not started).* Source plan:
+- [ ] **v0.7.1 — hardening** *(in progress).* Source plan:
       [`docs/fable/v0.7.1-hardening-architecture-plan.md`](../../fable/v0.7.1-hardening-architecture-plan.md)
       (redaction rule → doctor polish → invariant tests → release prep; all Opus/Sonnet).
+    - [x] **PR 1 — local-profile redaction hardening.** `local-profile-path` WARNING rule for concrete
+          `.council/` profile filenames in tracked docs (advisory; glob form ignored; public scaffold
+          not flagged; WARNING→CRITICAL promotion path) + lock-in tests (secret-in-scaffold → CRITICAL,
+          staged local-profile → doctor FAIL, enumerated real-repo findings). Warning count 22 → 30.
+    - [ ] PR 2 — project doctor consistency polish for the profile scaffold.
+    - [ ] PR 3 — context-export / guide invariant tests + vault consistency.
+    - [ ] PR 4 — v0.7.1 release prep.
 - [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*
 
 ## How to update

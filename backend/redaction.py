@@ -112,6 +112,18 @@ RULES: List[Rule] = [
     Rule("private-plan-filename", WARNING,
          re.compile(r"commercialization-and-hosted-platform-feasibility"),
          "Reference to the private commercial feasibility plan filename", "none"),
+    # A *concrete* local/private profile artifact filename (v0.7.1 hardening). The
+    # local `.council/profile.*` store is machine-local and must never be committed.
+    # WARNING (not CRITICAL) — legitimate design-doc references to the concrete name
+    # exist, matching the `private-plan-filename` precedent; operational/policy text
+    # should prefer the glob form `.council/profile.*`, which this rule deliberately
+    # does NOT match (the discriminator). Promotion path: when a real
+    # `.council/profile.*` store ships, a concrete reference in public docs becomes a
+    # live-artifact leak — promote this rule to CRITICAL then and glob-form the docs.
+    Rule("local-profile-path", WARNING,
+         re.compile(r"\.council[\\/]profile\.(?:json|md|toml|ya?ml)"),
+         "Reference to a local/private profile artifact "
+         "(never commit; `.council/profile.*` is machine-local)", "none"),
     Rule("cost-pricing", WARNING,
          re.compile(r"\$\s?\d[\d,]*(?:\.\d+)?\s*/\s*(?:mo|month|seat|yr|year|user)"
                     r"|\bper\s+seat\b|\bmonthly\s+infra\b|\bcost\s+table\b"),
