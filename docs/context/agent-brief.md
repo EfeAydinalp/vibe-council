@@ -278,8 +278,10 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   `vibe context export --for <agent>` — **pointers only** to `PROFILE.md`/`PREFERENCES.md`/
   `AGENT-ROLES.md` (never inlined), a tighten-only note, a root-`AGENTS.md`-not-canonical note, and a
   `vibe project doctor` recommendation; reads no `.council/profile.*`, degrades gracefully if missing.
-  All still read-only, no `.council/`, no model call. Further integration (guide personalization,
-  release prep) is later v0.7 PRs (D–E).
+  **v0.7 PR D** added the same "Project profile & preferences" pointer section to `vibe guide
+  {claude|codex|fable}` output (base topic, role-specific, and `--write` sections) — pointers only, no
+  preference parsing/application, reads no `.council/profile.*`, `--write` marker-skip unchanged.
+  All still read-only, no `.council/`, no model call. The remaining v0.7 slice is PR E (release prep).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

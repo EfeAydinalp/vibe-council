@@ -25,7 +25,10 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
 
 ## Guide generation & agent onboarding
 
-- `vibe guide {claude|codex|fable} [--role <role>]` prints a role/topic-tailored onboarding pack.
+- `vibe guide {claude|codex|fable} [--role <role>]` prints a role/topic-tailored onboarding pack. It
+  now includes a "Project profile & preferences" section with **pointers** to
+  [`PROFILE.md`](./PROFILE.md) / [`PREFERENCES.md`](./PREFERENCES.md) / [`AGENT-ROLES.md`](./AGENT-ROLES.md)
+  (pointers only, never inlined; tighten-only; reads no `.council/profile.*`).
 - Add `--write [FILE]` to append it to a file (per-topic defaults `CLAUDE.md`/`AGENTS.md`/`FABLE.md`);
   it never overwrites — re-runs are skipped and topics/roles coexist.
 - `vibe context export --for {claude|codex|fable} [--role <role>] [--output FILE]` prints a read-only

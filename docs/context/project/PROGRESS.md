@@ -32,7 +32,11 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           "Project profile & preferences" section: pointers to `PROFILE.md`/`PREFERENCES.md`/
           `AGENT-ROLES.md` (never inlined), tighten-only note, root-`AGENTS.md`-not-canonical note,
           `vibe project doctor` recommendation. Reads no `.council/profile.*`; graceful if missing.
-    - [ ] PR D — `vibe guide` reflects preferences (advisory, tighten-only).
+    - [x] **PR D — `vibe guide` reflects preferences (advisory, tighten-only).** All guide paths
+          (base topic, role, `--write`) carry a "Project profile & preferences" section: pointers to
+          `PROFILE.md`/`PREFERENCES.md`/`AGENT-ROLES.md` (never inlined), tighten-only note,
+          root-`AGENTS.md`-not-canonical note, doctor/context-export recommendations. No preference
+          parsing/application; reads no `.council/profile.*`; `--write` marker-skip unchanged.
     - [ ] PR E — v0.7.0 release prep.
 - [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*
 

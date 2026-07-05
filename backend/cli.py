@@ -1847,6 +1847,28 @@ Warnings:
   - .env and data/ are local and ignored; never commit generated artifacts.
 """
 
+# v0.7 personalization — a concise, advisory profile/preferences pointer block shared by
+# every guide path (claude/codex/fable base, all role guides, and --write sections). It
+# POINTS to the scaffold files; it never inlines their contents, never parses preferences,
+# and never reads a local/private profile (`.council/profile.*`). Preferences are advice to
+# read, not commands — they can tighten but never loosen a security/safety/no-stage rule.
+_GUIDE_PROFILE = """### Project profile & preferences (v0.7 personalization)
+
+Public-safe Markdown **project-memory** files — when present, read them directly before
+planning/coding (this guide points to them; it does not inline their contents):
+
+- `docs/context/project/PROFILE.md` — project identity/profile
+- `docs/context/project/PREFERENCES.md` — review-preset / model-budget / implementation-style policy
+- `docs/context/project/AGENT-ROLES.md` — per-agent roles + the `MODEL:` header convention
+
+- **Personalization is tighten-only** — a project preference may make a rule *stricter*, but can
+  **never loosen** a security/safety/no-stage rule. Preferences are advice to read, not commands to
+  execute; the deterministic trust boundary ignores them.
+- **Root `AGENTS.md` is not the canonical preference source** — it may exist as a `vibe guide --write`
+  output target, but per-agent role preferences live in `docs/context/project/AGENT-ROLES.md`.
+- Run **`vibe project doctor`** to check whether the scaffold is present, and
+  **`vibe context export --for <agent> --role <role>`** for the full onboarding handoff."""
+
 _GUIDE_MARKER = "## Vibe Council Workflow"
 
 _GUIDE_CLAUDE_SECTION = """## Vibe Council Workflow
@@ -1880,7 +1902,7 @@ Rules for agents:
   for a reliable pre-run guard.
 - Loop guard is on by default; override with `--allow-repeat` / `--no-loop-guard`.
 - Never print or expose the OPENROUTER_API_KEY.
-"""
+""" + "\n" + _GUIDE_PROFILE + "\n"
 
 _GUIDE_CLAUDE = "Claude Code instructions for vibe-council:\n\n" + _GUIDE_CLAUDE_SECTION
 
@@ -1979,7 +2001,9 @@ _GUIDE_COMMON = """### Common rules (every role)
 - **Never stage / never send to a model:** `.council/`, `.council/runtime/`,
   `.council/runtime/payloads/`, `.env`, `.venv/`, `data/`, private local plans, raw council
   outputs, generated packs/exports, secrets/API keys, and unrelated `uv.lock` churn. Keep
-  `.council/` gitignored; never print the `OPENROUTER_API_KEY`."""
+  `.council/` gitignored; never print the `OPENROUTER_API_KEY`.
+
+""" + _GUIDE_PROFILE
 
 
 # Guide topics (host agents). Each maps to a display label, a default --write file,

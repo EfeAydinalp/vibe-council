@@ -13,6 +13,21 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.7 PR D — profile pointers in agent guides** — `vibe guide {claude|codex|fable}` output now
+  includes a concise **"Project profile & preferences (v0.7 personalization)"** section in every path
+  (base topic guides, role-specific guides, and `--write` sections). It **points to**
+  `docs/context/project/PROFILE.md` / `PREFERENCES.md` / `AGENT-ROLES.md` (public-safe Markdown
+  project-memory files to read directly when present), states that **personalization is tighten-only**
+  (advice to read, never commands to execute — it can never loosen a security/safety/no-stage rule;
+  the deterministic trust boundary ignores it), that **root `AGENTS.md` is not the canonical
+  preference source** (it may be a `vibe guide --write` output target; role preferences live in
+  `AGENT-ROLES.md`), and recommends `vibe project doctor` and `vibe context export --for <agent>
+  --role <role>`. The guide **inlines no** scaffold content, **parses/applies no** preferences, and
+  **reads no** local/private profile (`.council/profile.*`); output stays deterministic and, with
+  `--write`, the existing append + marker-skip behavior is unchanged (no duplication on re-run). No
+  context-export / project-doctor / Workbench / importer / executor / trust change, no dependency, no
+  version bump.
+
 - **v0.7 PR C — profile pointers in `vibe context export`** — the agent context handoff
   (`vibe context export --for {claude|codex|fable}`) now includes a **"Project profile & preferences
   (v0.7 personalization)"** section with **pointers** to `docs/context/project/PROFILE.md` /

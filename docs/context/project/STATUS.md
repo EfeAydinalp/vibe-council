@@ -394,18 +394,23 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   an **advisory** "Personalization scaffold" section for `PROFILE.md`/`PREFERENCES.md`/`AGENT-ROLES.md`
   (present → `[ok ]`, missing → `[warn]` — never a doctor failure); root `AGENTS.md` not required
   (advisory warn only). Read-only; no context-export/guide/Workbench/trust change.
-- **v0.7 PR C — profile pointers in context export (in progress).** `vibe context export --for
-  {claude|codex|fable}` gains a "Project profile & preferences" section with **pointers** to
-  `PROFILE.md`/`PREFERENCES.md`/[`AGENT-ROLES.md`](./AGENT-ROLES.md) — **pointers only, never inlined**;
-  states tighten-only, that root `AGENTS.md` is not the canonical preference source, and recommends
-  `vibe project doctor`. Reads **no** `.council/profile.*`, degrades gracefully if the scaffold is
-  missing, stays deterministic (no timestamp), read-only (stdout by default; `--output` never
-  overwrites). No preference application, no guide/project-doctor semantics change, no
-  context-builder/Workbench/trust change.
-- **Current focus:** **v0.7 personalization — PR C (context-export profile pointers) is the active
-  slice.** The [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) is the source
-  of truth; further behavior integration (guide personalization, release prep) is deferred to later
-  v0.7 PRs (D–E). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **v0.7 PR C — profile pointers in context export (merged).** `vibe context export --for
+  {claude|codex|fable}` has a "Project profile & preferences" section with **pointers** to
+  `PROFILE.md`/`PREFERENCES.md`/[`AGENT-ROLES.md`](./AGENT-ROLES.md) — pointers only, never inlined;
+  reads no `.council/profile.*`; graceful if missing.
+- **v0.7 PR D — profile pointers in agent guides (in progress).** `vibe guide {claude|codex|fable}`
+  output (base topic, role-specific, and `--write` sections) now carries the same "Project profile &
+  preferences" section: **pointers** to `PROFILE.md`/`PREFERENCES.md`/[`AGENT-ROLES.md`](./AGENT-ROLES.md),
+  a tighten-only note (preferences are advice to read, never commands; the trust boundary ignores
+  them), that root `AGENTS.md` is not the canonical preference source, and `vibe project doctor` /
+  `vibe context export` recommendations. **Pointers only** (no inlining, no preference parsing/
+  application), reads **no** `.council/profile.*`, deterministic, and `--write` append + marker-skip
+  is unchanged (no duplication). No context-export/project-doctor semantics change, no Workbench/trust
+  change, no dependency, no version bump.
+- **Current focus:** **v0.7 personalization — PR D (guide profile pointers) is the active slice.** The
+  [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) is the source of truth;
+  the remaining v0.7 slice is PR E (release prep). No new network endpoint. Deferred: mobile/LAN/voice
+  (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 
