@@ -6,9 +6,12 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.7 tag/GitHub Release (manual).** v0.7.0 is **prepared** (repo reports `0.7.0`); the annotated
-  `v0.7.0` tag and the GitHub Release from [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md) are the
-  remaining manual maintainer step. After that, scope the next personalization slice from the brief.
+- **v0.7.1 — hardening** *(planning done; implementation next).* Hardening, not feature expansion:
+  redaction/no-stage hardening for `.council/profile.*`, doctor consistency polish, export/guide
+  invariant tests, release prep. Source plan:
+  [`docs/fable/v0.7.1-hardening-architecture-plan.md`](../../fable/v0.7.1-hardening-architecture-plan.md)
+  (4-PR Opus/Sonnet breakdown with copy-paste prompts). The `v0.7.0` GitHub Release (from
+  [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md)) remains a manual maintainer step.
 
 ## Recently shipped
 

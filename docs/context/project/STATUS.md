@@ -411,12 +411,20 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   Everything advisory/tighten-only/local; no model/network call, no Workbench trust change, no
   `/council`, no dependency change. **No tag / GitHub Release** in the PR — those are a separate manual
   step once it merges.
-- **Current focus:** **v0.7.0 prepared, not yet tagged.** The v0.7 personalization/profile arc (brief,
-  scaffold, advisory pointers) is complete and release prep is in review; next is the manual
-  tag/GitHub Release step. The
-  [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) remains the source of
-  truth for later slices (a local `.council/profile.*` store + a preference reader/applier, still
-  tighten-only). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **v0.7.0 is tagged** (`v0.7.0` annotated tag pushed to `origin`; the GitHub Release from
+  [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md) is the remaining manual step). Closes the
+  v0.7 personalization/profile arc (brief, scaffold, advisory doctor/export/guide pointers).
+- **v0.7.1 hardening planning started (docs-only, Fable architecture pass).**
+  [`docs/fable/v0.7.1-hardening-architecture-plan.md`](../../fable/v0.7.1-hardening-architecture-plan.md)
+  is the source plan: **hardening, not feature expansion** — a narrow `local-profile-path` redaction
+  WARNING rule + lock-in tests (PR 1), doctor root-`AGENTS.md`/partial-scaffold consistency polish
+  (PR 2), export/guide invariant tests + vault consistency (PR 3), and v0.7.1 release prep (PR 4).
+  Explicit non-goals: no preference parser/application, no local `.council/profile.*` store, no
+  vector DB/database/hosted stack, no trust-boundary change. Implementation is Opus/Sonnet per the
+  plan's copy-paste prompts; **no code/behavior change in the planning PR.**
+- **Current focus:** **v0.7.1 hardening is in planning; PR 1 (redaction hardening) is the next
+  implementation candidate.** No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team
+  (v0.9+).
 
 ## Next actions
 

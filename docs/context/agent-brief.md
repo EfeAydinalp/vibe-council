@@ -285,8 +285,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   `backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version to `0.7.0` (one line, no
   dependency-graph change), added a dated `CHANGELOG.md` `[0.7.0]` section, and
   [`docs/releases/v0.7.0.md`](../releases/v0.7.0.md) bundling the v0.7 A–D personalization arc as the
-  "safe personalization / project-profile scaffold" release; README release status → v0.7.0. **No tag /
-  GitHub Release** in the PR — a separate manual step once it merges. **v0.7.0 prepared, not yet tagged.**
+  "safe personalization / project-profile scaffold" release; README release status → v0.7.0.
+  **v0.7.0 is now tagged/released.** **v0.7.1 hardening planning has started (docs-only):**
+  [`docs/fable/v0.7.1-hardening-architecture-plan.md`](../fable/v0.7.1-hardening-architecture-plan.md)
+  is the **source plan** — a Fable architecture pass scoping hardening (not feature expansion): a
+  narrow `.council/profile.*` redaction rule + lock-in tests, doctor root-`AGENTS.md` consistency
+  polish, export/guide invariant tests, and v0.7.1 release prep, in a 4-PR Opus/Sonnet breakdown with
+  copy-paste prompts. Non-goals: no preference parser/application, no local profile store, no vector
+  DB/hosted stack, no trust change. No implementation yet.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
