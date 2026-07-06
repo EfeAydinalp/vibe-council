@@ -450,10 +450,20 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   **read-only preference-control model + validator, not behavior** (guide/context-export stay
   pointer-only; `.council/profile.*` store + preference applier deferred to v0.9.x); mobile/LAN/voice
   deferred to its own gated security line. No code/behavior change.
-- **Current focus:** **v0.8.x architecture step (Fable) is next.** The council brief + Fable input are
-  ready; the next step is a Fable architecture pass (version-line planning, not implementation) per
-  [`v0.8.x-fable-input.md`](../../fable/v0.8.x-fable-input.md). No new network endpoint. Deferred:
-  preference application (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
+- **v0.8.x Fable architecture plan done (docs-only).**
+  [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md) preserves the
+  council's "Solidify the core, local-first" pivot and resolves the open questions: a four-type
+  tighten-only **JSON** preference schema in a bounded fenced block in `PREFERENCES.md` (the `>=3.10`
+  floor has no stdlib TOML; no new dependency), a **read-only validator folded into `vibe project
+  doctor`** (advisory, fail-closed, findings-only API), **no preference application in v0.8.x**,
+  guide/context-export byte-stable pointer-only, and named profiles / `.council/profile.*` store /
+  Workbench UX / local notifications **deferred**. Launcher = `vibe init-agent` (dry-run-first, no
+  path argument). Nine-PR sequence across v0.8.0 (launcher + localhost CI guard), v0.8.1 (vault
+  digest + RELEASES.md), v0.8.2 (schema + validator, validator at **full** review).
+- **Current focus:** **v0.8.x implementation is next — Opus/Sonnet, starting at PR 1
+  (`feat/init-agent-report`)** per the architecture plan's §6/§10 prompts. Fable returns only at the
+  v0.9.x (preference application) version-line moment. No new network endpoint. Deferred: preference
+  application (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 
