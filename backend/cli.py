@@ -1780,6 +1780,118 @@ def cmd_guide(args) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# Agent onboarding launcher (v0.8.0; report/dry-run only — writes nothing)
+# --------------------------------------------------------------------------- #
+
+# Skip the marker read for absurdly large target files (report-only preview; the real
+# `_guide_append` re-checks the marker at write time, so accuracy is not lost).
+_INIT_AGENT_MAX_BYTES = 5_000_000
+
+
+def _guide_write_status(root: Path, topic: str, role: Optional[str]):
+    """For ``topic`` (and optional ``role``), report what `vibe guide <topic> [--role
+    <role>] --write` WOULD do to the fixed per-topic default file — WITHOUT writing.
+    Mirrors ``_guide_append``'s marker-skip logic (read-only). Returns
+    ``(target_filename, status)`` where status is one of ``create``/``append``/``skip``."""
+    target = _TOPIC_DEFAULT_WRITE[topic]
+    marker = _role_guide_marker(role, topic) if role else _topic_guide_marker(topic)
+    path = root / target
+    try:
+        if not path.is_file():
+            return target, "create"      # file absent -> would create + append
+        if path.stat().st_size > _INIT_AGENT_MAX_BYTES:
+            return target, "append"      # too large to scan cheaply; writer re-checks
+        existing = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return target, "append"          # unreadable -> preview as "would append"
+    if marker in existing:
+        return target, "skip"            # section already present -> would skip
+    return target, "append"              # file present, section absent -> would append
+
+
+_INIT_AGENT_STATUS_TEXT = {
+    "create": "would create the file and append the section",
+    "append": "would append the section",
+    "skip":   "already present — would skip (no change)",
+}
+
+
+def init_agent_report(project_root: Path, agents, role: Optional[str]):
+    """Read-only onboarding report for ``project_root``: repo readiness (reusing the
+    project-doctor checks) + exactly what `vibe guide … --write` would do per agent, plus
+    the recommended next commands. **Writes nothing, creates no files, runs no commands,
+    makes no model/network call.** Deterministic (no timestamp). Returns the report lines."""
+    root = Path(project_root)
+    lines: List[str] = [
+        f"vibe init-agent — agent onboarding report for '{root.name}'",
+        "(Report-only: this command writes nothing, creates no files, and runs no commands.)",
+        "",
+    ]
+
+    # Readiness — reuse the project-doctor checks; surface its `Result:`-prefixed summary
+    # line here (contract: project_doctor_report ends with one such line) and point at the
+    # full command for detail. If that contract ever changes, we degrade gracefully to
+    # "(unavailable)" rather than guessing.
+    lines.append("Readiness:")
+    try:
+        doc_lines, _ok = project_doctor_report(root)
+        result = next((l for l in doc_lines if l.startswith("Result:")),
+                      "Result: (unavailable)")
+        lines.append("  " + result)
+    except Exception as e:  # never let the report crash on the advisory readiness probe
+        lines.append(f"  [warn] readiness check unavailable ({type(e).__name__}).")
+    lines.append("  Run `vibe project doctor` for the full readiness check.")
+    lines.append("")
+
+    # What `--write` would do per selected agent (dry run — nothing is written).
+    role_note = f"role: {role}" if role else "base guide (no role)"
+    lines.append(f"Agent guides — what `vibe guide … --write` would do ({role_note}):")
+    for topic in agents:
+        target, status = _guide_write_status(root, topic, role)
+        role_flag = f" --role {role}" if role else ""
+        lines.append(f"  {_TOPIC_LABEL[topic]:<11} → {target}: "
+                     f"{_INIT_AGENT_STATUS_TEXT[status]}")
+        lines.append(f"      to persist: vibe guide {topic}{role_flag} --write")
+    lines.append("")
+
+    # Recommended next commands (the user runs these; init-agent does not).
+    first = agents[0] if agents else "claude"
+    role_flag = f" --role {role}" if role else " --role coder"
+    lines.append("Recommended next steps (run these yourself):")
+    lines.append("  vibe project doctor")
+    lines.append(f"  vibe guide {first}{role_flag}")
+    lines.append(f"  vibe context export --for {first}{role_flag}")
+    lines.append("  (add `--write` to a guide, or `--output FILE` to an export, when you "
+                 "want to persist it — this command never does.)")
+    lines.append("")
+
+    # Notes / invariants.
+    lines.append("Notes:")
+    lines.append("  - `vibe` is the real CLI; `/council` is NOT a real command (a possible "
+                 "FUTURE host-command idea only).")
+    lines.append("  - The project profile / preferences (PROFILE.md / PREFERENCES.md / "
+                 "AGENT-ROLES.md) are documentation/advice only — no command reads or "
+                 "enforces them.")
+    lines.append("  - Personalization may TIGHTEN guidance but can NEVER loosen a "
+                 "safety / security / no-stage / trust rule.")
+    lines.append("  - This is a report: it writes nothing. To persist a guide, run "
+                 "`vibe guide <agent> --role <role> --write` yourself.")
+    return lines
+
+
+def cmd_init_agent(args) -> int:
+    """`init-agent`: read-only onboarding report / dry run. Composes the project-doctor
+    readiness checks and the guide markers to show what would be generated — **writes no
+    files, creates no `.council/`, runs no commands, makes no model/provider/network
+    call.** No path argument (the report only inspects the current working directory)."""
+    agents = getattr(args, "agent", None) or list(GUIDE_TOPICS)
+    role = getattr(args, "role", None)
+    lines = init_agent_report(pw.caller_cwd(), agents, role)
+    print("\n".join(lines))
+    return EXIT_OK
+
+
+# --------------------------------------------------------------------------- #
 # Help / guide text
 # --------------------------------------------------------------------------- #
 
@@ -1815,6 +1927,7 @@ Common commands:
   vibe --version
   vibe help
   vibe guide {claude|codex|fable} [--role task-shaper|planner|coder|reviewer|release-manager] [--write [FILE]]
+  vibe init-agent [--agent claude|codex|fable] [--role <role>]   # onboarding report (dry-run; writes nothing)
 
 Examples:
   vibe review --preset balanced --file plan.md --yes
@@ -2486,6 +2599,17 @@ def _build_parser() -> argparse.ArgumentParser:
                                "(never overwrites).")
     sp_guide.add_argument("--yes", action="store_true", help="Assume yes for writing.")
 
+    sp_init = sub.add_parser(
+        "init-agent",
+        help="Onboarding report (dry-run): what agent guides would be generated. "
+             "Report-only — writes nothing.")
+    sp_init.add_argument("--agent", action="append", choices=list(GUIDE_TOPICS),
+                         help="Agent(s) to report on (repeatable; default: all three). "
+                              "One of: " + ", ".join(GUIDE_TOPICS) + ".")
+    sp_init.add_argument("--role", choices=list(GUIDE_ROLES),
+                         help="Report for a specific role. Roles: " + ", ".join(GUIDE_ROLES)
+                              + ".")
+
     return parser
 
 
@@ -2537,6 +2661,8 @@ def main(argv=None) -> int:
         return cmd_help(args)
     if cmd == "guide":
         return cmd_guide(args)
+    if cmd == "init-agent":
+        return cmd_init_agent(args)
 
     _err(f"Unknown command: {cmd}")
     return EXIT_USAGE

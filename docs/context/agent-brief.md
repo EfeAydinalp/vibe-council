@@ -326,8 +326,11 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   doctor`** with a findings-only API; **no application in v0.8.x**; named profiles / profile store /
   Workbench UX / notifications deferred; `vibe init-agent` dry-run-first launcher with **no path
   argument**) and defines a 9-PR sequence (v0.8.0 launcher + localhost CI guard; v0.8.1 vault digest
-  + `RELEASES.md`; v0.8.2 schema + validator at **full** review). **Implementation is next —
-  Opus/Sonnet, starting at PR 1 (`feat/init-agent-report`).**
+  + `RELEASES.md`; v0.8.2 schema + validator at **full** review). **v0.8.0 PR 1 landed `vibe
+  init-agent` report/dry-run mode** — a read-only onboarding report (readiness + per-agent
+  would-create/append/skip + next commands); writes nothing, no path argument, no `--write` (PR 2).
+  No guide/export/doctor behavior change. Next: PR 2 (`init-agent --write`), PR 3 (localhost CI
+  guard).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
