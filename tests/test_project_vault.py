@@ -6,6 +6,7 @@ that the context pack — which is a *budgeted projection* built only from STATU
 decisions, not the whole vault — never leaks a private plan filename. No model/API/network.
 """
 
+import re
 import unittest
 from pathlib import Path
 
@@ -17,7 +18,9 @@ VAULT = REPO / "docs" / "context" / "project"
 VAULT_FILES = ("README.md", "STATUS.md", "ROADMAP.md", "DECISIONS.md", "PROGRESS.md",
                "RISKS.md", "WORKFLOWS.md", "NOTES.md",
                # v0.7 PR A — project profile/preferences scaffold (documentation only).
-               "PROFILE.md", "PREFERENCES.md", "AGENT-ROLES.md")
+               "PROFILE.md", "PREFERENCES.md", "AGENT-ROLES.md",
+               # v0.8.1 PR 5 — capped release-history index (docs only).
+               "RELEASES.md")
 
 # The v0.7 personalization scaffold files (public-safe, committed, read-as-documentation).
 PROFILE_FILES = ("PROFILE.md", "PREFERENCES.md", "AGENT-ROLES.md")
@@ -203,6 +206,92 @@ class TestVaultInvariantConsistency(unittest.TestCase):
         self.assertIn("AGENT-ROLES.md", r)              # AGENTS.md collision entry
 
 
+class TestReleasesIndex(unittest.TestCase):
+    """v0.8.1 PR 5 — the capped RELEASES.md release-history index (docs + tests only).
+
+    Per docs/fable/v0.8.x-architecture-plan.md §4 vault boundary / §6 PR 5: a newest-first
+    index, one line per release, HARD CAP 30 visible entries with an inline oldest-entries
+    roll-up rule, pointing at the canonical docs/releases/ notes without inlining them. It is
+    an index/working-memory aid, not a replacement for docs/releases or CHANGELOG.
+    """
+
+    # The five releases the plan/task require to be linked (each has a canonical note file).
+    _REQUIRED_RELEASE_NOTES = ("v0.8.0", "v0.7.1", "v0.7.0", "v0.6.3", "v0.6.0")
+    # Match one release entry line: "- **vX.Y.Z** — ...".
+    _ENTRY_RE = re.compile(r"^- \*\*v\d+\.\d+\.\d+\*\*", re.MULTILINE)
+
+    def test_releases_index_exists_and_is_markdown(self):
+        p = VAULT / "RELEASES.md"
+        self.assertTrue(p.is_file(), "missing vault file: RELEASES.md")
+        text = _read("RELEASES.md")
+        self.assertGreater(len(text.strip()), 0)
+        self.assertTrue(text.lstrip().startswith("#"), "RELEASES.md should start with a heading")
+
+    def test_release_entries_are_capped_at_30(self):
+        # HARD CAP 30 visible release entries (one line per release).
+        entries = self._ENTRY_RE.findall(_read("RELEASES.md"))
+        self.assertGreater(len(entries), 0, "RELEASES.md lists no release entries")
+        self.assertLessEqual(len(entries), 30,
+                             f"RELEASES.md exceeds the hard cap of 30 entries ({len(entries)})")
+
+    def test_documents_cap_and_collapse_policy(self):
+        t = _read("RELEASES.md").lower()
+        self.assertIn("cap", t, "RELEASES.md must document its cap policy")
+        self.assertIn("30", t, "RELEASES.md must state the hard cap of 30")
+        # the collapse / roll-up rule for oldest entries on overflow
+        self.assertTrue("collapse" in t or "roll up" in t or "roll-up" in t,
+                        "RELEASES.md must document the oldest-entries collapse/roll-up rule")
+
+    def test_links_to_existing_release_notes(self):
+        t = _read("RELEASES.md")
+        for ver in self._REQUIRED_RELEASE_NOTES:
+            rel = f"../../releases/{ver}.md"
+            self.assertIn(rel, t, f"RELEASES.md does not link {rel}")
+            self.assertTrue((REPO / "docs" / "releases" / f"{ver}.md").is_file(),
+                            f"linked release note missing on disk: {ver}.md")
+
+    def test_states_it_is_an_index_not_a_replacement(self):
+        # Must point at the canonical sources and say it does not duplicate them.
+        t = _read("RELEASES.md")
+        low = t.lower()
+        self.assertIn("docs/releases/", t)          # canonical detailed notes
+        self.assertIn("CHANGELOG", t)               # canonical chronological change list
+        self.assertTrue("not" in low and ("replacement" in low or "duplicate" in low),
+                        "RELEASES.md must state it is an index, not a replacement/duplicate")
+
+    def test_does_not_inline_full_release_note_bodies(self):
+        # An index, not a notes dump: each entry is a single short line. Guard against a
+        # release note body being pasted in by keeping the whole file small.
+        lines = _read("RELEASES.md").splitlines()
+        self.assertLessEqual(len(lines), 60, "RELEASES.md looks too large for an index file")
+
+    def test_readme_lists_releases_index(self):
+        self.assertIn("RELEASES.md", _read("README.md"),
+                      "vault README does not list RELEASES.md")
+
+    def test_status_points_to_releases_index(self):
+        self.assertIn("RELEASES.md", _read("STATUS.md"),
+                      "STATUS.md does not point at RELEASES.md for release history")
+
+    def test_status_stays_current_state_focused(self):
+        # STATUS.md keeps a current-state focus and delegates long history to RELEASES.md.
+        s = _read("STATUS.md")
+        self.assertIn("## Current state", s)
+        self.assertIn("RELEASES.md", s)
+
+    def test_workflows_documents_status_trimming(self):
+        w = _read("WORKFLOWS.md")
+        self.assertIn("Trimming STATUS history", w)
+        self.assertIn("RELEASES.md", w)
+        # no new command was introduced — curation stays human
+        self.assertIn("no command", w.lower())
+
+    def test_no_private_plan_names_in_releases_index(self):
+        t = _read("RELEASES.md")
+        for name in PRIVATE_PLAN_NAMES:
+            self.assertNotIn(name, t, f"RELEASES.md references a private plan name: {name}")
+
+
 class TestContextPackDoesNotLeakPrivatePlans(unittest.TestCase):
     # distinctive scaffold-body phrases (verified in PR C) — must NOT reach the pack.
     _PROFILE_BODY_NEEDLES = (
@@ -240,6 +329,17 @@ class TestContextPackDoesNotLeakPrivatePlans(unittest.TestCase):
         # all checks pass and no critical redaction; vault files present don't break it.
         self.assertTrue(report.ok, report.reasons)
         self.assertEqual(report.passed, report.total, report.reasons)
+
+    def test_pack_does_not_ingest_releases_index(self):
+        # The pack is built from STATUS.md + decisions only — the new RELEASES.md is never an
+        # input. A phrase distinctive to RELEASES.md's body must not appear in the pack.
+        needle = "early foundations"   # only in RELEASES.md's roll-up example
+        self.assertIn(needle, (VAULT / "RELEASES.md").read_text(encoding="utf-8"))
+        self.assertNotIn(needle, (VAULT / "STATUS.md").read_text(encoding="utf-8"))
+        ddir = REPO / "docs" / "decisions"
+        status = VAULT / "STATUS.md"
+        res = cp.build_pack(ddir, status, on="2026-07-04T00:00:00Z")
+        self.assertNotIn(needle, res.text, "context pack ingested RELEASES.md body content")
 
 
 if __name__ == "__main__":

@@ -50,6 +50,9 @@ skill/council packs + (later) an optional hosted commercial layer.**
   store** — `docs/decisions/*.md` remains the source of truth; this file only points at it.
 - [`PROGRESS.md`](./PROGRESS.md) — a **curated milestone digest** (phase checklist). Detailed progress
   stays in git history / `docs/decisions/`; do not paste raw logs here.
+- [`RELEASES.md`](./RELEASES.md) — a **capped, newest-first release-history index** (hard cap 30, oldest
+  entries roll up). An index/working-memory aid that keeps `STATUS.md` lean — **not** a replacement for
+  `docs/releases/*.md` (canonical notes) or `CHANGELOG.md` (chronological changes).
 - [`RISKS.md`](./RISKS.md) — current active risks / gotchas.
 - [`WORKFLOWS.md`](./WORKFLOWS.md) — common repeatable workflows (coding PR, guide, Workbench proposal,
   release prep, the no-stage checklist).

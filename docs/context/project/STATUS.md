@@ -3,7 +3,10 @@
 _Snapshot date: **2026-07-03**._
 
 A short, current snapshot of where vibe-council is. See [`README.md`](./README.md) for what this
-folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision records.
+folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision records. For the
+**full release history** see [`RELEASES.md`](./RELEASES.md) (capped index) → [`docs/releases/`](../../releases/)
+(canonical notes); keep this file focused on current state (see [`WORKFLOWS.md`](./WORKFLOWS.md) →
+"Trimming STATUS history").
 
 > **v0.6.2 project-vault scaffold — in progress.** This folder is now the project vault: alongside
 > `README.md`/`STATUS.md` it adds [`ROADMAP.md`](./ROADMAP.md), [`DECISIONS.md`](./DECISIONS.md)
@@ -476,6 +479,13 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   status → v0.8.0. Everything local-first/read-only-by-default/append-only-when-writing; no preference
   behavior, no `.council/profile.*` store, no network/LAN/hosted surface, no dependency change. **No
   tag / GitHub Release** in the PR — a separate manual step once it merges.
+- **v0.8.1 PR 5 — capped `RELEASES.md` + STATUS-trimming workflow (docs + tests).** Added the vault
+  [`RELEASES.md`](./RELEASES.md) release-history index (newest-first, **hard cap 30 entries**, oldest
+  roll up into one line; pointers to [`docs/releases/`](../../releases/), never inlined — not a
+  CHANGELOG/notes replacement), a "Trimming STATUS history" workflow in
+  [`WORKFLOWS.md`](./WORKFLOWS.md), and README/STATUS pointers. Docs + tests only — the
+  `summarize-history` command is **deferred** (no new command); no pack-builder/`context build`
+  input change (still 21/21), no behavior change.
 - **Current focus:** **v0.8.0 prepared, not yet tagged.** The launcher slice (`init-agent` report +
   write, localhost guard) is complete and release prep is in review; next is the manual tag/GitHub
   Release step, then the v0.8.1 (vault polish) / v0.8.2 (preference schema + validator, full review)

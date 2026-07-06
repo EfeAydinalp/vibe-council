@@ -11,8 +11,18 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.8.0 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Added
+
+- **v0.8.1 PR 5 — capped `RELEASES.md` release-history index + STATUS-trimming workflow** (per
+  [`docs/fable/v0.8.x-architecture-plan.md`](docs/fable/v0.8.x-architecture-plan.md) §4 vault
+  boundary / §6 PR 5). New [`docs/context/project/RELEASES.md`](docs/context/project/RELEASES.md): a
+  newest-first index of shipped releases (one line per release, **hard cap 30**, oldest entries roll
+  up into a single line on overflow), pointing at the canonical [`docs/releases/`](docs/releases/)
+  notes without inlining them. Adds a "Trimming STATUS history" workflow to the vault
+  [`WORKFLOWS.md`](docs/context/project/WORKFLOWS.md) (human curation, a `git log` recipe, no command)
+  and vault-README / STATUS pointers. **Docs + tests only** — the `summarize-history` command is
+  deferred (no new command surface); no `vibe context build` input or budget change (pack still
+  21/21), no behavior change.
 
 ## [0.8.0] - 2026-07-07
 
