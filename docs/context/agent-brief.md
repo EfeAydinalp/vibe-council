@@ -17,6 +17,10 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 
 ## Current released state
 
+> For the full newest-first release index see
+> [`docs/context/project/RELEASES.md`](project/RELEASES.md) (capped index) →
+> [`docs/releases/`](../releases/) (canonical notes). The list below is a curated seed excerpt.
+
 - **v0.2.0** (tagged) — the multi-provider milestone (provider abstraction + local Ollama +
   `vibe doctor`). See [v0.2.0 release decision](../decisions/2026-06-29-v0.2-release.md).
 - **v0.3.0** (released) — **local-first decision memory + curated project context**. The v0.3 loop

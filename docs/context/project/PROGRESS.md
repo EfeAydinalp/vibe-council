@@ -85,7 +85,12 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.8.0]` section,
           [`docs/releases/v0.8.0.md`](../../releases/v0.8.0.md), README release status. No tag/Release
           (manual follow-up).
-    - [ ] PRs 5–9 (v0.8.1 vault polish; v0.8.2 preference schema + validator) per plan.
+    - [x] **PR 5 — capped `RELEASES.md` + STATUS-trimming workflow (docs + tests).** New
+          [`RELEASES.md`](./RELEASES.md) release-history index (newest-first, hard cap 30, oldest
+          entries roll up; pointers to `docs/releases/`, never inlined), a "Trimming STATUS history"
+          workflow in [`WORKFLOWS.md`](./WORKFLOWS.md), and vault-README/STATUS pointers. Docs + tests
+          only — no new command (`summarize-history` deferred), no pack-builder/behavior change.
+    - [ ] PRs 6–9 (v0.8.1 release prep; v0.8.2 preference schema + validator) per plan.
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
 - [ ] **v0.9+ — preference application / hosted / team** *(deferred; separate planning).*
 

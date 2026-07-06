@@ -72,6 +72,22 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
 - Verify all gates green and `vibe --version`. **No git tag or GitHub Release unless explicitly
   allowed** — those are separate, manual steps (see [`docs/release-checklist.md`](../../release-checklist.md)).
 
+## Trimming STATUS history
+
+Keep [`STATUS.md`](./STATUS.md) focused on the **current** state; long release history belongs in
+[`RELEASES.md`](./RELEASES.md) (a capped index) and the canonical [`docs/releases/`](../../releases/)
+notes. This is **human curation — no command does it** (there is no `summarize-history` command).
+
+1. When `STATUS.md`'s "Current state" grows a run of aged, shipped-release bullets, confirm the
+   detail already lives in that release's `docs/releases/<version>.md` (add it there if not).
+2. Replace the aged bullets with a single pointer line, and ensure `RELEASES.md` carries a one-line
+   entry for the release (newest first; respect its hard cap 30 / roll-up rule).
+3. To reconstruct what shipped when, use git: `git log --oneline --decorate --tags` (release tags)
+   or `git log -- docs/releases/` (notes history). `CHANGELOG.md` stays the canonical change list.
+
+Curation is deterministic and local; it never touches `.council/`, runs no model, and changes no
+`vibe context build` inputs (the pack still builds from `STATUS.md` + decisions only).
+
 ## No-stage checklist (before every commit)
 
 Never stage: `.council/`, `.council/runtime/`, `.council/runtime/payloads/`, raw outputs, generated
