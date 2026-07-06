@@ -32,6 +32,18 @@ Concise and current; retire an entry when it no longer applies. No secrets or pr
   tracked doc (advisory `local-profile-path` warning). Refer to it by the glob form
   `.council/profile.*` in operational docs. Note: no local profile store exists yet — this is
   forward-looking hardening (v0.7.1).
+- **Preference schema / personas becoming hidden behavior or a policy override.** The v1 preference
+  schema (a bounded `json` block in [`PREFERENCES.md`](./PREFERENCES.md); normative spec
+  [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md)) is **defined but not
+  applied** — v0.8.2 only **validates** it (PR 8, advisory in `vibe project doctor`); application is
+  v0.9.x. The subtle failure mode: a helper that "just returns the parsed preset" and gets imported
+  somewhere convenient, or a future **council persona** (Cost Skeptic, Security Guardian, etc.) wired
+  to silently change council behavior. Guards: the schema is **tighten-only by construction** (no
+  vocabulary to loosen a gate, change the executor/trust boundary, add shell/auto-exec/network/hosted
+  behavior, override the review policy, or **hide/suppress dissenting council opinions**); guide and
+  context-export stay **pointer-only** (never inline the block); personas are a future v0.9.x preset of
+  the same tighten-only values, never a policy override. Treat any code path that routes a parsed
+  preference/persona into a command's logic as a review flag.
 - **Hosted / network scope creep.** The Workbench is localhost-only; agent intake is file/CLI only
   (no network endpoint). Do not add LAN/mobile/hosted surface outside an explicitly-scoped phase.
   `tests/test_localhost_guard.py` **locks** this: the panel binds loopback only, and **no module

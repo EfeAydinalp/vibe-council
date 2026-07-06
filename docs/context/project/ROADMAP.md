@@ -12,11 +12,14 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
   **v0.8.0** (`vibe init-agent` launcher: read-only report + guarded append; localhost-only guard) is
   **released**. **v0.8.1** (capped `RELEASES.md` release-history index + STATUS-trimming workflow;
   docs + tests only) is **prepared** (repo reports `0.8.1`; tag/GitHub Release from
-  [`docs/releases/v0.8.1.md`](../../releases/v0.8.1.md) is the remaining manual step). **Next:**
-  **v0.8.2** tighten-only **JSON** preference schema + a **read-only** doctor validator (full review;
-  **no application** — that is v0.9.x). Guide/context-export stay pointer-only; `.council/profile.*`
-  store, named profiles, Workbench UX, and local notifications deferred. **Note:** this v0.8.x line
-  supersedes the older
+  [`docs/releases/v0.8.1.md`](../../releases/v0.8.1.md) is the remaining manual step). **v0.8.2 in
+  progress:** the tighten-only **JSON** preference **schema v1** is defined (PR 7 — normative
+  [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md) + a bounded block in
+  [`PREFERENCES.md`](./PREFERENCES.md); docs + tests only); **next** the **read-only** doctor validator
+  (PR 8, full review; **no application** — that is v0.9.x). Guide/context-export stay pointer-only;
+  `.council/profile.*` store, named profiles / **council personas** (a future v0.9.x preset of the
+  tighten-only schema values), Workbench UX, and local notifications deferred. **Note:** this v0.8.x
+  line supersedes the older
   "v0.8 = mobile/LAN/voice" entry in [`docs/fable/04-roadmap.md`](../../fable/04-roadmap.md) — that
   surface-expanding work is now its own gated security line.
 

@@ -88,6 +88,32 @@ notes. This is **human curation — no command does it** (there is no `summarize
 Curation is deterministic and local; it never touches `.council/`, runs no model, and changes no
 `vibe context build` inputs (the pack still builds from `STATUS.md` + decisions only).
 
+## Editing the preference schema safely
+
+The **tighten-only preference schema v1** is a single fenced `json` block in
+[`PREFERENCES.md`](./PREFERENCES.md); the normative spec is
+[`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md). It is **defined, not
+active** — no command parses or applies it today (the read-only validator is v0.8.2 PR 8; application
+is v0.9.x). When editing it:
+
+1. Keep **exactly one** ` ```json ` block, top-level object, with `"schema": 1`; keep it **≤ 4096
+   bytes** and valid JSON (stdlib `json` only — no comments/trailing commas).
+2. Use **only** the four allowed keys (`default_review_preset` enum `cheap|balanced|full` — never
+   `premium`; `extra_sensitive_paths` / `never_stage_extra` as **relative** paths, no absolute paths,
+   drive letters, or `..`; `require_usage_flag` boolean). Every change must **tighten** (add a
+   floor/constraint), never loosen a safety/security/no-stage/trust rule.
+3. Put **invalid/forbidden examples as non-`json` text** (e.g. a ```text block), never as a second
+   `json` block — the machine region is the first `json` block only.
+4. **Never** add vocabulary to loosen a gate, change the Workbench executor/trust boundary, add
+   shell/auto-execution/network/hosted behavior, override the review policy, or hide/suppress council
+   dissent — that is out of scope and inexpressible by design (cut the field, not the proof).
+5. Do not wire the block into runtime here (no parser/applier); guide and context-export stay
+   **pointer-only**. Council **personas** are a future v0.9.x preset of these values — not defined or
+   applied by editing this block.
+
+The block is **authored by hand** — there is no generator/init command (and none is planned for
+v0.8.x). Edit `PREFERENCES.md` directly and confirm with the checks above.
+
 ## No-stage checklist (before every commit)
 
 Never stage: `.council/`, `.council/runtime/`, `.council/runtime/payloads/`, raw outputs, generated

@@ -182,6 +182,17 @@ class TestAgentExportProfilePointers(unittest.TestCase):
             for name in PRIVATE_PLAN_NAMES:
                 self.assertNotIn(name, text)
 
+    def test_does_not_inline_preference_schema_v1_block(self):
+        # v0.8.2 PR 7: the export stays pointer-only — it must never inline the machine-readable
+        # preference schema block or its distinctive keys from PREFERENCES.md.
+        prefs = (REPO / "docs/context/project/PREFERENCES.md").read_text(encoding="utf-8")
+        self.assertIn("require_usage_flag", prefs)   # sanity: the schema key is in PREFERENCES.md
+        for agent in ("claude", "codex", "fable"):
+            text = self._export(agent)
+            self.assertNotIn("require_usage_flag", text,
+                             f"{agent}: inlined the preference schema block")
+            self.assertNotIn("```json", text, f"{agent}: inlined a json schema block")
+
     # --- v0.7.1 PR 3 invariant locks -------------------------------------- #
 
     def _profile_section(self, text):

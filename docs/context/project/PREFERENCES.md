@@ -68,6 +68,57 @@ surface) is prohibited — that is a bug, not a setting. The deterministic trust
 preferences entirely. See security invariant #17 in
 [`docs/fable/03-security-invariants.md`](../../fable/03-security-invariants.md).
 
+## Machine-readable preferences (schema v1 — defined, **not active yet**)
+
+Everything above is prose an agent reads. This section adds an **optional, machine-checkable** island:
+a single fenced `json` block in the **tighten-only preference schema v1**. The full normative spec —
+carrier format, the four allowed types, validation rules, tighten-only proofs, forbidden examples, and
+the future council-persona direction — is
+[`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md).
+
+> **Not active behavior yet.** **No command reads, parses, or applies this block today.** The
+> read-only validator that *reports* on it (advisory, in `vibe project doctor`) is a **later PR**
+> (v0.8.2 PR 8); letting a value actually influence a command is deferred to **v0.9.x**. Editing the
+> block below changes **nothing** at runtime right now.
+
+**v1 has exactly four preference keys** plus the required `schema: 1`, each **tighten-only by
+construction** (an ordered floor-raise or an additive constraint):
+
+- `default_review_preset` — enum `"cheap" | "balanced" | "full"` (a review **floor**; `premium` is not
+  in the enum, so it can never be named here).
+- `extra_sensitive_paths` — array of **relative** path prefixes to treat as *extra*-guarded (additive
+  deny; never removes anything).
+- `never_stage_extra` — array of **relative** paths to *add* to the never-stage list (additive).
+- `require_usage_flag` — boolean; only `true` is meaningful (adds a warning when `--usage` is absent;
+  `false` == unset).
+
+Unknown keys, wrong types, absolute paths, drive letters, or `..` segments are **invalid**; an unknown
+`schema` version makes the whole block ignored. The block is **untrusted, ≤ 4096 bytes**, parsed with
+stdlib `json` only. It has **no vocabulary to loosen** any safety/security/no-stage/trust rule, to
+change the Workbench executor/trust boundary, to add shell/auto-execution/network/hosted behavior, to
+override the review policy, or to hide/suppress dissenting council opinions — see the spec's "What the
+schema explicitly cannot express."
+
+Canonical example (this is the one machine-readable block; forbidden/invalid examples live in the spec
+as non-`json` text so they can't be mistaken for it):
+
+```json
+{
+  "schema": 1,
+  "default_review_preset": "balanced",
+  "extra_sensitive_paths": ["infra/prod/", "ops/deploy/"],
+  "never_stage_extra": ["notes/local-scratch.md"],
+  "require_usage_flag": true
+}
+```
+
+Every field above only *adds* strictness; deleting the block is strictly *less* strict, never more
+permissive-than-baseline. **Council personas** (Cost Skeptic, Security Guardian, Product Strategist,
+Local-first Guardian, UX/User Advocate, Risk Officer, Commercialization Lens) are a **future v0.9.x**
+direction — a persona will be a *curated preset of these same tighten-only values* plus advisory
+review-emphasis, never a policy override and never able to suppress dissent. **No persona is defined,
+selected, or applied here.**
+
 ## Safe-to-commit boundary
 
 Content is **safe to commit** here if it holds no secrets, no private user data, no absolute machine
