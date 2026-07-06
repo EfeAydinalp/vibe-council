@@ -77,7 +77,11 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
     - [x] **PR 2 — `init-agent --write` (guarded append).** Appends selected agents' guide sections to
           the fixed `CLAUDE.md`/`AGENTS.md`/`FABLE.md` (append-only, marker-skip idempotent, never
           overwrites); no path argument; requires explicit `--agent` + `--yes`. No `.council/`.
-    - [ ] PR 3 — localhost-only CI guard. PRs 4–9 per plan.
+    - [x] **PR 3 — localhost-only guard (tests only).** Locks the local-first invariant: panel binds
+          loopback only (non-local hosts rejected), a runtime `socket.bind` loopback check,
+          `host_header_is_local` loopback-only, and a static "no second listener" scan (only
+          `workbench_panel.py` may construct a listener). No production change.
+    - [ ] PR 4 — v0.8.0 release prep. PRs 5–9 per plan.
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
 - [ ] **v0.9+ — preference application / hosted / team** *(deferred; separate planning).*
 

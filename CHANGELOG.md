@@ -13,6 +13,19 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.8.0 PR 3 — localhost-only guard** (per `docs/fable/v0.8.x-architecture-plan.md` §5 / §6 PR 3).
+  A **tests-only** safety guardrail (`tests/test_localhost_guard.py`) that **locks** the local-first
+  invariant so the app's server surface cannot silently drift into LAN/hosted exposure — **no
+  production change** (the Workbench panel already enforces localhost-only). It pins: (1) the panel's
+  default bind host is loopback and non-local hosts (`0.0.0.0`, `::`, representative LAN/external IPs,
+  empty) are **rejected** by `make_server`; (2) a **runtime** check that every `socket.bind` observed
+  while the panel server is created is a loopback address; (3) `host_header_is_local` accepts only
+  loopback `Host` headers; and (4) a **static "no second listener"** scan asserting that **no module
+  outside `backend/workbench_panel.py`** constructs a listening socket/server (a new listener makes
+  the suite fail — a security finding to surface, not silence). Deterministic/offline (binds an
+  ephemeral loopback port and closes immediately; no `serve_forever`). No LAN/hosted mode, no
+  host-header/state-token change, no Workbench/proposal/importer/executor/trust change, no dependency,
+  no version bump.
 - **v0.8.0 PR 2 — `vibe init-agent --write` guarded append mode** (per
   `docs/fable/v0.8.x-architecture-plan.md` §3 Q9 / §6 PR 2). `vibe init-agent --write --agent
   {claude|codex|fable}... [--role <role>] --yes` **appends** the selected agents' guide sections to

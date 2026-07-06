@@ -34,6 +34,9 @@ Concise and current; retire an entry when it no longer applies. No secrets or pr
   forward-looking hardening (v0.7.1).
 - **Hosted / network scope creep.** The Workbench is localhost-only; agent intake is file/CLI only
   (no network endpoint). Do not add LAN/mobile/hosted surface outside an explicitly-scoped phase.
+  `tests/test_localhost_guard.py` **locks** this: the panel binds loopback only, and **no module
+  outside `backend/workbench_panel.py`** may construct a listener — a new listener fails the suite (a
+  security finding to surface, not to silence by editing the allowlist without review).
 
 ## Known-issue pointers
 
