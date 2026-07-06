@@ -74,7 +74,10 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
     - [x] **PR 1 — `vibe init-agent` report/dry-run mode.** Read-only onboarding report (readiness +
           per-agent would-create/append/skip + next commands); writes nothing, no path argument, no
           `--write`. No behavior change to guide/export/doctor.
-    - [ ] PR 2 — `init-agent --write` (guarded append). PR 3 — localhost-only CI guard. PRs 4–9 per plan.
+    - [x] **PR 2 — `init-agent --write` (guarded append).** Appends selected agents' guide sections to
+          the fixed `CLAUDE.md`/`AGENTS.md`/`FABLE.md` (append-only, marker-skip idempotent, never
+          overwrites); no path argument; requires explicit `--agent` + `--yes`. No `.council/`.
+    - [ ] PR 3 — localhost-only CI guard. PRs 4–9 per plan.
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
 - [ ] **v0.9+ — preference application / hosted / team** *(deferred; separate planning).*
 

@@ -460,17 +460,20 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   Workbench UX / local notifications **deferred**. Launcher = `vibe init-agent` (dry-run-first, no
   path argument). Nine-PR sequence across v0.8.0 (launcher + localhost CI guard), v0.8.1 (vault
   digest + RELEASES.md), v0.8.2 (schema + validator, validator at **full** review).
-- **v0.8.0 PR 1 — `vibe init-agent` report/dry-run mode (in progress).** A read-only onboarding
-  report composing the project-doctor readiness checks + guide markers to show per agent what
-  `vibe guide … --write` *would* do (create/append/skip) + recommended next commands. **Writes
-  nothing, creates no files/`.council/`, no path argument, no `--write` (PR 2), no model/network
-  call**; deterministic; cwd-only. States `/council` isn't real and personalization is tighten-only.
-  No guide/context-export/project-doctor behavior change, no preference parsing/application, no
-  Workbench/trust change, no dependency.
-- **Current focus:** **v0.8.x implementation — PR 1 (`init-agent` report) is the active slice.** Next
-  per the plan: PR 2 (`init-agent --write`), PR 3 (localhost CI guard), then v0.8.1/v0.8.2. Fable
-  returns only at the v0.9.x (preference application) version-line moment. No new network endpoint.
-  Deferred: preference application (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
+- **v0.8.0 PR 1 — `vibe init-agent` report/dry-run mode (merged).** Read-only onboarding report
+  (readiness + per-agent would-create/append/skip + next commands); writes nothing, no path argument.
+- **v0.8.0 PR 2 — `vibe init-agent --write` guarded append mode (in progress).** `--write --agent
+  {claude|codex|fable}... --yes` appends the selected agents' guide sections to the fixed per-topic
+  files (`CLAUDE.md`/`AGENTS.md`/`FABLE.md`) via the existing `_guide_append` — **append-only,
+  marker-skip idempotent, never overwrites**; section byte-identical to `vibe guide … --write`.
+  **No path/target argument;** `--write` requires an explicit `--agent` and `--yes` (both refuse
+  cleanly otherwise). Creates no `.council/`, no model/network call. No guide/context-export/
+  project-doctor behavior change, no preference parsing/application, no Workbench/trust change, no
+  dependency.
+- **Current focus:** **v0.8.x implementation — PR 2 (`init-agent --write`) is the active slice.** Next
+  per the plan: PR 3 (localhost CI guard), then v0.8.1/v0.8.2. Fable returns only at the v0.9.x
+  (preference application) version-line moment. No new network endpoint. Deferred: preference
+  application (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 

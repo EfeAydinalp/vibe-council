@@ -1879,16 +1879,90 @@ def init_agent_report(project_root: Path, agents, role: Optional[str]):
     return lines
 
 
+def _init_agent_section(topic: str, role: Optional[str]):
+    """The exact marker + section body + description that `vibe guide <topic> [--role
+    <role>] --write` would append — reused verbatim so init-agent and guide never
+    diverge. Returns ``(marker, body, what)``."""
+    if role:
+        return (_role_guide_marker(role, topic), role_guide_section(role, topic),
+                f"the {topic} '{role}' agent guide")
+    what = ("a Vibe Council Workflow section" if topic == "claude"
+            else f"the {topic} agent guide")
+    return _topic_guide_marker(topic), topic_guide_section(topic), what
+
+
+_INIT_AGENT_WRITE_LABEL = {
+    "create": "created", "append": "appended", "skip": "skipped (already present)",
+}
+
+
 def cmd_init_agent(args) -> int:
-    """`init-agent`: read-only onboarding report / dry run. Composes the project-doctor
-    readiness checks and the guide markers to show what would be generated — **writes no
-    files, creates no `.council/`, runs no commands, makes no model/provider/network
-    call.** No path argument (the report only inspects the current working directory)."""
-    agents = getattr(args, "agent", None) or list(GUIDE_TOPICS)
+    """`init-agent`: onboarding report (default) or guarded append (`--write`).
+
+    Default (no ``--write``) is the **read-only report** from PR 1 — writes nothing,
+    creates no `.council/`, runs no commands, makes no model/provider/network call.
+
+    ``--write`` appends the selected agents' guide sections to the **fixed per-topic
+    default files** (`CLAUDE.md`/`AGENTS.md`/`FABLE.md` in the caller's project root) via
+    the existing ``_guide_append`` machinery: **append-only, marker-skip idempotent, never
+    overwrites/truncates.** There is **no path/target argument** (the fixed defaults are
+    the whole surface — no traversal/injection). ``--write`` requires an explicit
+    ``--agent`` (safer than defaulting to writing three files) and, in a non-interactive
+    shell, ``--yes``."""
+    agents = getattr(args, "agent", None)
     role = getattr(args, "role", None)
-    lines = init_agent_report(pw.caller_cwd(), agents, role)
-    print("\n".join(lines))
-    return EXIT_OK
+    root = pw.caller_cwd()
+
+    if not getattr(args, "write", False):
+        # Report/dry-run mode (PR 1): agents default to all three (harmless preview).
+        lines = init_agent_report(root, agents or list(GUIDE_TOPICS), role)
+        print("\n".join(lines))
+        return EXIT_OK
+
+    # --- guarded write mode -------------------------------------------------- #
+    # Safer-and-explicit: a write must name its agent(s); a bare `--write` never writes
+    # three files. (Report mode still previews all three.)
+    if not agents:
+        _err("init-agent --write requires at least one --agent (claude/codex/fable) — it "
+             "appends to that agent's file (CLAUDE.md/AGENTS.md/FABLE.md). Run without "
+             "--write for a report of all agents.")
+        return EXIT_USAGE
+
+    targets = [_TOPIC_DEFAULT_WRITE[a] for a in agents]
+    # Explicit-confirmation gate: `--write` requires `--yes` (a single, deterministic,
+    # environment-independent confirmation for a multi-file write — no flaky TTY probing).
+    # Report mode (no --write) is the friendly discovery path.
+    if not getattr(args, "yes", False):
+        _err("init-agent --write requires --yes to confirm appending agent guide sections "
+             f"to {', '.join(targets)} (append-only; never overwrites). Run without "
+             "--write to preview.")
+        return EXIT_USAGE
+    # `args.yes` is set; each _guide_append proceeds without re-prompting.
+
+    summary = ["vibe init-agent --write — agent guide sections:"]
+    rc = EXIT_OK
+    for topic in agents:
+        target, pre = _guide_write_status(root, topic, role)  # pre-status for the summary
+        # Clean failure if the target name exists but is not a regular file (e.g. a
+        # directory) — append would otherwise raise.
+        tpath = root / target
+        if tpath.exists() and not tpath.is_file():
+            _err(f"cannot write '{target}': it exists but is not a regular file.")
+            rc = EXIT_USAGE
+            summary.append(f"  {_TOPIC_LABEL[topic]:<11} → {target}: not written (not a file)")
+            continue
+        marker, body, what = _init_agent_section(topic, role)
+        # Write to the caller's project root via the exact guide append + marker-skip
+        # logic (authoritative; re-checks the marker itself).
+        r = _guide_append(str(tpath), marker, body, what, args)
+        if r != EXIT_OK:
+            rc = r
+            summary.append(f"  {_TOPIC_LABEL[topic]:<11} → {target}: not written (see stderr)")
+            continue
+        summary.append(f"  {_TOPIC_LABEL[topic]:<11} → {target}: "
+                       f"{_INIT_AGENT_WRITE_LABEL[pre]}")
+    print("\n".join(summary))
+    return rc
 
 
 # --------------------------------------------------------------------------- #
@@ -2601,14 +2675,19 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_init = sub.add_parser(
         "init-agent",
-        help="Onboarding report (dry-run): what agent guides would be generated. "
-             "Report-only — writes nothing.")
+        help="Onboarding report (dry-run), or append agent guides with --write.")
     sp_init.add_argument("--agent", action="append", choices=list(GUIDE_TOPICS),
-                         help="Agent(s) to report on (repeatable; default: all three). "
-                              "One of: " + ", ".join(GUIDE_TOPICS) + ".")
+                         help="Agent(s) (repeatable). Report mode defaults to all three; "
+                              "--write requires an explicit --agent. One of: "
+                              + ", ".join(GUIDE_TOPICS) + ".")
     sp_init.add_argument("--role", choices=list(GUIDE_ROLES),
-                         help="Report for a specific role. Roles: " + ", ".join(GUIDE_ROLES)
-                              + ".")
+                         help="Use a specific role. Roles: " + ", ".join(GUIDE_ROLES) + ".")
+    sp_init.add_argument("--write", action="store_true",
+                         help="Append the selected agents' guide sections to the fixed "
+                              "per-topic files (CLAUDE.md/AGENTS.md/FABLE.md) — append-only, "
+                              "never overwrites, skips if already present. No path argument.")
+    sp_init.add_argument("--yes", action="store_true",
+                         help="Confirm --write (always required with --write).")
 
     return parser
 

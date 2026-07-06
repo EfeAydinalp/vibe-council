@@ -13,6 +13,9 @@ Concise and current; retire an entry when it no longer applies. No secrets or pr
   never be staged. Check `git status --short` before every commit (see [`WORKFLOWS.md`](./WORKFLOWS.md)).
 - **Overbuilding the launcher / vault.** Keep onboarding a **generator** and the vault **plain
   Markdown**. No interactive launcher, no `vibe council start`, no database, no Obsidian plugin.
+  `vibe init-agent --write` stays **append-only, fixed-target (`CLAUDE.md`/`AGENTS.md`/`FABLE.md`),
+  with no path argument** — do not add a path/target option, overwrite/`--force`, or project-init
+  behavior (that is a traversal/overwrite surface the v0.8.x plan deliberately excludes).
 - **`AGENT-ROLES.md` vs. a root `AGENTS.md` collision.** Per-agent role **preferences** live in the
   vault [`AGENT-ROLES.md`](./AGENT-ROLES.md) — deliberately **not** a root `AGENTS.md`. Root `AGENTS.md`
   is a `vibe guide … --write` **output target**; if the same file were both a write target and a

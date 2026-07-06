@@ -13,6 +13,21 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.8.0 PR 2 — `vibe init-agent --write` guarded append mode** (per
+  `docs/fable/v0.8.x-architecture-plan.md` §3 Q9 / §6 PR 2). `vibe init-agent --write --agent
+  {claude|codex|fable}... [--role <role>] --yes` **appends** the selected agents' guide sections to
+  the **fixed per-topic files** (`CLAUDE.md`/`AGENTS.md`/`FABLE.md` in the caller's project root) via
+  the existing `_guide_append` machinery — **append-only, marker-skip idempotent, never
+  overwrites/truncates** (re-runs are byte-identical; existing content is preserved; an
+  already-present section is skipped, not duplicated). The appended section is byte-identical to what
+  `vibe guide <agent> --role <role> --write` produces. **There is no path/target argument** (the fixed
+  defaults are the whole write surface — no traversal/injection). Safety gates: `--write` requires an
+  explicit `--agent` (a bare `--write` never writes three files) **and** `--yes` (a deterministic
+  confirmation; refuses cleanly otherwise). Prints a per-agent summary (created / appended / skipped).
+  Report/dry-run mode (no `--write`, from PR 1) is unchanged. It creates no `.council/`, runs no
+  commands, makes no model/provider/network call. No guide/context-export/project-doctor behavior
+  change, no preference parsing/application, no Workbench/importer/executor/trust change, no
+  dependency, no version bump.
 - **v0.8.0 PR 1 — `vibe init-agent` report/dry-run mode** (per
   `docs/fable/v0.8.x-architecture-plan.md` §3 Q9 / §6 PR 1). A **read-only onboarding report**: it
   composes the existing `vibe project doctor` readiness checks and the guide markers to show, per
