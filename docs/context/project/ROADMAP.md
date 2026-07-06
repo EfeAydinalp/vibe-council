@@ -6,21 +6,29 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.8.x — implementation in progress (v0.8.0 prepared).** Theme: **"Solidify the core,
-  local-first."** Architecture:
+- **v0.8.x — implementation in progress (v0.8.0 released; v0.8.1 prepared).** Theme: **"Solidify the
+  core, local-first."** Architecture:
   [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md) (9-PR sequence).
   **v0.8.0** (`vibe init-agent` launcher: read-only report + guarded append; localhost-only guard) is
-  **prepared** (repo reports `0.8.0`; tag/GitHub Release from
-  [`docs/releases/v0.8.0.md`](../../releases/v0.8.0.md) is the remaining manual step). **Next:**
-  **v0.8.1** capped `RELEASES.md` + STATUS-trimming workflow; **v0.8.2** tighten-only **JSON**
-  preference schema + a **read-only** doctor validator (full review; **no application** — that is
-  v0.9.x). Guide/context-export stay pointer-only; `.council/profile.*` store, named profiles,
-  Workbench UX, and local notifications deferred. **Note:** this v0.8.x line supersedes the older
+  **released**. **v0.8.1** (capped `RELEASES.md` release-history index + STATUS-trimming workflow;
+  docs + tests only) is **prepared** (repo reports `0.8.1`; tag/GitHub Release from
+  [`docs/releases/v0.8.1.md`](../../releases/v0.8.1.md) is the remaining manual step). **Next:**
+  **v0.8.2** tighten-only **JSON** preference schema + a **read-only** doctor validator (full review;
+  **no application** — that is v0.9.x). Guide/context-export stay pointer-only; `.council/profile.*`
+  store, named profiles, Workbench UX, and local notifications deferred. **Note:** this v0.8.x line
+  supersedes the older
   "v0.8 = mobile/LAN/voice" entry in [`docs/fable/04-roadmap.md`](../../fable/04-roadmap.md) — that
   surface-expanding work is now its own gated security line.
 
 ## Recently shipped
 
+- **v0.8.1 — vault polish (capped release-history index)** *(prepared as the `v0.8.1` release).*
+  A **docs + tests only** patch: new [`RELEASES.md`](./RELEASES.md) newest-first release-history index
+  (one line per release, hard cap 30, oldest entries roll up; pointers to `docs/releases/`, never
+  inlined — an index, not a CHANGELOG/notes replacement) plus a documented STATUS-trimming workflow in
+  [`WORKFLOWS.md`](./WORKFLOWS.md). `RELEASES.md` is not ingested into the context pack (still 21/21);
+  no `summarize-history` command, no behavior change, no dependency change. Source plan:
+  [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md).
 - **v0.8.0 — agent onboarding launcher (`vibe init-agent`)** *(prepared as the `v0.8.0` release).*
   A single onboarding entry point composing `vibe project doctor` / `vibe guide`: a deterministic
   **read-only report**, and a **guarded append** (`--write --agent <agent> --yes` → the fixed

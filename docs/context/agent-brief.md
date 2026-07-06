@@ -343,9 +343,18 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   **v0.8.0 PR 4 (release prep)** bumped `backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version to
   `0.8.0` (one line, no dependency-graph change), added a dated `CHANGELOG.md` `[0.8.0]` section, and
   [`docs/releases/v0.8.0.md`](../releases/v0.8.0.md) bundling the launcher slice as the "agent
-  onboarding launcher" release; README release status → v0.8.0. **No tag / GitHub Release** in the PR —
-  a separate manual step once it merges. **v0.8.0 prepared, not yet tagged.** Next: v0.8.1 (vault
-  polish), v0.8.2 (preference schema + validator, full review).
+  onboarding launcher" release; README release status → v0.8.0. **v0.8.0 is now released.**
+  **v0.8.1 PR 5 landed the vault release-history index:** a capped, newest-first
+  [`docs/context/project/RELEASES.md`](project/RELEASES.md) (one line per release, hard cap 30, oldest
+  entries roll up; pointers to `docs/releases/`, never inlined — an index, not a CHANGELOG/notes
+  replacement) plus a STATUS-trimming workflow in the vault `WORKFLOWS.md`; `RELEASES.md` is not
+  ingested into the context pack (still 21/21); no `summarize-history` command (deferred), docs + tests
+  only. **v0.8.1 PR 6 (release prep)** bumped `backend/__init__.py`/`pyproject.toml`/`uv.lock`
+  self-version to `0.8.1` (one line, no dependency-graph change), added a dated `CHANGELOG.md`
+  `[0.8.1]` section, and [`docs/releases/v0.8.1.md`](../releases/v0.8.1.md) bundling the vault-polish
+  slice as the "vault polish" release; README release status → v0.8.1. **No tag / GitHub Release** in
+  the PR — a separate manual step once it merges. **v0.8.1 prepared, not yet tagged.** Next: v0.8.2
+  (preference schema + read-only validator, full review; no application).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
