@@ -6,6 +6,7 @@ that the context pack — which is a *budgeted projection* built only from STATU
 decisions, not the whole vault — never leaks a private plan filename. No model/API/network.
 """
 
+import json
 import re
 import unittest
 from pathlib import Path
@@ -290,6 +291,175 @@ class TestReleasesIndex(unittest.TestCase):
         t = _read("RELEASES.md")
         for name in PRIVATE_PLAN_NAMES:
             self.assertNotIn(name, t, f"RELEASES.md references a private plan name: {name}")
+
+
+class TestPreferenceSchemaV1(unittest.TestCase):
+    """v0.8.2 PR 7 — the tighten-only preference schema v1 (docs + tests only).
+
+    Per docs/fable/v0.8.x-architecture-plan.md §3 Q1/Q4 / §6 PR 7: a single bounded fenced
+    `json` block in PREFERENCES.md carries `schema: 1` + exactly four tighten-only keys. This
+    suite is a *strict test-side reader* — it mirrors the future validator's rules so the docs
+    stay honest — plus consistency checks. NO production code parses/applies the block yet.
+    """
+
+    SPEC = REPO / "docs" / "fable" / "preference-schema-v1.md"
+    ALLOWED_KEYS = {"schema", "default_review_preset", "extra_sensitive_paths",
+                    "never_stage_extra", "require_usage_flag"}
+    PRESET_ENUM = {"cheap", "balanced", "full"}
+    MAX_BLOCK_BYTES = 4096
+    _JSON_FENCE = re.compile(r"```json\s*\n(.*?)\n```", re.DOTALL)
+
+    def _prefs(self):
+        return _read("PREFERENCES.md")
+
+    def _json_blocks(self, text):
+        return self._JSON_FENCE.findall(text)
+
+    def _canonical_block(self):
+        blocks = self._json_blocks(self._prefs())
+        self.assertGreaterEqual(len(blocks), 1, "PREFERENCES.md has no ```json schema block")
+        # The machine region is the FIRST json block, and there must be exactly one.
+        self.assertEqual(len(blocks), 1,
+                         "PREFERENCES.md must contain exactly one ```json block (the machine region)")
+        return blocks[0]
+
+    # --- presence / section --------------------------------------------------- #
+
+    def test_spec_file_exists_and_is_markdown(self):
+        self.assertTrue(self.SPEC.is_file(), "missing normative spec docs/fable/preference-schema-v1.md")
+        text = self.SPEC.read_text(encoding="utf-8")
+        self.assertTrue(text.lstrip().startswith("#"))
+        self.assertIn("schema v1", text.lower())
+
+    def test_preferences_has_schema_section_and_points_to_spec(self):
+        p = self._prefs()
+        self.assertIn("Machine-readable preferences", p)
+        self.assertIn("schema v1", p.lower())
+        self.assertIn("docs/fable/preference-schema-v1.md", p)
+
+    # --- the block: bounded, valid, allowed keys/types ------------------------ #
+
+    def test_block_is_size_bounded(self):
+        block = self._canonical_block()
+        self.assertLessEqual(len(block.encode("utf-8")), self.MAX_BLOCK_BYTES,
+                             "schema block exceeds the 4096-byte bound")
+
+    def test_block_is_valid_json_object(self):
+        obj = json.loads(self._canonical_block())
+        self.assertIsInstance(obj, dict, "top level must be a JSON object")
+
+    def test_block_declares_schema_version_1(self):
+        obj = json.loads(self._canonical_block())
+        self.assertEqual(obj.get("schema"), 1, "block must carry \"schema\": 1")
+
+    def test_block_uses_only_allowed_v1_keys(self):
+        obj = json.loads(self._canonical_block())
+        extra = set(obj) - self.ALLOWED_KEYS
+        self.assertEqual(extra, set(), f"block has non-v1 keys: {extra}")
+
+    def test_default_review_preset_is_in_enum_and_not_premium(self):
+        obj = json.loads(self._canonical_block())
+        if "default_review_preset" in obj:
+            self.assertIn(obj["default_review_preset"], self.PRESET_ENUM)
+            self.assertNotEqual(obj["default_review_preset"], "premium",
+                                "premium must never be nameable (loosening)")
+
+    def test_path_arrays_are_relative_no_dotdot_no_drive(self):
+        obj = json.loads(self._canonical_block())
+        for key in ("extra_sensitive_paths", "never_stage_extra"):
+            if key in obj:
+                self.assertIsInstance(obj[key], list, f"{key} must be an array")
+                for item in obj[key]:
+                    self.assertIsInstance(item, str)
+                    self.assertFalse(item.startswith("/"), f"{key}: absolute path {item!r}")
+                    self.assertFalse(re.match(r"^[A-Za-z]:", item), f"{key}: drive letter {item!r}")
+                    self.assertNotIn("..", item, f"{key}: '..' segment {item!r}")
+
+    def test_require_usage_flag_is_bool(self):
+        obj = json.loads(self._canonical_block())
+        if "require_usage_flag" in obj:
+            self.assertIsInstance(obj["require_usage_flag"], bool)
+
+    # --- normative safety wording (tighten-only + forbidden vocabulary) ------- #
+
+    def test_docs_state_not_active_behavior_yet(self):
+        low = (self._prefs() + self.SPEC.read_text(encoding="utf-8")).lower()
+        self.assertIn("not active", low)
+        # explicitly: no command parses/applies it, validator is a later PR, application is v0.9.x
+        self.assertTrue("no command reads" in low or "no command parses" in low
+                        or "nothing parses or applies" in low)
+        self.assertIn("v0.9.x", low)
+
+    def test_docs_state_tighten_only(self):
+        low = (self._prefs() + self.SPEC.read_text(encoding="utf-8")).lower()
+        self.assertIn("tighten-only", low)
+        self.assertIn("never", low)
+
+    def test_spec_forbids_loosening_and_boundary_changes(self):
+        low = self.SPEC.read_text(encoding="utf-8").lower()
+        # forbids loosening safety/security/no-stage/trust
+        self.assertTrue("loosen" in low and ("safety" in low or "trust" in low))
+        # forbids Workbench executor/trust boundary changes
+        self.assertIn("executor", low)
+        self.assertIn("trust-boundary", low.replace("trust boundary", "trust-boundary"))
+        # forbids shell/auto-execution/network/hosted
+        for token in ("shell", "auto-execution", "network", "hosted"):
+            self.assertIn(token, low, f"spec must forbid {token} behavior")
+        # forbids hiding/suppressing dissenting council opinions
+        self.assertTrue("suppress" in low or "hide" in low)
+        self.assertIn("dissent", low)
+
+    def test_preferences_names_forbidden_envelope(self):
+        low = self._prefs().lower()
+        self.assertIn("no vocabulary to loosen", low)
+        self.assertIn("executor/trust boundary", low)
+        self.assertTrue("suppress" in low or "hide/suppress" in low)
+
+    def test_spec_documents_council_personas_as_future_not_v1(self):
+        text = self.SPEC.read_text(encoding="utf-8")
+        low = text.lower()
+        self.assertIn("persona", low)
+        # personas are future v0.9.x, NOT part of v1 / not applied here
+        self.assertIn("v0.9.x", text)
+        self.assertTrue("out of scope for schema v1" in low or "not part of schema v1" in low,
+                        "spec must state personas are not part of schema v1")
+        self.assertIn("defined, parsed, selected, or applied in this pr", low)
+        # a couple of the named lenses are documented
+        self.assertIn("Cost Skeptic", text)
+        self.assertIn("Security Guardian", text)
+
+    # --- cross-file consistency ----------------------------------------------- #
+
+    def test_agent_roles_points_to_schema_and_states_not_runtime_override(self):
+        t = _read("AGENT-ROLES.md")
+        low = t.lower()
+        self.assertIn("preference-schema-v1.md", t)
+        self.assertTrue("never override runtime" in low or "not a runtime override" in low)
+        self.assertIn("pointer-only", low)
+
+    def test_risks_names_schema_persona_hidden_behavior_risk(self):
+        t = _read("RISKS.md")
+        low = t.lower()
+        self.assertIn("persona", low)
+        self.assertTrue("hidden behavior" in low or "policy override" in low)
+        self.assertIn("tighten-only", low)
+
+    def test_workflows_documents_editing_the_schema_safely(self):
+        w = _read("WORKFLOWS.md")
+        self.assertIn("Editing the preference schema safely", w)
+        self.assertIn("preference-schema-v1.md", w)
+        self.assertIn("tighten", w.lower())
+
+    def test_pack_does_not_ingest_preference_schema(self):
+        # The pack is built from STATUS.md + decisions only. A token distinctive to the schema
+        # block/spec must never reach the pack (STATUS deliberately avoids the literal key name).
+        needle = "require_usage_flag"
+        self.assertIn(needle, self._prefs())            # sanity: it's in PREFERENCES.md
+        self.assertNotIn(needle, _read("STATUS.md"))    # and NOT in the pack's STATUS input
+        ddir = REPO / "docs" / "decisions"
+        status = VAULT / "STATUS.md"
+        res = cp.build_pack(ddir, status, on="2026-07-04T00:00:00Z")
+        self.assertNotIn(needle, res.text, "context pack ingested the preference schema")
 
 
 class TestContextPackDoesNotLeakPrivatePlans(unittest.TestCase):

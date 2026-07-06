@@ -11,8 +11,24 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.8.1 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Added
+
+- **v0.8.2 PR 7 — tighten-only preference schema v1 (docs + tests)** (per
+  [`docs/fable/v0.8.x-architecture-plan.md`](docs/fable/v0.8.x-architecture-plan.md) §3 Q1/Q4 / §6 PR
+  7). Defines the normative machine-readable preference schema: a single bounded (`≤ 4096 byte`) fenced
+  `json` block in [`docs/context/project/PREFERENCES.md`](docs/context/project/PREFERENCES.md) with a
+  `schema: 1` field and exactly **four tighten-only keys** — `default_review_preset`
+  (`cheap|balanced|full` floor, never `premium`), `extra_sensitive_paths` and `never_stage_extra`
+  (additive **relative**-path constraints), and `require_usage_flag` (a warn-when-absent bool). Normative
+  spec [`docs/fable/preference-schema-v1.md`](docs/fable/preference-schema-v1.md) documents the carrier
+  format, validation/hardening rules, per-type tighten-only proofs, valid + forbidden examples, and the
+  **future v0.9.x council-persona** direction (personas as curated presets of these tighten-only values,
+  never a policy override). The schema has **no vocabulary** to loosen a safety/security/no-stage/trust
+  rule, change the Workbench executor/trust boundary, add shell/auto-execution/network/hosted behavior,
+  override the review policy, or hide/suppress dissenting council opinions. **Docs + tests only** — no
+  validator/parser (that is PR 8), no schema application (v0.9.x), no council/guide/context-export/
+  project-doctor behavior change (guide/export stay pointer-only), no `.council/profile.*` store, no
+  dependency change, no version bump.
 
 ## [0.8.1] - 2026-07-07
 

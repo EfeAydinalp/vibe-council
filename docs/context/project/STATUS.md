@@ -493,13 +493,23 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   `RELEASES.md` index + STATUS-trimming workflow) as the "vault polish" release. README release status
   → v0.8.1. Docs + tests only; no code/behavior change, no new command, no dependency change. **No
   tag / GitHub Release** in the PR — a separate manual step once it merges.
-- **Current focus:** **v0.8.1 prepared, not yet tagged.** The vault-polish slice (capped `RELEASES.md`
-  index + STATUS-trimming workflow, PR 5) is merged and v0.8.1 release prep (PR 6) is in review; next
-  is the manual tag/GitHub Release step, then the v0.8.2 slice (tighten-only preference schema +
-  read-only doctor validator, **full** review; no application) per
+- **v0.8.2 PR 7 — tighten-only preference schema v1 (docs + tests, in progress).** Defines the
+  normative machine-readable preference schema: a single bounded (`≤ 4096 byte`) fenced `json` block in
+  [`PREFERENCES.md`](./PREFERENCES.md) with a `schema: 1` field and exactly four tighten-only keys (a
+  review-preset floor `cheap|balanced|full` — never `premium`; additive extra-sensitive-paths and
+  never-stage additions as relative paths; a usage-flag warning bool). Normative spec:
+  [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md) (carrier format,
+  validation rules, tighten-only proofs, forbidden examples, and the **future v0.9.x council-persona**
+  direction — personas as curated presets of these values, never a policy override). **Docs + tests
+  only:** no validator/parser runtime (that is PR 8), no schema application (v0.9.x), no council/guide/
+  context-export/doctor behavior change (guide/export stay pointer-only), no `.council/profile.*` store,
+  no dependency change.
+- **Current focus:** **v0.8.1 released; v0.8.2 in progress.** The tighten-only preference **schema v1**
+  is defined (PR 7, docs + tests); next is the read-only validator folded into `vibe project doctor`
+  (PR 8, **full** review; **no application**), then v0.8.2 release prep, per
   [`v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md). Fable returns only at the
   v0.9.x (preference application) version-line moment. No new network endpoint. Deferred: preference
-  application (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
+  application + council personas (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 

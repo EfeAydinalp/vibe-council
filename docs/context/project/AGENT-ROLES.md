@@ -80,6 +80,23 @@ friction (stricter review, closer confirmation) but can never widen the command 
 trust boundary, enable auto-execution, or expand the network surface. See security invariant #17 in
 [`docs/fable/03-security-invariants.md`](../../fable/03-security-invariants.md).
 
+## Role docs are source-of-truth advice, not a runtime override
+
+These role expectations (and the preferences in [`PREFERENCES.md`](./PREFERENCES.md)) are
+**documentation agents read and follow** — a curated source of truth for *how* to work here. **No
+command reads or enforces them, and they never override runtime behavior.** In particular they never
+change what the council does, what the guide/context-export emit (those stay **pointer-only** — they
+reference these files, never inline their contents), or how the Workbench trust/executor gate decides.
+
+**Council personas** — review lenses such as **Cost Skeptic**, **Security Guardian**, **Product
+Strategist**, **Local-first Guardian**, **UX/User Advocate**, **Risk Officer**, and **Commercialization
+Lens** — are a **future (v0.9.x) direction**, defined toward but **not part of** today's model. When
+they arrive they will be **curated presets of the tighten-only preference schema v1** (see
+[`PREFERENCES.md`](./PREFERENCES.md) → "Machine-readable preferences" and the normative
+[`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md)) plus advisory
+review-emphasis prose — an instance of the tighten-only model, never a policy override and never able
+to suppress another persona's dissent. **No persona is defined, selected, or applied today.**
+
 ## Safe-to-commit boundary
 
 Content is **safe to commit** here if it holds no secrets, no private user data, no absolute machine

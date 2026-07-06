@@ -94,7 +94,16 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.8.1]` section,
           [`docs/releases/v0.8.1.md`](../../releases/v0.8.1.md), README release status. Docs + tests
           only (no code/behavior change). No tag/Release (manual follow-up).
-    - [ ] PRs 7–9 (v0.8.2 preference schema + read-only validator; release prep) per plan.
+    - [x] **PR 7 — tighten-only preference schema v1 (docs + tests).** Normative
+          [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md) + a bounded fenced
+          `json` example block in [`PREFERENCES.md`](./PREFERENCES.md): `schema: 1` + four tighten-only
+          keys (review-preset floor `cheap|balanced|full`, additive sensitive-paths / never-stage,
+          usage-flag warning bool); no vocabulary to loosen safety/trust, change the executor boundary,
+          add shell/network/hosted behavior, override review policy, or suppress council dissent.
+          Council personas documented as a **future v0.9.x** preset direction. Docs + tests only — no
+          validator/parser, no application, no behavior change.
+    - [ ] PR 8 (read-only preference validator in `vibe project doctor`, **full** review; no
+          application) + PR 9 (v0.8.2 release prep) per plan.
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
 - [ ] **v0.9+ — preference application / hosted / team** *(deferred; separate planning).*
 

@@ -353,8 +353,21 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   self-version to `0.8.1` (one line, no dependency-graph change), added a dated `CHANGELOG.md`
   `[0.8.1]` section, and [`docs/releases/v0.8.1.md`](../releases/v0.8.1.md) bundling the vault-polish
   slice as the "vault polish" release; README release status → v0.8.1. **No tag / GitHub Release** in
-  the PR — a separate manual step once it merges. **v0.8.1 prepared, not yet tagged.** Next: v0.8.2
-  (preference schema + read-only validator, full review; no application).
+  the PR — a separate manual step once it merges. **v0.8.1 is now released.**
+  **v0.8.2 PR 7 defined the tighten-only preference schema v1 (docs + tests):** a normative
+  [`docs/fable/preference-schema-v1.md`](../fable/preference-schema-v1.md) + a single bounded (`≤ 4096
+  byte`) fenced `json` block in [`PREFERENCES.md`](project/PREFERENCES.md) with a `schema: 1` field and
+  exactly four tighten-only keys (a review-preset floor `cheap|balanced|full` — never `premium`;
+  additive extra-sensitive-paths / never-stage relative paths; a usage-flag warning bool). It has **no
+  vocabulary** to loosen a safety/security/no-stage/trust rule, change the Workbench executor/trust
+  boundary, add shell/auto-execution/network/hosted behavior, override the review policy, or
+  hide/suppress dissenting council opinions. **Council personas** (Cost Skeptic, Security Guardian,
+  Product Strategist, Local-first Guardian, UX/User Advocate, Risk Officer, Commercialization Lens) are
+  documented as a **future v0.9.x** direction — curated presets of these tighten-only values, never a
+  policy override — **not defined or applied here.** Docs + tests only: no validator/parser (that is PR
+  8), no application (v0.9.x), no council/guide/context-export/doctor behavior change (guide/export stay
+  pointer-only). Next: v0.8.2 PR 8 (read-only validator in `vibe project doctor`, full review; no
+  application) → PR 9 release prep.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
