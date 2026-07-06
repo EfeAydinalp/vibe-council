@@ -730,10 +730,18 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.8.0 — agent onboarding launcher (`vibe init-agent`).** The repo reports
-`0.8.0`; the `v0.8.0` git tag and GitHub Release are cut by a maintainer right after the release PR
-merges. Opening the v0.8.x "**Solidify the core, local-first**" line (council-backed + Fable-architected
-planning), it adds one onboarding entry point — **`vibe init-agent`** — composing the existing
+**Release status:** **v0.8.1 — vault polish (capped release-history index).** The repo reports
+`0.8.1`; the `v0.8.1` git tag and GitHub Release are cut by a maintainer right after the release PR
+merges. A **docs + tests only** patch on the v0.8.x "**Solidify the core, local-first**" line: it adds
+a capped, newest-first [`docs/context/project/RELEASES.md`](docs/context/project/RELEASES.md)
+release-history index (one line per release, **hard cap 30**, oldest entries roll up; pointers to the
+canonical `docs/releases/*.md` notes — never inlined) plus a documented **STATUS-trimming workflow**,
+keeping `STATUS.md` and the context pack lean (`RELEASES.md` is **not** ingested into the pack, still
+21/21). `CHANGELOG.md` stays the canonical chronological change list; there is **no `summarize-history`
+command / no automation**, no behavior change, and no dependency change (see
+[`docs/releases/v0.8.1.md`](docs/releases/v0.8.1.md)). It builds on **v0.8.0 — the agent onboarding
+launcher (`vibe init-agent`)**, which opened the line (council-backed + Fable-architected planning) by
+adding one onboarding entry point — **`vibe init-agent`** — composing the existing
 `vibe project doctor` / `vibe guide` machinery: with no flags a deterministic **read-only report**
 (readiness + what each agent guide would write + next commands); with `--write --agent <agent> --yes`
 a **guarded append** to the fixed `CLAUDE.md`/`AGENTS.md`/`FABLE.md` (append-only, marker-skip
@@ -747,7 +755,8 @@ panel hardening remain in force, and the underlying Workbench model is unchanged
 visible stages, an audited approval gates it, and an approved bounded file action or exact allowlisted
 command can be explicitly executed — approving never auto-executes, and the deterministic trust
 boundary re-runs at execution time. See [`CHANGELOG.md`](CHANGELOG.md) and
-[`docs/releases/v0.8.0.md`](docs/releases/v0.8.0.md) for the notes (v0.7.1:
+[`docs/releases/v0.8.1.md`](docs/releases/v0.8.1.md) for the notes (v0.8.0:
+[`docs/releases/v0.8.0.md`](docs/releases/v0.8.0.md); v0.7.1:
 [`docs/releases/v0.7.1.md`](docs/releases/v0.7.1.md); v0.7.0:
 [`docs/releases/v0.7.0.md`](docs/releases/v0.7.0.md); v0.6.3:
 [`docs/releases/v0.6.3.md`](docs/releases/v0.6.3.md); v0.6.0:

@@ -486,12 +486,20 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   [`WORKFLOWS.md`](./WORKFLOWS.md), and README/STATUS pointers. Docs + tests only — the
   `summarize-history` command is **deferred** (no new command); no pack-builder/`context build`
   input change (still 21/21), no behavior change.
-- **Current focus:** **v0.8.0 prepared, not yet tagged.** The launcher slice (`init-agent` report +
-  write, localhost guard) is complete and release prep is in review; next is the manual tag/GitHub
-  Release step, then the v0.8.1 (vault polish) / v0.8.2 (preference schema + validator, full review)
-  slices per [`v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md). Fable returns
-  only at the v0.9.x (preference application) version-line moment. No new network endpoint. Deferred:
-  preference application (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
+- **v0.8.1 PR 6 — v0.8.1 release prep (in progress).** `backend/__init__.py`/`pyproject.toml` now
+  report `0.8.1`; `uv.lock`'s self-version synced to match (one line, no dependency-graph change).
+  `CHANGELOG.md` gained a dated `[0.8.1]` section and
+  [`docs/releases/v0.8.1.md`](../../releases/v0.8.1.md) bundles the vault-polish slice (capped
+  `RELEASES.md` index + STATUS-trimming workflow) as the "vault polish" release. README release status
+  → v0.8.1. Docs + tests only; no code/behavior change, no new command, no dependency change. **No
+  tag / GitHub Release** in the PR — a separate manual step once it merges.
+- **Current focus:** **v0.8.1 prepared, not yet tagged.** The vault-polish slice (capped `RELEASES.md`
+  index + STATUS-trimming workflow, PR 5) is merged and v0.8.1 release prep (PR 6) is in review; next
+  is the manual tag/GitHub Release step, then the v0.8.2 slice (tighten-only preference schema +
+  read-only doctor validator, **full** review; no application) per
+  [`v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md). Fable returns only at the
+  v0.9.x (preference application) version-line moment. No new network endpoint. Deferred: preference
+  application (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 

@@ -5,11 +5,22 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.8.0` is prepared. The repo reports `0.8.0`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.8.0` git tag + GitHub Release are cut by a
+> **Status:** `0.8.1` is prepared. The repo reports `0.8.1`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.8.1` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+_Nothing yet. Post-0.8.1 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.8.1] - 2026-07-07
+
+**Vault polish — capped release-history index.** The vault-polish patch of the v0.8.x "Solidify the
+core, local-first" line (council-backed + Fable-architected planning): a capped, newest-first
+`docs/context/project/RELEASES.md` release-history index plus a documented STATUS-trimming workflow,
+so `STATUS.md` (and the context pack) stay lean. **Docs + tests only — no code behavior change, no
+new command, no dependency change.** See [`docs/releases/v0.8.1.md`](docs/releases/v0.8.1.md).
 
 ### Added
 
@@ -18,11 +29,19 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
   boundary / §6 PR 5). New [`docs/context/project/RELEASES.md`](docs/context/project/RELEASES.md): a
   newest-first index of shipped releases (one line per release, **hard cap 30**, oldest entries roll
   up into a single line on overflow), pointing at the canonical [`docs/releases/`](docs/releases/)
-  notes without inlining them. Adds a "Trimming STATUS history" workflow to the vault
-  [`WORKFLOWS.md`](docs/context/project/WORKFLOWS.md) (human curation, a `git log` recipe, no command)
-  and vault-README / STATUS pointers. **Docs + tests only** — the `summarize-history` command is
-  deferred (no new command surface); no `vibe context build` input or budget change (pack still
-  21/21), no behavior change.
+  notes without inlining them — an index/working-memory aid, **not** a replacement for the detailed
+  `docs/releases/*.md` notes or the chronological `CHANGELOG.md`. Adds a "Trimming STATUS history"
+  workflow to the vault [`WORKFLOWS.md`](docs/context/project/WORKFLOWS.md) (human curation, a
+  `git log` recipe, no command) and vault-README / STATUS pointers. **Docs + tests only** — the
+  `summarize-history` command is deferred (no new command surface); `RELEASES.md` is not ingested into
+  the context pack (`vibe context build` inputs/budget unchanged, still 21/21); no behavior change.
+
+### Changed
+
+- **Release metadata → `0.8.1`.** `backend/__init__.py` / `pyproject.toml` report `0.8.1`; `uv.lock`'s
+  `vibe-council` self-version entry synced to match (one line, **no dependency-graph change**). Added
+  [`docs/releases/v0.8.1.md`](docs/releases/v0.8.1.md); README release status → v0.8.1. No tag / GitHub
+  Release in this PR — those are a separate manual step once it merges.
 
 ## [0.8.0] - 2026-07-07
 

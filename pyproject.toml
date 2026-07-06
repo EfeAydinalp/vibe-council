@@ -1,6 +1,6 @@
 [project]
 name = "vibe-council"
-version = "0.8.0"
+version = "0.8.1"
 description = "Local-first AI council workflow tool with CLI, decision memory, guardrails, and provider roadmap."
 readme = "README.md"
 requires-python = ">=3.10"

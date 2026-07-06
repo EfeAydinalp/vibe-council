@@ -25,6 +25,7 @@ deterministic, and local — see [`WORKFLOWS.md`](./WORKFLOWS.md) → "Trimming 
 
 ## Releases (newest first)
 
+- **v0.8.1** — Vault polish: capped release-history index + STATUS-trimming workflow — [notes](../../releases/v0.8.1.md)
 - **v0.8.0** — Agent onboarding launcher (`vibe init-agent` + localhost guard) — [notes](../../releases/v0.8.0.md)
 - **v0.7.1** — Personalization hardening (redaction rule, doctor polish, invariant tests) — [notes](../../releases/v0.7.1.md)
 - **v0.7.0** — Safe personalization / project-profile scaffold — [notes](../../releases/v0.7.0.md)
