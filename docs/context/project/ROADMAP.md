@@ -6,9 +6,18 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.7.1 tag/GitHub Release (manual).** v0.7.1 is **prepared** (repo reports `0.7.1`); the annotated
-  `v0.7.1` tag and the GitHub Release from [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md) are the
-  remaining manual maintainer step. After that, scope the next personalization slice from the brief.
+- **v0.8.x — planning (council-backed; Fable architecture step next).** Council-chosen theme:
+  **"Solidify the core, local-first"** — headline agent launcher / session workflows, plus vault polish
+  and carefully-reviewed Workbench UX; personalization becomes a **read-only preference-control model +
+  validator, not behavior** (guide/context-export stay pointer-only; the `.council/profile.*` store +
+  preference applier deferred to v0.9.x); mobile/LAN/voice deferred to its own gated security line.
+  Planning files: [`docs/fable/v0.8.x-council-debate.md`](../../fable/v0.8.x-council-debate.md),
+  [`v0.8.x-phase-brief.md`](../../fable/v0.8.x-phase-brief.md),
+  [`v0.8.x-fable-input.md`](../../fable/v0.8.x-fable-input.md). The `v0.7.1` GitHub Release (from
+  [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md)) remains a manual maintainer step.
+  **Note:** this supersedes the older "v0.8 = mobile/LAN/voice" line in
+  [`docs/fable/04-roadmap.md`](../../fable/04-roadmap.md) — that surface-expanding work is now its own
+  gated security line, not the v0.8.x theme.
 
 ## Recently shipped
 

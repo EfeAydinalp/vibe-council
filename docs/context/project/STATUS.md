@@ -437,21 +437,23 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   docs polish only; export & guide profile sections locked as size-bounded, deterministic, and
   gracefully degrading (byte-identical), a wording-invariant guard, vault consistency, and
   context-pack no-ingest (still 21/21). No behavior change.
-- **v0.7.1 PR 4 — v0.7.1 release prep (in progress).** `backend/__init__.py`/`pyproject.toml` now
-  report `0.7.1`; `uv.lock`'s self-version synced (one line, no dependency-graph change).
-  `CHANGELOG.md` gained a dated `[0.7.1]` section and
-  [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md) bundles the hardening slice (plan + local-profile
-  redaction rule + doctor consistency polish + export/guide invariant tests) as the "personalization
-  hardening" release. README release status → v0.7.1. Everything advisory/read-only/local/tighten-only;
-  no profile store, no preference parser, no model/network call, no Workbench trust change, no
-  `/council`, no dependency change. **No tag / GitHub Release** in the PR — a separate manual step once
-  it merges.
-- **Current focus:** **v0.7.1 prepared, not yet tagged.** The v0.7.1 hardening slice (redaction rule,
-  doctor polish, invariant tests) is complete and release prep is in review; next is the manual
-  tag/GitHub Release step. The
-  [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) remains the source of
-  truth for later slices (a local `.council/profile.*` store + a preference reader/applier, still
-  tighten-only). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **v0.7.1 released** (`v0.7.1` annotated tag pushed to `origin`; GitHub Release from
+  [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md) is the remaining manual step). Personalization
+  hardening: local-profile redaction rule, doctor consistency polish, export/guide invariant tests.
+- **v0.8.x planning started (council-backed, docs-only).** A council-led process (two `vibe review
+  --preset balanced` multi-model passes) produced three planning files:
+  [`v0.8.x-council-debate.md`](../../fable/v0.8.x-council-debate.md) (candidate directions + critique),
+  [`v0.8.x-phase-brief.md`](../../fable/v0.8.x-phase-brief.md) (resolved theme), and
+  [`v0.8.x-fable-input.md`](../../fable/v0.8.x-fable-input.md) (handoff for the next Fable step).
+  **Council-chosen theme: "Solidify the core, local-first"** — headline agent launcher / session
+  workflows, plus vault polish and carefully-reviewed Workbench UX; personalization becomes a
+  **read-only preference-control model + validator, not behavior** (guide/context-export stay
+  pointer-only; `.council/profile.*` store + preference applier deferred to v0.9.x); mobile/LAN/voice
+  deferred to its own gated security line. No code/behavior change.
+- **Current focus:** **v0.8.x architecture step (Fable) is next.** The council brief + Fable input are
+  ready; the next step is a Fable architecture pass (version-line planning, not implementation) per
+  [`v0.8.x-fable-input.md`](../../fable/v0.8.x-fable-input.md). No new network endpoint. Deferred:
+  preference application (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 

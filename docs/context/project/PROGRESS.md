@@ -62,7 +62,14 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.7.1]` section,
           [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md), README release status. No tag/Release
           (manual follow-up).
-- [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*
+- [ ] **v0.8.x — "solidify the core, local-first"** *(council-backed planning done; Fable architecture
+      step next).* Headline agent launcher / session workflows; vault polish; carefully-reviewed
+      Workbench UX; a read-only preference-control model + validator (not behavior). Planning:
+      [`docs/fable/v0.8.x-phase-brief.md`](../../fable/v0.8.x-phase-brief.md) +
+      [`v0.8.x-council-debate.md`](../../fable/v0.8.x-council-debate.md) +
+      [`v0.8.x-fable-input.md`](../../fable/v0.8.x-fable-input.md).
+- [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
+- [ ] **v0.9+ — preference application / hosted / team** *(deferred; separate planning).*
 
 ## How to update
 

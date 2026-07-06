@@ -309,8 +309,17 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   (release prep)** bumped `backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version to `0.7.1`
   (one line, no dependency-graph change), added a dated `CHANGELOG.md` `[0.7.1]` section, and
   [`docs/releases/v0.7.1.md`](../releases/v0.7.1.md) bundling the hardening slice as the
-  "personalization hardening" release; README release status → v0.7.1. **No tag / GitHub Release** in
-  the PR — a separate manual step once it merges. **v0.7.1 prepared, not yet tagged.**
+  "personalization hardening" release; README release status → v0.7.1. **v0.7.1 is now
+  tagged/released.** **v0.8.x planning has started (council-backed, docs-only):** a council-led process
+  (two `vibe review --preset balanced` multi-model passes) produced
+  [`docs/fable/v0.8.x-council-debate.md`](../fable/v0.8.x-council-debate.md),
+  [`v0.8.x-phase-brief.md`](../fable/v0.8.x-phase-brief.md), and
+  [`v0.8.x-fable-input.md`](../fable/v0.8.x-fable-input.md). **Council-chosen theme: "Solidify the core,
+  local-first"** — headline agent launcher / session workflows, plus vault polish and carefully-reviewed
+  Workbench UX; personalization becomes a **read-only preference-control model + validator, not
+  behavior** (guide/context-export stay pointer-only; `.council/profile.*` store + preference applier
+  deferred to v0.9.x); mobile/LAN/voice deferred to its own gated security line. The **Fable
+  architecture step is next** (version-line planning, not implementation).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
