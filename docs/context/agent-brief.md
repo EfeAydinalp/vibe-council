@@ -327,10 +327,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   Workbench UX / notifications deferred; `vibe init-agent` dry-run-first launcher with **no path
   argument**) and defines a 9-PR sequence (v0.8.0 launcher + localhost CI guard; v0.8.1 vault digest
   + `RELEASES.md`; v0.8.2 schema + validator at **full** review). **v0.8.0 PR 1 landed `vibe
-  init-agent` report/dry-run mode** — a read-only onboarding report (readiness + per-agent
-  would-create/append/skip + next commands); writes nothing, no path argument, no `--write` (PR 2).
-  No guide/export/doctor behavior change. Next: PR 2 (`init-agent --write`), PR 3 (localhost CI
-  guard).
+  init-agent` report/dry-run mode** (read-only onboarding report; writes nothing, no path argument).
+  **v0.8.0 PR 2 landed `vibe init-agent --write`** — appends the selected agents' guide sections to
+  the fixed `CLAUDE.md`/`AGENTS.md`/`FABLE.md` via the existing `_guide_append` (append-only,
+  marker-skip idempotent, never overwrites; byte-identical to `vibe guide … --write`); **no path
+  argument**, requires explicit `--agent` + `--yes`, creates no `.council/`. No guide/export/doctor
+  behavior change. Next: PR 3 (localhost CI guard), then v0.8.1/v0.8.2.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

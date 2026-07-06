@@ -777,6 +777,10 @@ their own emphasis (Codex: reviewer/guardrail, propose-don't-bypass; Fable: cost
 plan-first). Add `--write [FILE]` to **append** the section to a file (per-topic defaults
 `CLAUDE.md`/`AGENTS.md`/`FABLE.md`); it never overwrites (re-runs are skipped, and topics/roles
 coexist in one file). See [`docs/agent-quickstart.md`](docs/agent-quickstart.md) §11.
+`vibe init-agent` composes this into one onboarding step: with no flags it prints a **read-only
+report** (repo readiness + what each agent guide would write); `vibe init-agent --write --agent
+<agent> --yes` **appends** the selected agents' sections to those fixed files (append-only, never
+overwrites, no path argument).
 
 **Project vault (local project memory):** [`docs/context/project/`](docs/context/project/README.md)
 is the canonical, curated, public-safe Markdown project memory — `STATUS.md`, `ROADMAP.md`,

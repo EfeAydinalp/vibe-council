@@ -160,11 +160,6 @@ class TestInitAgentCli(unittest.TestCase):
         r = run_cli(["init-agent", "--path", "/tmp"], caller_cwd=REPO)
         self.assertEqual(r.returncode, 2)
 
-    def test_no_write_option(self):
-        # report-only: there is no --write in PR 1.
-        r = run_cli(["init-agent", "--write"], caller_cwd=REPO)
-        self.assertEqual(r.returncode, 2)
-
     def test_invalid_agent_fails_cleanly(self):
         r = run_cli(["init-agent", "--agent", "gemini"], caller_cwd=REPO)
         self.assertEqual(r.returncode, 2)
@@ -173,6 +168,154 @@ class TestInitAgentCli(unittest.TestCase):
         r = run_cli(["--help"])
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("init-agent", r.stdout)
+
+
+def _files(root: Path):
+    return sorted(p.name for p in root.iterdir() if p.is_file())
+
+
+class TestInitAgentWrite(unittest.TestCase):
+    """v0.8.0 PR 2 — guarded `--write` append mode. Append-only, marker-skip idempotent,
+    fixed per-topic targets only (no path argument), `--yes` required, no `.council/`."""
+
+    def test_write_requires_agent(self):
+        # a bare `--write` (no --agent) refuses — a write must name its target(s).
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            r = run_cli(["init-agent", "--write", "--yes"], caller_cwd=root)
+            self.assertEqual(r.returncode, 2)
+            self.assertEqual(_files(root), [])              # nothing written
+            self.assertIn("requires at least one --agent", r.stderr)
+
+    def test_write_requires_yes(self):
+        # `--write` without `--yes` refuses (deterministic confirmation gate).
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            r = run_cli(["init-agent", "--write", "--agent", "codex"], caller_cwd=root)
+            self.assertEqual(r.returncode, 2)
+            self.assertFalse((root / "AGENTS.md").exists())
+            self.assertIn("requires --yes", r.stderr)
+
+    def test_write_claude_creates_only_claude_md(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            r = run_cli(["init-agent", "--write", "--agent", "claude", "--yes"],
+                        caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue((root / "CLAUDE.md").is_file())
+            self.assertFalse((root / "AGENTS.md").exists())
+            self.assertFalse((root / "FABLE.md").exists())
+            self.assertFalse((root / ".council").exists())
+            self.assertIn("created", r.stdout)
+
+    def test_write_codex_and_fable_target_files(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            run_cli(["init-agent", "--write", "--agent", "codex", "--yes"], caller_cwd=root)
+            self.assertTrue((root / "AGENTS.md").is_file())
+            self.assertFalse((root / "CLAUDE.md").exists())
+        with tempfile.TemporaryDirectory() as t2:
+            root2 = Path(t2)
+            run_cli(["init-agent", "--write", "--agent", "fable", "--yes"], caller_cwd=root2)
+            self.assertTrue((root2 / "FABLE.md").is_file())
+
+    def test_write_multiple_agents(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            run_cli(["init-agent", "--write", "--agent", "claude", "--agent", "fable",
+                     "--yes"], caller_cwd=root)
+            self.assertTrue((root / "CLAUDE.md").is_file())
+            self.assertTrue((root / "FABLE.md").is_file())
+            self.assertFalse((root / "AGENTS.md").exists())   # codex not selected
+
+    def test_write_is_idempotent(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            run_cli(["init-agent", "--write", "--agent", "claude", "--role", "coder",
+                     "--yes"], caller_cwd=root)
+            text1 = (root / "CLAUDE.md").read_text(encoding="utf-8")
+            r = run_cli(["init-agent", "--write", "--agent", "claude", "--role", "coder",
+                         "--yes"], caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertEqual((root / "CLAUDE.md").read_text(encoding="utf-8"), text1)
+            self.assertIn("skipped", r.stdout)
+            # marker appears exactly once
+            self.assertEqual(text1.count(cli._role_guide_marker("coder", "claude")), 1)
+
+    def test_write_appends_and_preserves_existing_content(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            (root / "AGENTS.md").write_text("# My notes\n\nKEEP THIS\n", encoding="utf-8")
+            r = run_cli(["init-agent", "--write", "--agent", "codex", "--yes"],
+                        caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            body = (root / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertIn("KEEP THIS", body)                  # original preserved
+            self.assertIn(cli._topic_guide_marker("codex"), body)  # section appended
+            self.assertIn("appended", r.stdout)
+
+    def test_write_existing_marker_not_duplicated(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            (root / "CLAUDE.md").write_text(
+                cli._topic_guide_marker("claude") + "\n\nalready here\n", encoding="utf-8")
+            before = (root / "CLAUDE.md").read_text(encoding="utf-8")
+            r = run_cli(["init-agent", "--write", "--agent", "claude", "--yes"],
+                        caller_cwd=root)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertEqual((root / "CLAUDE.md").read_text(encoding="utf-8"), before)
+            self.assertIn("skipped", r.stdout)
+
+    def test_write_matches_guide_write_content(self):
+        # the section init-agent --write appends is byte-identical to `vibe guide … --write`.
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            run_cli(["init-agent", "--write", "--agent", "codex", "--role", "reviewer",
+                     "--yes"], caller_cwd=root)
+            via_init = (root / "AGENTS.md").read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as t2:
+            f = Path(t2) / "AGENTS.md"
+            run_cli(["guide", "codex", "--role", "reviewer", "--write", str(f), "--yes"],
+                    caller_cwd=Path(t2))
+            via_guide = f.read_text(encoding="utf-8")
+        self.assertEqual(via_init, via_guide)
+
+    def test_write_creates_no_council_or_exports(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            run_cli(["init-agent", "--write", "--agent", "claude", "--yes"], caller_cwd=root)
+            self.assertFalse((root / ".council").exists())
+            # only CLAUDE.md is created — no export/pack/other files
+            self.assertEqual([f for f in _files(root) if not f.startswith("uv-")],
+                             ["CLAUDE.md"])
+
+    def test_write_has_no_path_argument(self):
+        # a positional path after --write is an argparse error (no target surface).
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            r = run_cli(["init-agent", "--write", "--agent", "claude", "CLAUDE.md", "--yes"],
+                        caller_cwd=root)
+            self.assertEqual(r.returncode, 2)
+
+    def test_write_target_is_directory_fails_cleanly(self):
+        # if CLAUDE.md exists as a DIRECTORY, --write refuses cleanly (no traceback).
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            (root / "CLAUDE.md").mkdir()
+            r = run_cli(["init-agent", "--write", "--agent", "claude", "--yes"],
+                        caller_cwd=root)
+            self.assertNotEqual(r.returncode, 0)
+            self.assertIn("not a regular file", r.stderr)
+            self.assertNotIn("Traceback", r.stderr)
+            self.assertTrue((root / "CLAUDE.md").is_dir())   # untouched
+
+    def test_write_invalid_role_fails_cleanly(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            r = run_cli(["init-agent", "--write", "--agent", "claude", "--role", "nope",
+                         "--yes"], caller_cwd=root)
+            self.assertEqual(r.returncode, 2)
+            self.assertFalse((root / "CLAUDE.md").exists())
 
 
 if __name__ == "__main__":
