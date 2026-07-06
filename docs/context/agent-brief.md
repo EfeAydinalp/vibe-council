@@ -332,7 +332,11 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   the fixed `CLAUDE.md`/`AGENTS.md`/`FABLE.md` via the existing `_guide_append` (append-only,
   marker-skip idempotent, never overwrites; byte-identical to `vibe guide … --write`); **no path
   argument**, requires explicit `--agent` + `--yes`, creates no `.council/`. No guide/export/doctor
-  behavior change. Next: PR 3 (localhost CI guard), then v0.8.1/v0.8.2.
+  behavior change. **v0.8.0 PR 3 landed the localhost-only guard** (`tests/test_localhost_guard.py`,
+  tests only — no production change): locks that the panel binds loopback only (non-local hosts
+  rejected), a runtime `socket.bind`-loopback check, `host_header_is_local` loopback-only, and a
+  static "no second listener" scan (only `backend/workbench_panel.py` may construct a listener). Next:
+  PR 4 (v0.8.0 release prep), then v0.8.1/v0.8.2.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

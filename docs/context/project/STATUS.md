@@ -462,16 +462,18 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   digest + RELEASES.md), v0.8.2 (schema + validator, validator at **full** review).
 - **v0.8.0 PR 1 — `vibe init-agent` report/dry-run mode (merged).** Read-only onboarding report
   (readiness + per-agent would-create/append/skip + next commands); writes nothing, no path argument.
-- **v0.8.0 PR 2 — `vibe init-agent --write` guarded append mode (in progress).** `--write --agent
-  {claude|codex|fable}... --yes` appends the selected agents' guide sections to the fixed per-topic
-  files (`CLAUDE.md`/`AGENTS.md`/`FABLE.md`) via the existing `_guide_append` — **append-only,
-  marker-skip idempotent, never overwrites**; section byte-identical to `vibe guide … --write`.
-  **No path/target argument;** `--write` requires an explicit `--agent` and `--yes` (both refuse
-  cleanly otherwise). Creates no `.council/`, no model/network call. No guide/context-export/
-  project-doctor behavior change, no preference parsing/application, no Workbench/trust change, no
-  dependency.
-- **Current focus:** **v0.8.x implementation — PR 2 (`init-agent --write`) is the active slice.** Next
-  per the plan: PR 3 (localhost CI guard), then v0.8.1/v0.8.2. Fable returns only at the v0.9.x
+- **v0.8.0 PR 2 — `vibe init-agent --write` guarded append mode (merged).** Appends selected agents'
+  guide sections to the fixed `CLAUDE.md`/`AGENTS.md`/`FABLE.md` (append-only, marker-skip idempotent,
+  never overwrites); no path argument; requires explicit `--agent` + `--yes`.
+- **v0.8.0 PR 3 — localhost-only guard (in progress).** A **tests-only** guardrail
+  (`tests/test_localhost_guard.py`) locking the local-first invariant — **no production change** (the
+  panel already enforces it): pins that the panel binds loopback only (non-local hosts `0.0.0.0`/`::`/
+  LAN/external rejected by `make_server`), a **runtime** check that every observed `socket.bind` is
+  loopback, `host_header_is_local` accepts only loopback, and a **static "no second listener"** scan
+  (no module outside `backend/workbench_panel.py` constructs a listener). Deterministic/offline. No
+  LAN/hosted mode, no host-header/token change, no Workbench/trust change, no dependency.
+- **Current focus:** **v0.8.x implementation — PR 3 (localhost-only guard) is the active slice.** Next
+  per the plan: PR 4 (v0.8.0 release prep), then v0.8.1/v0.8.2. Fable returns only at the v0.9.x
   (preference application) version-line moment. No new network endpoint. Deferred: preference
   application (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
