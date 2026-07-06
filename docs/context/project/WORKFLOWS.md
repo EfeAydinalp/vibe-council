@@ -25,6 +25,11 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
 
 ## Guide generation & agent onboarding
 
+- `vibe init-agent [--agent claude|codex|fable] [--role <role>]` prints a **read-only onboarding
+  report** (dry run): repo readiness (via the project-doctor checks) + per agent what
+  `vibe guide … --write` *would* do to the fixed `CLAUDE.md`/`AGENTS.md`/`FABLE.md` files
+  (create/append/skip) + the recommended next commands. **Writes nothing, no path argument, no
+  `--write`** — to persist a guide you run `vibe guide … --write` yourself.
 - `vibe guide {claude|codex|fable} [--role <role>]` prints a role/topic-tailored onboarding pack. It
   now includes a "Project profile & preferences" section with **pointers** to
   [`PROFILE.md`](./PROFILE.md) / [`PREFERENCES.md`](./PREFERENCES.md) / [`AGENT-ROLES.md`](./AGENT-ROLES.md)

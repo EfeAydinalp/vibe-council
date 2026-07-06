@@ -13,6 +13,21 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.8.0 PR 1 — `vibe init-agent` report/dry-run mode** (per
+  `docs/fable/v0.8.x-architecture-plan.md` §3 Q9 / §6 PR 1). A **read-only onboarding report**: it
+  composes the existing `vibe project doctor` readiness checks and the guide markers to show, per
+  agent (`claude`/`codex`/`fable`, `--agent` repeatable; `--role` optional), exactly what
+  `vibe guide … --write` **would** do to the fixed per-topic default files
+  (`CLAUDE.md`/`AGENTS.md`/`FABLE.md`) — *would create / would append / already-present-would-skip* —
+  plus the recommended next commands (`vibe project doctor`, `vibe guide …`, `vibe context export
+  …`). It **writes nothing, creates no files or `.council/`, runs no commands, and makes no
+  model/provider/network call**; it is **deterministic** (no timestamp) and operates only on the
+  current working directory. **No path argument** (v1's path-safety guarantee — no traversal
+  surface), no `--write`/`--apply` (that is PR 2). Output states that `vibe` is the real CLI and
+  `/council` is not, that the profile/preferences are documentation/advice only, and that
+  personalization may tighten but never loosen a safety/security/no-stage/trust rule. No
+  guide/context-export/project-doctor behavior change, no preference parsing/application, no
+  Workbench/importer/executor/trust change, no dependency, no version bump.
 - **v0.8.x Fable architecture plan (docs-only).** `docs/fable/v0.8.x-architecture-plan.md` — the
   version-line architecture pass consuming the council-produced planning files. It **preserves the
   council's "Solidify the core, local-first" pivot** and resolves the open questions: the v1
