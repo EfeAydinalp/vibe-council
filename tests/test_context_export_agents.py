@@ -182,6 +182,45 @@ class TestAgentExportProfilePointers(unittest.TestCase):
             for name in PRIVATE_PLAN_NAMES:
                 self.assertNotIn(name, text)
 
+    # --- v0.7.1 PR 3 invariant locks -------------------------------------- #
+
+    def _profile_section(self, text):
+        """Slice out just the '## Project profile & preferences' section."""
+        marker = "## Project profile & preferences"
+        self.assertIn(marker, text)
+        after = text.split(marker, 1)[1]
+        # the section ends at the next '## ' heading (Current context).
+        body = after.split("\n## ", 1)[0]
+        return marker + body
+
+    def test_profile_section_is_size_bounded(self):
+        # A conservative guard: the pointer section must never grow into a dump
+        # (inlining even one ~4 KB scaffold file would blow past this). Current ≈1.2 KB.
+        for agent in ("claude", "codex", "fable"):
+            sec = self._profile_section(self._export(agent))
+            self.assertLess(len(sec), 1500,
+                            f"{agent}: profile section grew unexpectedly ({len(sec)} chars) "
+                            "— did something start inlining scaffold content?")
+
+    def test_profile_section_byte_identical_with_and_without_scaffold(self):
+        # Graceful-degradation contract (plan §4C.4): the profile SECTION is static —
+        # byte-identical whether the scaffold files exist (REPO) or not (empty temp cwd).
+        with tempfile.TemporaryDirectory() as t:
+            present = self._profile_section(self._export("claude", project_root=REPO))
+            absent = self._profile_section(
+                self._export("claude", project_root=Path(t)))
+            self.assertEqual(present, absent,
+                             "profile section must not change when the scaffold is absent")
+
+    def test_profile_section_has_no_timestamp(self):
+        # Determinism: no date/time stamp in the section (e.g. 2026-07-05 or 12:00).
+        import re
+        sec = self._profile_section(self._export("claude"))
+        self.assertIsNone(re.search(r"\d{4}-\d{2}-\d{2}", sec),
+                          "profile section must not contain a date stamp")
+        self.assertIsNone(re.search(r"\d{2}:\d{2}", sec),
+                          "profile section must not contain a time stamp")
+
 
 class TestAgentExportCli(unittest.TestCase):
     def test_stdout_export_writes_nothing(self):

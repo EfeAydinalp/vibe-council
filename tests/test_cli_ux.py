@@ -525,6 +525,50 @@ class TestGuideProfilePointers(unittest.TestCase):
                     caller_cwd=root)
             self.assertEqual(f.read_text(encoding="utf-8"), text1)
 
+    # --- v0.7.1 PR 3 invariant locks -------------------------------------- #
+
+    def _profile_section(self, text):
+        from backend import cli  # noqa: F401 (kept parallel with other tests)
+        marker = "### Project profile & preferences"
+        self.assertIn(marker, text)
+        # the section runs from its heading to end-of-guide (it is the last block).
+        return marker + text.split(marker, 1)[1]
+
+    def test_wording_invariant_preferences_are_advice_not_commands(self):
+        # Guard against a future copy-edit softening the safety wording: the section must
+        # keep the "advice to read, not commands" marker AND must not imply that a
+        # preference can override / relax / bypass a safety rule.
+        from backend import cli
+        for text in self._all_guide_texts():
+            sec = self._profile_section(text).lower()
+            self.assertIn("advice to read, not commands", sec)
+            self.assertIn("never loosen", sec)
+            for bad in ("override", "overrides", "bypass", "relax", "skip review",
+                        "loosen a", "can loosen"):
+                self.assertNotIn(bad, sec,
+                                 f"profile section implies preference authority: '{bad}'")
+
+    def test_profile_section_is_size_bounded(self):
+        # Conservative guard: the pointer section must never grow into a dump. ≈1.1 KB now.
+        from backend import cli
+        for topic in cli.GUIDE_TOPICS:
+            sec = self._profile_section(cli.topic_guide(topic))
+            self.assertLess(len(sec), 1500,
+                            f"{topic}: guide profile section grew unexpectedly "
+                            f"({len(sec)} chars) — did it start inlining scaffold content?")
+
+    def test_guide_output_byte_identical_regardless_of_cwd(self):
+        # The guide is fully static (reads no filesystem), so identical output from a repo
+        # cwd and an empty temp cwd — the strongest graceful-degradation guarantee.
+        with tempfile.TemporaryDirectory() as t:
+            from_repo = run_cli(["guide", "claude", "--role", "coder"],
+                                caller_cwd=Path(__file__).resolve().parents[1])
+            from_empty = run_cli(["guide", "claude", "--role", "coder"],
+                                 caller_cwd=Path(t))
+            self.assertEqual(from_repo.returncode, 0, from_repo.stderr)
+            self.assertEqual(from_empty.returncode, 0, from_empty.stderr)
+            self.assertEqual(from_repo.stdout, from_empty.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

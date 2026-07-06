@@ -155,7 +155,62 @@ class TestProfilePreferencesScaffold(unittest.TestCase):
                          "root AGENTS.md must not be created by the profile scaffold")
 
 
+class TestVaultInvariantConsistency(unittest.TestCase):
+    """v0.7.1 PR 3 — pin that the vault files agree on the shared v0.7/v0.7.1
+    invariants. Simple, robust text checks (no semantic parser): each file must carry
+    ITS canonical part of the shared rule set, and the cross-file overlaps must hold."""
+
+    def test_scaffold_files_state_tighten_only_and_safe_to_commit(self):
+        # The three personalization files each state tighten-only + a safe-to-commit
+        # boundary and each point at the vault AGENT-ROLES.md convention.
+        for name in PROFILE_FILES:
+            t = _read(name)
+            low = t.lower()
+            self.assertIn("tighten", low, f"{name}: missing tighten-only principle")
+            self.assertIn("never loosen", low, f"{name}: missing never-loosen wording")
+            self.assertIn("safe to commit", low, f"{name}: missing safe-to-commit boundary")
+            self.assertIn("AGENT-ROLES.md", t, f"{name}: missing AGENT-ROLES.md reference")
+
+    def test_all_vault_files_reference_agent_roles_convention(self):
+        # Every core vault file references AGENT-ROLES.md (the canonical role-preference
+        # source) so the root-AGENTS.md-is-not-canonical rule is discoverable everywhere.
+        for name in ("README.md", "STATUS.md", "WORKFLOWS.md", "RISKS.md") + PROFILE_FILES:
+            self.assertIn("AGENT-ROLES.md", _read(name),
+                          f"{name} does not reference the AGENT-ROLES.md convention")
+
+    def test_agent_roles_states_root_agents_not_preference_source(self):
+        t = _read("AGENT-ROLES.md")
+        low = t.lower()
+        self.assertTrue("not the canonical preference source" in low
+                        or "not a preference source" in low
+                        or "guide-output target" in low,
+                        "AGENT-ROLES.md must state root AGENTS.md is not the preference source")
+
+    def test_readme_states_markdown_source_of_truth(self):
+        r = _read("README.md")
+        self.assertIn("Markdown", r)
+        self.assertIn("canonical", r.lower())
+
+    def test_workflows_is_canonical_no_stage_and_names_local_profile(self):
+        w = _read("WORKFLOWS.md")
+        self.assertIn("No-stage checklist", w)          # canonical no-stage list
+        self.assertIn(".council/", w)
+        self.assertIn(".council/profile.*", w)          # local/private profile treatment
+
+    def test_risks_names_local_profile_and_agents_collision(self):
+        r = _read("RISKS.md")
+        self.assertIn(".council/profile.*", r)          # local/private profile leak risk
+        self.assertIn("AGENT-ROLES.md", r)              # AGENTS.md collision entry
+
+
 class TestContextPackDoesNotLeakPrivatePlans(unittest.TestCase):
+    # distinctive scaffold-body phrases (verified in PR C) — must NOT reach the pack.
+    _PROFILE_BODY_NEEDLES = (
+        "began as a fork of",              # PROFILE.md
+        "Which council review level to run",  # PREFERENCES.md
+        "who does what",                   # AGENT-ROLES.md
+    )
+
     def test_pack_built_from_real_repo_has_no_private_plan_names(self):
         ddir = REPO / "docs" / "decisions"
         status = VAULT / "STATUS.md"
@@ -163,6 +218,19 @@ class TestContextPackDoesNotLeakPrivatePlans(unittest.TestCase):
         for name in PRIVATE_PLAN_NAMES:
             self.assertNotIn(name, res.text,
                              f"context pack leaked a private plan filename: {name}")
+
+    def test_pack_does_not_ingest_full_vault_profile_content(self):
+        # The pack is a budgeted projection (STATUS + decision index), not a vault dump —
+        # distinctive scaffold *bodies* must never appear in it. Sanity: the needles do
+        # live in their files.
+        for rel, needle in zip(PROFILE_FILES, self._PROFILE_BODY_NEEDLES):
+            self.assertIn(needle, (VAULT / rel).read_text(encoding="utf-8"))
+        ddir = REPO / "docs" / "decisions"
+        status = VAULT / "STATUS.md"
+        res = cp.build_pack(ddir, status, on="2026-07-04T00:00:00Z")
+        for needle in self._PROFILE_BODY_NEEDLES:
+            self.assertNotIn(needle, res.text,
+                             f"context pack ingested scaffold body content: {needle!r}")
 
     def test_pack_check_still_passes_on_real_repo(self):
         ddir = REPO / "docs" / "decisions"
