@@ -301,8 +301,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   state-differentiated scaffold summary (all-present / none "missing" / partial "incomplete" listing
   missing files), a state-aware root-`AGENTS.md` advisory (informational vs. "configuration
   mismatch"; never advises removal), and a `vibe context export` line in the guide block — all
-  advisory (READY/NOT-READY and dangerous-staged FAIL unchanged), read-only, no `--fix`. PRs 3–4
-  (invariant tests, release prep) remain.
+  advisory (READY/NOT-READY and dangerous-staged FAIL unchanged), read-only, no `--fix`. **v0.7.1 PR 3
+  locked the export/guide profile invariants** (tests + tiny docs only): export & guide profile
+  sections are size-bounded, deterministic (no timestamp), and gracefully degrading (byte-identical
+  with/without the scaffold); a wording-invariant guards "advice to read, not commands"; a vault
+  consistency check + a context-pack no-ingest check (still 21/21). No behavior change. PR 4 (release
+  prep) remains.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

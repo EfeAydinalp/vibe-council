@@ -13,6 +13,23 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.7.1 PR 3 — export/guide profile invariant tests + vault consistency** (per
+  `docs/fable/v0.7.1-hardening-architecture-plan.md` §4C–§4E). **Tests + tiny docs polish only — no
+  behavior change.** New locks: the context-export **and** guide "Project profile & preferences"
+  sections are **size-bounded** (a conservative ceiling that catches any future inlining),
+  **deterministic** (no date/time stamp), and **gracefully degrading** (the export section is
+  byte-identical with/without the scaffold; the guide output is byte-identical from any cwd because it
+  reads no filesystem); a **wording-invariant** test pins that the guide keeps "advice to read, not
+  commands" and never implies a preference can override/relax/bypass a safety rule; a **vault
+  consistency** test pins that the scaffold files agree on tighten-only + safe-to-commit + the
+  `AGENT-ROLES.md` convention, and that WORKFLOWS (canonical no-stage) and RISKS name the local/private
+  `.council/profile.*` treatment; and a **context-pack no-ingest** test pins that distinctive scaffold
+  bodies never reach the budgeted pack (still 21/21). WORKFLOWS now names the export/guide profile
+  invariants (pointers-only / never-reads-local / deterministic / graceful) as a contract. No
+  preference parser/application, no profile store, no `.council/profile.*` read/write, no
+  context-builder/project-doctor/redaction change, no Workbench/importer/executor/trust change, no
+  dependency, no version bump.
+
 - **v0.7.1 PR 2 — project doctor profile-scaffold consistency polish** (per
   `docs/fable/v0.7.1-hardening-architecture-plan.md` §4B). `vibe project doctor`'s
   **"Personalization scaffold (advisory)"** section now gives a **state-differentiated summary**:

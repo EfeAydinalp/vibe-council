@@ -34,9 +34,12 @@ rules live in [`docs/fable/01-operating-rules.md`](../../fable/01-operating-rule
 - `vibe context export --for {claude|codex|fable} [--role <role>] [--output FILE]` prints a read-only
   onboarding context handoff (operating rules + **vault pointers** + **project profile/preferences
   pointers** to [`PROFILE.md`](./PROFILE.md) / [`PREFERENCES.md`](./PREFERENCES.md) /
-  [`AGENT-ROLES.md`](./AGENT-ROLES.md) — pointers only, never inlined + context-health summary +
-  Workbench flow + a `vibe project doctor` reminder). Stdout by default; `--output` never overwrites.
-  Writes no `.council/`; reads no `.council/profile.*`; makes no model call.
+  [`AGENT-ROLES.md`](./AGENT-ROLES.md) + context-health summary + Workbench flow + a `vibe project
+  doctor` reminder). Stdout by default; `--output` never overwrites. The profile section holds to
+  four **invariants** (locked by tests): **pointers-only** (never inlines scaffold content),
+  **never-reads-`.council/profile.*`** (the local/private profile), **deterministic** (no timestamp),
+  and **graceful** (byte-identical whether the scaffold is present or absent). Writes no `.council/`;
+  makes no model call. The `vibe guide` profile section holds to the same invariants.
 - `vibe project doctor` also reports an **advisory** "Personalization scaffold" section for
   [`PROFILE.md`](./PROFILE.md) / [`PREFERENCES.md`](./PREFERENCES.md) / [`AGENT-ROLES.md`](./AGENT-ROLES.md)
   with a state-differentiated summary (all-present ok / none-present "missing" warn / partial

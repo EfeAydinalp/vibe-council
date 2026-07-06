@@ -427,19 +427,26 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   `.council/` machine-local store) in tracked public docs — advisory (never critical); glob form
   `.council/profile.*` ignored; public scaffold files not flagged; documented WARNING→CRITICAL
   promotion path; lock-in tests + enumerated findings (warning count 22 → 30).
-- **v0.7.1 PR 2 — project doctor profile-scaffold consistency polish (in progress).** `vibe project
-  doctor`'s advisory scaffold section now gives a **state-differentiated summary** (all-present OK /
-  none-present "missing" warn / partial "incomplete" warn listing the missing files), a **state-aware
-  root-`AGENTS.md` advisory** (informational when `AGENT-ROLES.md` is present; a stronger
-  "configuration mismatch" wording when it is missing — but never advises removing root `AGENTS.md`),
-  and lists `vibe context export --for <agent> --role <role>` in the guide block. All advisory —
-  READY/NOT-READY, dangerous-staged FAIL, git-unavailable warn, and in-memory context health are
-  unchanged; a staged `.council/profile.*` still FAILs. Read-only; **no `--fix`/init, no profile
-  store, no preference parser/application, no context-export/guide change, no Workbench/trust change,
+- **v0.7.1 PR 2 — project doctor profile-scaffold consistency polish (merged).** `vibe project
+  doctor`'s advisory scaffold section gives a **state-differentiated summary** (all-present OK /
+  none "missing" / partial "incomplete" listing the missing files), a **state-aware root-`AGENTS.md`
+  advisory** (informational vs. "configuration mismatch"; never advises removal), and lists
+  `vibe context export`. Advisory-only; READY/NOT-READY, dangerous-staged FAIL, git-unavailable warn
+  unchanged; read-only.
+- **v0.7.1 PR 3 — export/guide profile invariant tests + vault consistency (in progress).**
+  **Tests + tiny docs polish only, no behavior change.** Locks: export & guide profile sections are
+  **size-bounded** (catches inlining), **deterministic** (no timestamp), and **gracefully degrading**
+  (export section byte-identical with/without scaffold; guide byte-identical from any cwd); a
+  **wording-invariant** guard ("advice to read, not commands"; never implies preference authority over
+  safety); a **vault consistency** check (scaffold files agree on tighten-only + safe-to-commit +
+  `AGENT-ROLES.md`; WORKFLOWS/RISKS name `.council/profile.*`); and a **context-pack no-ingest** check
+  (distinctive scaffold bodies never reach the budgeted pack; still 21/21). WORKFLOWS names the
+  invariants as a contract. **No preference parser/application, no profile store, no
+  `.council/profile.*` read/write, no context-builder/project-doctor/redaction/Workbench/trust change,
   no dependency.**
-- **Current focus:** **v0.7.1 hardening — PR 2 (doctor consistency polish) is the active slice.**
-  Next per the plan: PR 3 (export/guide invariant tests), PR 4 (release prep). No new network
-  endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
+- **Current focus:** **v0.7.1 hardening — PR 3 (export/guide invariant tests) is the active slice.**
+  Next per the plan: PR 4 (release prep). No new network endpoint. Deferred: mobile/LAN/voice (v0.8),
+  hosted/team (v0.9+).
 
 ## Next actions
 

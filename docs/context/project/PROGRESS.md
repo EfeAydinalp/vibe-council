@@ -54,7 +54,10 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           files), state-aware root-`AGENTS.md` advisory (informational vs. "configuration mismatch";
           never advises removal), and lists `vibe context export` in the guide block. Advisory-only;
           READY/NOT-READY, dangerous-staged FAIL, git-unavailable warn unchanged; read-only.
-    - [ ] PR 3 — context-export / guide invariant tests + vault consistency.
+    - [x] **PR 3 — context-export / guide invariant tests + vault consistency.** Locks export & guide
+          profile sections: size-bounded, deterministic (no timestamp), gracefully degrading
+          (byte-identical), wording-invariant ("advice to read, not commands"), vault consistency, and
+          context-pack no-ingest (still 21/21). Tests + tiny docs only; no behavior change.
     - [ ] PR 4 — v0.7.1 release prep.
 - [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*
 
