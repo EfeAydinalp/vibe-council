@@ -42,7 +42,7 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.7.0]` section,
           [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md), README release status. No tag/Release
           (manual follow-up).
-- [ ] **v0.7.1 — hardening** *(in progress).* Source plan:
+- [x] **v0.7.1 — hardening** *(prepared as the `v0.7.1` release; tag/Release manual).* Source plan:
       [`docs/fable/v0.7.1-hardening-architecture-plan.md`](../../fable/v0.7.1-hardening-architecture-plan.md)
       (redaction rule → doctor polish → invariant tests → release prep; all Opus/Sonnet).
     - [x] **PR 1 — local-profile redaction hardening.** `local-profile-path` WARNING rule for concrete
@@ -58,7 +58,10 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           profile sections: size-bounded, deterministic (no timestamp), gracefully degrading
           (byte-identical), wording-invariant ("advice to read, not commands"), vault consistency, and
           context-pack no-ingest (still 21/21). Tests + tiny docs only; no behavior change.
-    - [ ] PR 4 — v0.7.1 release prep.
+    - [x] **PR 4 — v0.7.1 release prep.** Version → `0.7.1` (`backend/__init__.py`/`pyproject.toml`/
+          `uv.lock` self-version), dated `CHANGELOG.md` `[0.7.1]` section,
+          [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md), README release status. No tag/Release
+          (manual follow-up).
 - [ ] **v0.8+ — mobile / LAN / voice / hosted** *(deferred; separate planning).*
 
 ## How to update

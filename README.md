@@ -730,21 +730,26 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.7.0 — safe personalization / project-profile scaffold.** The repo reports
-`0.7.0`; the `v0.7.0` git tag and GitHub Release are cut by a maintainer right after the release PR
-merges. On top of the v0.6.x cross-project onboarding arc, this bundles the v0.7 personalization slice
-— a council-in-the-loop planning brief, a public-safe **project profile/preferences scaffold**
-(`docs/context/project/PROFILE.md` / `PREFERENCES.md` / `AGENT-ROLES.md`), and **advisory pointers** to
-it from `vibe project doctor`, `vibe context export`, and `vibe guide`. Everything is **advisory,
-read-only, local, and tighten-only** — personalization can never loosen a security/safety/no-stage/trust
-rule; root `AGENTS.md` is deliberately not the canonical preference source. No model/provider/network
-call, no Workbench trust-boundary change, no `/council` command (`vibe` is the real CLI), no new
-dependency (see [`docs/releases/v0.7.0.md`](docs/releases/v0.7.0.md)). The v0.6.0 bridge and v0.5.2
+**Release status:** **v0.7.1 — personalization hardening.** The repo reports `0.7.1`; the `v0.7.1`
+git tag and GitHub Release are cut by a maintainer right after the release PR merges. It **hardens**
+the v0.7.0 safe-personalization scaffold (it does not expand it): a `local-profile-path` redaction
+WARNING for concrete `.council/profile.<ext>` references, state-differentiated `vibe project doctor`
+scaffold advisories (all/none/partial; missing warns, never fails), and export/guide invariant tests
+(size-bounded, no inlining, never reads the local profile, gracefully degrading, deterministic). On
+top of the v0.7.0 scaffold (a council-in-the-loop planning brief, the public-safe **project
+profile/preferences scaffold** `docs/context/project/PROFILE.md` / `PREFERENCES.md` / `AGENT-ROLES.md`,
+and **advisory pointers** from `vibe project doctor`, `vibe context export`, and `vibe guide`).
+Everything is **advisory, read-only, local, and tighten-only** — personalization can never loosen a
+security/safety/no-stage/trust rule; root `AGENTS.md` is deliberately not the canonical preference
+source; no profile store or preference parser yet. No model/provider/network call, no Workbench
+trust-boundary change, no `/council` command (`vibe` is the real CLI), no new dependency (see
+[`docs/releases/v0.7.1.md`](docs/releases/v0.7.1.md)). The v0.6.0 bridge and v0.5.2
 panel hardening remain in force, and the underlying Workbench model is unchanged: a task moves through
 visible stages, an audited approval gates it, and an approved bounded file action or exact allowlisted
 command can be explicitly executed — approving never auto-executes, and the deterministic trust
 boundary re-runs at execution time. See [`CHANGELOG.md`](CHANGELOG.md) and
-[`docs/releases/v0.7.0.md`](docs/releases/v0.7.0.md) for the notes (v0.6.3:
+[`docs/releases/v0.7.1.md`](docs/releases/v0.7.1.md) for the notes (v0.7.0:
+[`docs/releases/v0.7.0.md`](docs/releases/v0.7.0.md); v0.6.3:
 [`docs/releases/v0.6.3.md`](docs/releases/v0.6.3.md); v0.6.0:
 [`docs/releases/v0.6.0.md`](docs/releases/v0.6.0.md); v0.5.2:
 [`docs/releases/v0.5.2.md`](docs/releases/v0.5.2.md); v0.5.1:

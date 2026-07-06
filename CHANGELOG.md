@@ -5,11 +5,29 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.7.0` is prepared. The repo reports `0.7.0`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.7.0` git tag + GitHub Release are cut by a
+> **Status:** `0.7.1` is prepared. The repo reports `0.7.1`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.7.1` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+_Nothing yet. Post-0.7.1 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.7.1] - 2026-07-06
+
+**Personalization hardening.** Hardens the v0.7.0 safe-personalization scaffold (it does not expand
+it): a `local-profile-path` redaction WARNING for concrete `.council/profile.<ext>` references (glob
+form intentionally unmatched; public scaffold files allowed; WARNING→CRITICAL promotion path),
+state-differentiated `vibe project doctor` scaffold advisories (all/none/partial; missing warns, never
+fails; staged `.council/profile.*` still FAILs), and export/guide invariant tests (size-bounded, no
+inlining, never reads `.council/profile.*`, gracefully degrading, deterministic, "advice to read, not
+commands" wording, context pack still 21/21). Everything advisory / read-only / local / tighten-only:
+no profile store, no preference parser/application, no Workbench trust-boundary change, no
+auto-execution, no model/provider/network call, no `/council`, no dependency change. Planned by a
+docs-only, balanced-reviewed Fable architecture pass
+([`docs/fable/v0.7.1-hardening-architecture-plan.md`](docs/fable/v0.7.1-hardening-architecture-plan.md));
+see [`docs/releases/v0.7.1.md`](docs/releases/v0.7.1.md).
 
 ### Added
 
