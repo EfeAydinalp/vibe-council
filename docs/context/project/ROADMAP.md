@@ -6,13 +6,15 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.8.x — planning (council-backed; Fable architecture step next).** Council-chosen theme:
-  **"Solidify the core, local-first"** — headline agent launcher / session workflows, plus vault polish
-  and carefully-reviewed Workbench UX; personalization becomes a **read-only preference-control model +
-  validator, not behavior** (guide/context-export stay pointer-only; the `.council/profile.*` store +
-  preference applier deferred to v0.9.x); mobile/LAN/voice deferred to its own gated security line.
-  Planning files: [`docs/fable/v0.8.x-council-debate.md`](../../fable/v0.8.x-council-debate.md),
-  [`v0.8.x-phase-brief.md`](../../fable/v0.8.x-phase-brief.md),
+- **v0.8.x — implementation (architecture done).** Theme: **"Solidify the core, local-first."**
+  Architecture: [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md)
+  (9-PR sequence) — v0.8.0 `vibe init-agent` (dry-run-first launcher, no path argument) + localhost CI
+  guard; v0.8.1 vault digest + capped `RELEASES.md`; v0.8.2 tighten-only **JSON** preference schema +
+  **read-only** doctor validator (full review; **no application** — that is v0.9.x). Guide/
+  context-export stay pointer-only; `.council/profile.*` store, named profiles, Workbench UX, and
+  local notifications deferred. Council planning:
+  [`v0.8.x-council-debate.md`](../../fable/v0.8.x-council-debate.md) /
+  [`v0.8.x-phase-brief.md`](../../fable/v0.8.x-phase-brief.md) /
   [`v0.8.x-fable-input.md`](../../fable/v0.8.x-fable-input.md). The `v0.7.1` GitHub Release (from
   [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md)) remains a manual maintainer step.
   **Note:** this supersedes the older "v0.8 = mobile/LAN/voice" line in

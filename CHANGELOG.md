@@ -13,6 +13,22 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.8.x Fable architecture plan (docs-only).** `docs/fable/v0.8.x-architecture-plan.md` — the
+  version-line architecture pass consuming the council-produced planning files. It **preserves the
+  council's "Solidify the core, local-first" pivot** and resolves the open questions: the v1
+  **preference-control model** is a closed, versioned, four-type tighten-only **JSON** schema in a
+  single bounded fenced block inside `PREFERENCES.md` (JSON because the `>=3.10` floor has no stdlib
+  TOML and no new dependency is allowed); the validator is **read-only, folded into `vibe project
+  doctor`** (advisory; fail-closed untrusted-input parsing; findings-only API so nothing can consume
+  parsed preferences as behavior); **no preference application in v0.8.x** (the "refusal filter"
+  pilot is rejected); guide/context-export stay **byte-stable pointer-only**; named profiles,
+  `.council/profile.*` store, Workbench UX, and local notifications are **deferred**. Defines the
+  launcher surface (`vibe init-agent`, dry-run-first, **no path argument**), architecture boundaries,
+  a 9-PR sequence across v0.8.0/v0.8.1/v0.8.2 (validator PR at **full** review), tests/verification
+  strategy, Fable-specific risk catches, copy-paste Opus/Sonnet prompts for the first PRs, and the
+  Fable stop rule. **No implementation, no code or behavior change, no version bump, no dependency
+  change.**
+
 - **v0.8.x council-backed phase brief (docs-only planning).** Three planning files in `docs/fable/`
   produced by a **council-led** process (two `vibe review --preset balanced` multi-model passes):
   `v0.8.x-council-debate.md` (candidate directions — profile application, agent launcher, vault polish,

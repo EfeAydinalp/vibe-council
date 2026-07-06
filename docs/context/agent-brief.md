@@ -318,8 +318,16 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   local-first"** — headline agent launcher / session workflows, plus vault polish and carefully-reviewed
   Workbench UX; personalization becomes a **read-only preference-control model + validator, not
   behavior** (guide/context-export stay pointer-only; `.council/profile.*` store + preference applier
-  deferred to v0.9.x); mobile/LAN/voice deferred to its own gated security line. The **Fable
-  architecture step is next** (version-line planning, not implementation).
+  deferred to v0.9.x); mobile/LAN/voice deferred to its own gated security line. **The Fable
+  architecture pass is done:**
+  [`docs/fable/v0.8.x-architecture-plan.md`](../fable/v0.8.x-architecture-plan.md) resolves the open
+  questions (four-type tighten-only **JSON** preference schema in a bounded fenced `PREFERENCES.md`
+  block — the `>=3.10` floor has no stdlib TOML; a **read-only validator folded into `vibe project
+  doctor`** with a findings-only API; **no application in v0.8.x**; named profiles / profile store /
+  Workbench UX / notifications deferred; `vibe init-agent` dry-run-first launcher with **no path
+  argument**) and defines a 9-PR sequence (v0.8.0 launcher + localhost CI guard; v0.8.1 vault digest
+  + `RELEASES.md`; v0.8.2 schema + validator at **full** review). **Implementation is next —
+  Opus/Sonnet, starting at PR 1 (`feat/init-agent-report`).**
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
