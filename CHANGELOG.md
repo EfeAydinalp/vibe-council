@@ -5,11 +5,26 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.7.1` is prepared. The repo reports `0.7.1`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.7.1` git tag + GitHub Release are cut by a
+> **Status:** `0.8.0` is prepared. The repo reports `0.8.0`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.8.0` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+_Nothing yet. Post-0.8.0 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.8.0] - 2026-07-07
+
+**Agent onboarding launcher (`vibe init-agent`).** Opens the v0.8.x "Solidify the core, local-first"
+line (council-backed + Fable-architected, docs-only planning): a single onboarding entry point that
+composes the existing `vibe project doctor` / `vibe guide` machinery into a deterministic **read-only
+report** and a **guarded append** (`--write --agent <agent> --yes` → the fixed
+`CLAUDE.md`/`AGENTS.md`/`FABLE.md`; append-only, marker-skip idempotent, no path argument), plus a
+tests-only **localhost-only guard** locking the panel to loopback with no second listener. Everything
+local-first, read-only-by-default, append-only when writing: no preference behavior, no
+`.council/profile.*` store, no network/LAN/hosted surface, no new dependency. See
+[`docs/releases/v0.8.0.md`](docs/releases/v0.8.0.md).
 
 ### Added
 

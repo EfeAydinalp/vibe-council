@@ -62,8 +62,8 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.7.1]` section,
           [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md), README release status. No tag/Release
           (manual follow-up).
-- [ ] **v0.8.x — "solidify the core, local-first"** *(council planning + Fable architecture done;
-      implementation next).* v0.8.0 = `vibe init-agent` (dry-run-first launcher) + localhost CI guard;
+- [ ] **v0.8.x — "solidify the core, local-first"** *(v0.8.0 prepared as a release; v0.8.1/v0.8.2
+      next).* v0.8.0 = `vibe init-agent` (dry-run-first launcher) + localhost CI guard;
       v0.8.1 = vault digest + capped `RELEASES.md`; v0.8.2 = tighten-only JSON preference schema +
       read-only doctor validator (**full** review; no application). Workbench UX / named profiles /
       profile store / notifications deferred. Planning:
@@ -81,7 +81,11 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           loopback only (non-local hosts rejected), a runtime `socket.bind` loopback check,
           `host_header_is_local` loopback-only, and a static "no second listener" scan (only
           `workbench_panel.py` may construct a listener). No production change.
-    - [ ] PR 4 — v0.8.0 release prep. PRs 5–9 per plan.
+    - [x] **PR 4 — v0.8.0 release prep.** Version → `0.8.0` (`backend/__init__.py`/`pyproject.toml`/
+          `uv.lock` self-version), dated `CHANGELOG.md` `[0.8.0]` section,
+          [`docs/releases/v0.8.0.md`](../../releases/v0.8.0.md), README release status. No tag/Release
+          (manual follow-up).
+    - [ ] PRs 5–9 (v0.8.1 vault polish; v0.8.2 preference schema + validator) per plan.
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
 - [ ] **v0.9+ — preference application / hosted / team** *(deferred; separate planning).*
 
