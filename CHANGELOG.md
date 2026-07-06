@@ -11,8 +11,20 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.7.1 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Added
+
+- **v0.8.x council-backed phase brief (docs-only planning).** Three planning files in `docs/fable/`
+  produced by a **council-led** process (two `vibe review --preset balanced` multi-model passes):
+  `v0.8.x-council-debate.md` (candidate directions — profile application, agent launcher, vault polish,
+  Workbench UX, website/commercial, Skills, MCP polish, mobile/LAN/voice — with the council's critique),
+  `v0.8.x-phase-brief.md` (the resolved theme), and `v0.8.x-fable-input.md` (the curated handoff for the
+  next Fable architecture step). **Council-chosen theme: "Solidify the core, local-first"** — headline
+  agent launcher / session workflows, supported by vault polish and carefully-reviewed Workbench UX;
+  personalization becomes a **read-only preference-control model + validator, not behavior**
+  (guide/context-export stay pointer-only; the `.council/profile.*` store and any preference
+  parser/application deferred to v0.9.x); mobile/LAN/voice deferred to its own gated security line;
+  website behind license "Question 0". **No code, no behavior change, no version bump, no tag/release,
+  no dependency change.** Fable is expected for the next (architecture) step but must not implement.
 
 ## [0.7.1] - 2026-07-06
 
