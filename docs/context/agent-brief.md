@@ -335,8 +335,13 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   behavior change. **v0.8.0 PR 3 landed the localhost-only guard** (`tests/test_localhost_guard.py`,
   tests only — no production change): locks that the panel binds loopback only (non-local hosts
   rejected), a runtime `socket.bind`-loopback check, `host_header_is_local` loopback-only, and a
-  static "no second listener" scan (only `backend/workbench_panel.py` may construct a listener). Next:
-  PR 4 (v0.8.0 release prep), then v0.8.1/v0.8.2.
+  static "no second listener" scan (only `backend/workbench_panel.py` may construct a listener).
+  **v0.8.0 PR 4 (release prep)** bumped `backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version to
+  `0.8.0` (one line, no dependency-graph change), added a dated `CHANGELOG.md` `[0.8.0]` section, and
+  [`docs/releases/v0.8.0.md`](../releases/v0.8.0.md) bundling the launcher slice as the "agent
+  onboarding launcher" release; README release status → v0.8.0. **No tag / GitHub Release** in the PR —
+  a separate manual step once it merges. **v0.8.0 prepared, not yet tagged.** Next: v0.8.1 (vault
+  polish), v0.8.2 (preference schema + validator, full review).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

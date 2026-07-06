@@ -730,25 +730,25 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.7.1 — personalization hardening.** The repo reports `0.7.1`; the `v0.7.1`
-git tag and GitHub Release are cut by a maintainer right after the release PR merges. It **hardens**
-the v0.7.0 safe-personalization scaffold (it does not expand it): a `local-profile-path` redaction
-WARNING for concrete `.council/profile.<ext>` references, state-differentiated `vibe project doctor`
-scaffold advisories (all/none/partial; missing warns, never fails), and export/guide invariant tests
-(size-bounded, no inlining, never reads the local profile, gracefully degrading, deterministic). On
-top of the v0.7.0 scaffold (a council-in-the-loop planning brief, the public-safe **project
-profile/preferences scaffold** `docs/context/project/PROFILE.md` / `PREFERENCES.md` / `AGENT-ROLES.md`,
-and **advisory pointers** from `vibe project doctor`, `vibe context export`, and `vibe guide`).
-Everything is **advisory, read-only, local, and tighten-only** — personalization can never loosen a
-security/safety/no-stage/trust rule; root `AGENTS.md` is deliberately not the canonical preference
-source; no profile store or preference parser yet. No model/provider/network call, no Workbench
-trust-boundary change, no `/council` command (`vibe` is the real CLI), no new dependency (see
-[`docs/releases/v0.7.1.md`](docs/releases/v0.7.1.md)). The v0.6.0 bridge and v0.5.2
+**Release status:** **v0.8.0 — agent onboarding launcher (`vibe init-agent`).** The repo reports
+`0.8.0`; the `v0.8.0` git tag and GitHub Release are cut by a maintainer right after the release PR
+merges. Opening the v0.8.x "**Solidify the core, local-first**" line (council-backed + Fable-architected
+planning), it adds one onboarding entry point — **`vibe init-agent`** — composing the existing
+`vibe project doctor` / `vibe guide` machinery: with no flags a deterministic **read-only report**
+(readiness + what each agent guide would write + next commands); with `--write --agent <agent> --yes`
+a **guarded append** to the fixed `CLAUDE.md`/`AGENTS.md`/`FABLE.md` (append-only, marker-skip
+idempotent, no path argument, no `.council/`). A tests-only **localhost-only guard** locks the
+Workbench panel to loopback (rejects `0.0.0.0`/`::`/LAN/external hosts; no second listener). Everything
+is **local-first, read-only-by-default, append-only when writing** — no preference behavior, no
+`.council/profile.*` store, no network/LAN/hosted surface, no new dependency (see
+[`docs/releases/v0.8.0.md`](docs/releases/v0.8.0.md)). Personalization stays advisory/pointer-only and
+tighten-only; `vibe` is the real CLI (`/council` is not). The v0.6.0 bridge and v0.5.2
 panel hardening remain in force, and the underlying Workbench model is unchanged: a task moves through
 visible stages, an audited approval gates it, and an approved bounded file action or exact allowlisted
 command can be explicitly executed — approving never auto-executes, and the deterministic trust
 boundary re-runs at execution time. See [`CHANGELOG.md`](CHANGELOG.md) and
-[`docs/releases/v0.7.1.md`](docs/releases/v0.7.1.md) for the notes (v0.7.0:
+[`docs/releases/v0.8.0.md`](docs/releases/v0.8.0.md) for the notes (v0.7.1:
+[`docs/releases/v0.7.1.md`](docs/releases/v0.7.1.md); v0.7.0:
 [`docs/releases/v0.7.0.md`](docs/releases/v0.7.0.md); v0.6.3:
 [`docs/releases/v0.6.3.md`](docs/releases/v0.6.3.md); v0.6.0:
 [`docs/releases/v0.6.0.md`](docs/releases/v0.6.0.md); v0.5.2:

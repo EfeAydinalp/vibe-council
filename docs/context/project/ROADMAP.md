@@ -6,23 +6,28 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.8.x — implementation (architecture done).** Theme: **"Solidify the core, local-first."**
-  Architecture: [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md)
-  (9-PR sequence) — v0.8.0 `vibe init-agent` (dry-run-first launcher, no path argument) + localhost CI
-  guard; v0.8.1 vault digest + capped `RELEASES.md`; v0.8.2 tighten-only **JSON** preference schema +
-  **read-only** doctor validator (full review; **no application** — that is v0.9.x). Guide/
-  context-export stay pointer-only; `.council/profile.*` store, named profiles, Workbench UX, and
-  local notifications deferred. Council planning:
-  [`v0.8.x-council-debate.md`](../../fable/v0.8.x-council-debate.md) /
-  [`v0.8.x-phase-brief.md`](../../fable/v0.8.x-phase-brief.md) /
-  [`v0.8.x-fable-input.md`](../../fable/v0.8.x-fable-input.md). The `v0.7.1` GitHub Release (from
-  [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md)) remains a manual maintainer step.
-  **Note:** this supersedes the older "v0.8 = mobile/LAN/voice" line in
-  [`docs/fable/04-roadmap.md`](../../fable/04-roadmap.md) — that surface-expanding work is now its own
-  gated security line, not the v0.8.x theme.
+- **v0.8.x — implementation in progress (v0.8.0 prepared).** Theme: **"Solidify the core,
+  local-first."** Architecture:
+  [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md) (9-PR sequence).
+  **v0.8.0** (`vibe init-agent` launcher: read-only report + guarded append; localhost-only guard) is
+  **prepared** (repo reports `0.8.0`; tag/GitHub Release from
+  [`docs/releases/v0.8.0.md`](../../releases/v0.8.0.md) is the remaining manual step). **Next:**
+  **v0.8.1** capped `RELEASES.md` + STATUS-trimming workflow; **v0.8.2** tighten-only **JSON**
+  preference schema + a **read-only** doctor validator (full review; **no application** — that is
+  v0.9.x). Guide/context-export stay pointer-only; `.council/profile.*` store, named profiles,
+  Workbench UX, and local notifications deferred. **Note:** this v0.8.x line supersedes the older
+  "v0.8 = mobile/LAN/voice" entry in [`docs/fable/04-roadmap.md`](../../fable/04-roadmap.md) — that
+  surface-expanding work is now its own gated security line.
 
 ## Recently shipped
 
+- **v0.8.0 — agent onboarding launcher (`vibe init-agent`)** *(prepared as the `v0.8.0` release).*
+  A single onboarding entry point composing `vibe project doctor` / `vibe guide`: a deterministic
+  **read-only report**, and a **guarded append** (`--write --agent <agent> --yes` → the fixed
+  `CLAUDE.md`/`AGENTS.md`/`FABLE.md`; append-only, marker-skip idempotent, no path argument, no
+  `.council/`), plus a tests-only **localhost-only guard** (panel loopback-only; no second listener).
+  Local-first, read-only-by-default, no preference behavior, no new dependency. Source plan:
+  [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md).
 - **v0.7.1 — personalization hardening** *(prepared as the `v0.7.1` release).* Hardening, not feature
   expansion: a `local-profile-path` redaction WARNING for concrete `.council/profile.<ext>` references
   (glob form unmatched; public scaffold allowed; WARNING→CRITICAL promotion path), state-differentiated
