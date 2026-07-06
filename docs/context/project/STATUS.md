@@ -433,20 +433,25 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   advisory** (informational vs. "configuration mismatch"; never advises removal), and lists
   `vibe context export`. Advisory-only; READY/NOT-READY, dangerous-staged FAIL, git-unavailable warn
   unchanged; read-only.
-- **v0.7.1 PR 3 — export/guide profile invariant tests + vault consistency (in progress).**
-  **Tests + tiny docs polish only, no behavior change.** Locks: export & guide profile sections are
-  **size-bounded** (catches inlining), **deterministic** (no timestamp), and **gracefully degrading**
-  (export section byte-identical with/without scaffold; guide byte-identical from any cwd); a
-  **wording-invariant** guard ("advice to read, not commands"; never implies preference authority over
-  safety); a **vault consistency** check (scaffold files agree on tighten-only + safe-to-commit +
-  `AGENT-ROLES.md`; WORKFLOWS/RISKS name `.council/profile.*`); and a **context-pack no-ingest** check
-  (distinctive scaffold bodies never reach the budgeted pack; still 21/21). WORKFLOWS names the
-  invariants as a contract. **No preference parser/application, no profile store, no
-  `.council/profile.*` read/write, no context-builder/project-doctor/redaction/Workbench/trust change,
-  no dependency.**
-- **Current focus:** **v0.7.1 hardening — PR 3 (export/guide invariant tests) is the active slice.**
-  Next per the plan: PR 4 (release prep). No new network endpoint. Deferred: mobile/LAN/voice (v0.8),
-  hosted/team (v0.9+).
+- **v0.7.1 PR 3 — export/guide profile invariant tests + vault consistency (merged).** Tests + tiny
+  docs polish only; export & guide profile sections locked as size-bounded, deterministic, and
+  gracefully degrading (byte-identical), a wording-invariant guard, vault consistency, and
+  context-pack no-ingest (still 21/21). No behavior change.
+- **v0.7.1 PR 4 — v0.7.1 release prep (in progress).** `backend/__init__.py`/`pyproject.toml` now
+  report `0.7.1`; `uv.lock`'s self-version synced (one line, no dependency-graph change).
+  `CHANGELOG.md` gained a dated `[0.7.1]` section and
+  [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md) bundles the hardening slice (plan + local-profile
+  redaction rule + doctor consistency polish + export/guide invariant tests) as the "personalization
+  hardening" release. README release status → v0.7.1. Everything advisory/read-only/local/tighten-only;
+  no profile store, no preference parser, no model/network call, no Workbench trust change, no
+  `/council`, no dependency change. **No tag / GitHub Release** in the PR — a separate manual step once
+  it merges.
+- **Current focus:** **v0.7.1 prepared, not yet tagged.** The v0.7.1 hardening slice (redaction rule,
+  doctor polish, invariant tests) is complete and release prep is in review; next is the manual
+  tag/GitHub Release step. The
+  [v0.7 brief](../../fable/v0.7-personalization-and-project-profile-plan.md) remains the source of
+  truth for later slices (a local `.council/profile.*` store + a preference reader/applier, still
+  tighten-only). No new network endpoint. Deferred: mobile/LAN/voice (v0.8), hosted/team (v0.9+).
 
 ## Next actions
 

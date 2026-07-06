@@ -305,8 +305,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   locked the export/guide profile invariants** (tests + tiny docs only): export & guide profile
   sections are size-bounded, deterministic (no timestamp), and gracefully degrading (byte-identical
   with/without the scaffold); a wording-invariant guards "advice to read, not commands"; a vault
-  consistency check + a context-pack no-ingest check (still 21/21). No behavior change. PR 4 (release
-  prep) remains.
+  consistency check + a context-pack no-ingest check (still 21/21). No behavior change. **v0.7.1 PR 4
+  (release prep)** bumped `backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version to `0.7.1`
+  (one line, no dependency-graph change), added a dated `CHANGELOG.md` `[0.7.1]` section, and
+  [`docs/releases/v0.7.1.md`](../releases/v0.7.1.md) bundling the hardening slice as the
+  "personalization hardening" release; README release status → v0.7.1. **No tag / GitHub Release** in
+  the PR — a separate manual step once it merges. **v0.7.1 prepared, not yet tagged.**
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

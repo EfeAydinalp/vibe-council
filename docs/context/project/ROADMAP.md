@@ -6,15 +6,20 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.7.1 — hardening** *(planning done; implementation next).* Hardening, not feature expansion:
-  redaction/no-stage hardening for `.council/profile.*`, doctor consistency polish, export/guide
-  invariant tests, release prep. Source plan:
-  [`docs/fable/v0.7.1-hardening-architecture-plan.md`](../../fable/v0.7.1-hardening-architecture-plan.md)
-  (4-PR Opus/Sonnet breakdown with copy-paste prompts). The `v0.7.0` GitHub Release (from
-  [`docs/releases/v0.7.0.md`](../../releases/v0.7.0.md)) remains a manual maintainer step.
+- **v0.7.1 tag/GitHub Release (manual).** v0.7.1 is **prepared** (repo reports `0.7.1`); the annotated
+  `v0.7.1` tag and the GitHub Release from [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md) are the
+  remaining manual maintainer step. After that, scope the next personalization slice from the brief.
 
 ## Recently shipped
 
+- **v0.7.1 — personalization hardening** *(prepared as the `v0.7.1` release).* Hardening, not feature
+  expansion: a `local-profile-path` redaction WARNING for concrete `.council/profile.<ext>` references
+  (glob form unmatched; public scaffold allowed; WARNING→CRITICAL promotion path), state-differentiated
+  `vibe project doctor` scaffold advisories (all/none/partial; missing warns, never fails), and
+  export/guide invariant tests (size-bounded, no inlining, never reads the local profile, gracefully
+  degrading, deterministic; context pack still 21/21). All advisory/read-only/tighten-only; no profile
+  store or preference parser yet. Source plan:
+  [`docs/fable/v0.7.1-hardening-architecture-plan.md`](../../fable/v0.7.1-hardening-architecture-plan.md).
 - **v0.7 — safe personalization / project-profile scaffold** *(prepared as the `v0.7.0` release).* A
   council-in-the-loop planning brief, a public-safe committed scaffold ([`PROFILE.md`](./PROFILE.md) /
   [`PREFERENCES.md`](./PREFERENCES.md) / [`AGENT-ROLES.md`](./AGENT-ROLES.md)), and **advisory pointers**
