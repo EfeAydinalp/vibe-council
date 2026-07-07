@@ -504,9 +504,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   only:** no validator/parser runtime (that is PR 8), no schema application (v0.9.x), no council/guide/
   context-export/doctor behavior change (guide/export stay pointer-only), no `.council/profile.*` store,
   no dependency change.
+- **v0.8.2 PR 8 — read-only preference validator in `vibe project doctor` (in progress).** New pure
+  [`backend/preferences.py`](../../../backend/preferences.py) validates the optional schema v1 `json`
+  block in [`PREFERENCES.md`](./PREFERENCES.md) and returns **findings only** — read-only, fail-closed,
+  advisory. `vibe project doctor` gains a `Preferences (machine-readable, advisory):` section (valid →
+  `[ok ]`, missing → `[note]`, invalid → `[warn]` "ignored (not applied)"). **READY/NOT-READY is
+  unchanged** — a missing/invalid block is never a doctor failure. Hardening per §3 Q4 (first/only
+  fenced block, 4096-byte cap, `json.loads` only, key allowlist, strict types, relative-path checks
+  rejecting absolute/drive/`..`/backslash/non-string, empty-array/duplicate warns, unknown/missing
+  schema rejected, realpath-inside-root symlink defense, UTF-8-only, fail-closed). Findings-only public
+  API (a test asserts no module outside the doctor path imports it). **No preference applied to any
+  behavior** (v0.9.x), no council/guide/context-export behavior change, no `.council/profile.*` store,
+  no dependency change.
 - **Current focus:** **v0.8.1 released; v0.8.2 in progress.** The tighten-only preference **schema v1**
-  is defined (PR 7, docs + tests); next is the read-only validator folded into `vibe project doctor`
-  (PR 8, **full** review; **no application**), then v0.8.2 release prep, per
+  is defined (PR 7) and a **read-only validator** is folded into `vibe project doctor` (PR 8, full
+  review; **findings-only, no application**); next is v0.8.2 release prep (PR 9), per
   [`v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md). Fable returns only at the
   v0.9.x (preference application) version-line moment. No new network endpoint. Deferred: preference
   application + council personas (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).

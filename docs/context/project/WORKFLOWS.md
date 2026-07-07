@@ -112,7 +112,11 @@ is v0.9.x). When editing it:
    applied by editing this block.
 
 The block is **authored by hand** — there is no generator/init command (and none is planned for
-v0.8.x). Edit `PREFERENCES.md` directly and confirm with the checks above.
+v0.8.x). Edit `PREFERENCES.md` directly and confirm with the checks above. Run **`vibe project
+doctor`** to see the read-only validator's advisory `Preferences (machine-readable, advisory):`
+section (valid → `[ok ]`, missing → `[note]`, invalid → `[warn]` "ignored"). The validator is
+**advisory and findings-only** — an invalid block is reported but never makes the repo "NOT READY" and
+is never applied to any behavior.
 
 ## No-stage checklist (before every commit)
 

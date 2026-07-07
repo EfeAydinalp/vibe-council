@@ -102,8 +102,14 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           add shell/network/hosted behavior, override review policy, or suppress council dissent.
           Council personas documented as a **future v0.9.x** preset direction. Docs + tests only — no
           validator/parser, no application, no behavior change.
-    - [ ] PR 8 (read-only preference validator in `vibe project doctor`, **full** review; no
-          application) + PR 9 (v0.8.2 release prep) per plan.
+    - [x] **PR 8 — read-only preference validator in `vibe project doctor` (full review).** New pure
+          [`backend/preferences.py`](../../../backend/preferences.py) validates the schema v1 `json`
+          block in `PREFERENCES.md` and returns **findings only** (read-only, fail-closed, advisory);
+          doctor gains a `Preferences (machine-readable, advisory):` section (valid → ok, missing →
+          note, invalid → warn "ignored"). READY/NOT-READY unchanged. Hardening per §3 Q4;
+          findings-only API (no module outside the doctor path imports it). No application, no behavior
+          change, no `.council/profile.*` store, no dependency.
+    - [ ] PR 9 (v0.8.2 release prep) per plan.
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
 - [ ] **v0.9+ — preference application / hosted / team** *(deferred; separate planning).*
 

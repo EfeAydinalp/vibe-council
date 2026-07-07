@@ -45,6 +45,7 @@ from . import providers
 from . import doctor as doctor_mod
 from . import redaction
 from . import decisions_docs
+from . import preferences as preferences_mod
 from . import context_pack
 from . import operator as operator_mod
 from . import mcp_contract
@@ -768,6 +769,21 @@ def project_doctor_report(project_root: Path):
                          "configuration mismatch. Root AGENTS.md is a guide-output target "
                          "only; keep agent-role preferences in "
                          "docs/context/project/AGENT-ROLES.md.")
+    lines.append("")
+
+    # Preferences (machine-readable) — ADVISORY only (v0.8.2 PR 8). Read-only validation of
+    # the optional schema v1 JSON block in PREFERENCES.md (see
+    # docs/fable/preference-schema-v1.md). FINDINGS ONLY — nothing is parsed into behavior,
+    # nothing is written, no `.council/profile.*` is read; this NEVER touches `ok`.
+    lines.append("Preferences (machine-readable, advisory):")
+    _pref_tag = {"ok": "ok ", "warn": "warn", "info": "note"}
+    try:
+        for f in preferences_mod.validate_preferences(root):
+            lines.append(f"  [{_pref_tag.get(f.level, 'warn')}] {f.message}")
+    except Exception as e:  # never let advisory validation fail the command
+        lines.append(f"  [warn] preference validation unavailable ({type(e).__name__}).")
+    lines.append("  (advisory: read-only, findings-only — preferences are not applied to any "
+                 "behavior yet.)")
     lines.append("")
 
     # Safety indicators (git-based; warn, don't fail, if git is unavailable).

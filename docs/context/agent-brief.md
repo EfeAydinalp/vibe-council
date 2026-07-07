@@ -366,8 +366,16 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   documented as a **future v0.9.x** direction — curated presets of these tighten-only values, never a
   policy override — **not defined or applied here.** Docs + tests only: no validator/parser (that is PR
   8), no application (v0.9.x), no council/guide/context-export/doctor behavior change (guide/export stay
-  pointer-only). Next: v0.8.2 PR 8 (read-only validator in `vibe project doctor`, full review; no
-  application) → PR 9 release prep.
+  pointer-only). **v0.8.2 PR 8 added the read-only preference validator:** a pure
+  [`backend/preferences.py`](../../backend/preferences.py) validates the schema v1 `json` block in
+  `PREFERENCES.md` and returns **findings only** (read-only, fail-closed, advisory); `vibe project
+  doctor` gains a `Preferences (machine-readable, advisory):` section (valid → ok, missing → note,
+  invalid → warn "ignored"). **READY/NOT-READY is unchanged** (a missing/invalid block is never a
+  failure). Hardening per §3 Q4 (first/only fenced block, 4096-byte cap, `json.loads` only, key
+  allowlist, strict types, relative-path checks, realpath-inside-root symlink defense, UTF-8-only,
+  fail-closed); findings-only API — a test asserts no module outside the doctor path imports it. **No
+  preference is applied to any behavior** (v0.9.x); no council/guide/context-export change, no
+  `.council/profile.*` store. Next: v0.8.2 PR 9 release prep.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
