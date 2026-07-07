@@ -11,8 +11,22 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.8.2 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Added
+
+- **v0.9.x council-backed phase brief (planning, docs-only).** A council-led planning round (two
+  `vibe review --preset balanced` multi-model passes) produced three planning files:
+  [`docs/fable/v0.9.x-council-debate.md`](docs/fable/v0.9.x-council-debate.md) (candidate directions +
+  critique), [`docs/fable/v0.9.x-phase-brief.md`](docs/fable/v0.9.x-phase-brief.md) (the resolved theme),
+  and [`docs/fable/v0.9.x-fable-input.md`](docs/fable/v0.9.x-fable-input.md) (the curated handoff for the
+  next Fable architecture step). **Council-chosen theme: "Apply the proven; describe the personas; defer
+  their behavior"** — v0.9.0 *applies* the four mechanically-proven, add-friction-only v0.8.2 preference
+  keys (additive, reversible, override-flagged, guard-authoritative); v0.9.1 *describes* the council
+  personas as **pure documentation** (no schema, no validator, no behavior) plus a v0.10.x
+  dissent-preservation design sketch; v0.9.2 = release prep. **Persona *behavior* (prompt emphasis) is
+  deferred to v0.10.x** (the dissent-suppression risk is a new class the tighten-only proof machinery
+  does not cover); guide/context export stay pointer-only; `.council/profile.*` store, session/workspace,
+  UI/dashboard, and Workbench-UX stay deferred. **No code/behavior change, no persona/council behavior
+  application, no dependency change, no version bump** — planning docs only; Fable is not run yet.
 
 ## [0.8.2] - 2026-07-07
 

@@ -524,13 +524,28 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   → v0.8.2. No code/behavior change (release metadata + docs only); no validator/schema behavior
   change, no application, no new command, no dependency change. **No tag / GitHub Release** in the PR —
   a separate manual step once it merges.
-- **Current focus:** **v0.8.2 prepared, not yet tagged.** The v0.8.x line is complete: v0.8.0 launcher
-  (released), v0.8.1 vault polish (released), v0.8.2 preference **schema v1** (PR 7) + **read-only
-  validator** in `vibe project doctor` (PR 8, full review; findings-only, no application) with release
-  prep (PR 9) in review. Next is the manual tag/GitHub Release step, then the next version-line moment
-  **v0.9.x — preference *application*** (Fable architecture pass, then Opus/Sonnet). No new network
-  endpoint. Deferred: preference application + council personas / persona UX (v0.9.x), mobile/LAN/voice
-  (own gated line), hosted/team (v0.9+).
+- **v0.8.2 released** (`v0.8.2` annotated tag pushed; GitHub Release from
+  [`docs/releases/v0.8.2.md`](../../releases/v0.8.2.md)). Completes the v0.8.x "Solidify the core,
+  local-first" line (launcher, vault polish, preference schema + read-only validator).
+- **v0.9.x planning started (council-backed, docs-only).** A council-led process (two `vibe review
+  --preset balanced` multi-model passes) produced three planning files:
+  [`v0.9.x-council-debate.md`](../../fable/v0.9.x-council-debate.md) (candidate directions + critique),
+  [`v0.9.x-phase-brief.md`](../../fable/v0.9.x-phase-brief.md) (resolved theme), and
+  [`v0.9.x-fable-input.md`](../../fable/v0.9.x-fable-input.md) (handoff for the next Fable step).
+  **Council-chosen theme: "Apply the proven; describe the personas; defer their behavior"** — v0.9.0
+  *applies* the four mechanically-proven, add-friction-only v0.8.2 preference keys (additive, reversible,
+  override-flagged, guard-authoritative; CLI wins, suggest≠enforce); v0.9.1 *describes* the council
+  personas as **pure documentation** (no schema/validator/behavior) + a v0.10.x dissent-preservation
+  design sketch + a v0.9.0 dogfood pass; v0.9.2 = release prep. **Persona *behavior* (prompt emphasis) is
+  deferred to v0.10.x** (dissent-suppression is a new risk class the tighten-only proofs don't cover);
+  guide/context export stay pointer-only; `.council/profile.*` store, session/workspace, UI/dashboard,
+  Workbench-UX all deferred. No code/behavior change; Fable not run yet.
+- **Current focus:** **v0.8.x complete/released; v0.9.x council planning done, Fable architecture next.**
+  The council phase brief is written; the next version-line moment is the **Fable architecture pass** over
+  [`v0.9.x-fable-input.md`](../../fable/v0.9.x-fable-input.md) (architecture + PR breakdown; Fable does
+  not implement), then Opus/Sonnet implement v0.9.0 (apply the four keys). No new network endpoint.
+  Deferred: persona behavior / persona schema / persona UI (v0.10.x), `.council/profile.*` store,
+  mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 

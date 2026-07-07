@@ -380,9 +380,21 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   dependency-graph change), added a dated `CHANGELOG.md` `[0.8.2]` section, and
   [`docs/releases/v0.8.2.md`](../releases/v0.8.2.md) bundling the preference-control slice (schema v1 +
   read-only validator) as the "preference schema + validator" release; README release status → v0.8.2.
-  **No tag / GitHub Release** in the PR — a separate manual step once it merges. **v0.8.2 prepared, not
-  yet tagged; this completes the v0.8.x line.** Next version-line moment: **v0.9.x — preference
-  *application*** (Fable architecture pass, then Opus/Sonnet).
+  **No tag / GitHub Release** in the PR — a separate manual step once it merges. **v0.8.2 is now
+  released; this completes the v0.8.x line.**
+  **v0.9.x council planning has started (council-backed, docs-only):** two `vibe review --preset
+  balanced` passes produced [`v0.9.x-council-debate.md`](../fable/v0.9.x-council-debate.md),
+  [`v0.9.x-phase-brief.md`](../fable/v0.9.x-phase-brief.md), and
+  [`v0.9.x-fable-input.md`](../fable/v0.9.x-fable-input.md). **Council-chosen theme: "Apply the proven;
+  describe the personas; defer their behavior."** v0.9.0 *applies* the four mechanically-proven,
+  add-friction-only v0.8.2 preference keys (additive, reversible, override-flagged; **CLI wins,
+  suggest≠enforce**, the guard/executor ignore preferences); v0.9.1 *describes* the council personas as
+  **pure documentation** (no schema/validator/behavior) + a v0.10.x dissent-preservation design sketch +
+  a v0.9.0 dogfood pass; v0.9.2 = release prep. **Persona *behavior* (prompt emphasis) is deferred to
+  v0.10.x** — the council found dissent-suppression a new risk class the tighten-only proofs don't cover.
+  Guide/context export stay pointer-only; `.council/profile.*` store, session/workspace, UI/dashboard,
+  Workbench-UX all deferred. Next version-line moment: the **Fable architecture pass** over the
+  fable-input (architecture + PR breakdown; Fable does not implement), then Opus/Sonnet implement v0.9.0.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
