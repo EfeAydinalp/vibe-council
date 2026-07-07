@@ -375,7 +375,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   allowlist, strict types, relative-path checks, realpath-inside-root symlink defense, UTF-8-only,
   fail-closed); findings-only API — a test asserts no module outside the doctor path imports it. **No
   preference is applied to any behavior** (v0.9.x); no council/guide/context-export change, no
-  `.council/profile.*` store. Next: v0.8.2 PR 9 release prep.
+  `.council/profile.*` store. **v0.8.2 PR 9 (release prep)** bumped
+  `backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version to `0.8.2` (one line, no
+  dependency-graph change), added a dated `CHANGELOG.md` `[0.8.2]` section, and
+  [`docs/releases/v0.8.2.md`](../releases/v0.8.2.md) bundling the preference-control slice (schema v1 +
+  read-only validator) as the "preference schema + validator" release; README release status → v0.8.2.
+  **No tag / GitHub Release** in the PR — a separate manual step once it merges. **v0.8.2 prepared, not
+  yet tagged; this completes the v0.8.x line.** Next version-line moment: **v0.9.x — preference
+  *application*** (Fable architecture pass, then Opus/Sonnet).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

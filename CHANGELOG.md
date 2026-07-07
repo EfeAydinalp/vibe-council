@@ -5,11 +5,23 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.8.1` is prepared. The repo reports `0.8.1`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.8.1` git tag + GitHub Release are cut by a
+> **Status:** `0.8.2` is prepared. The repo reports `0.8.2`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.8.2` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+_Nothing yet. Post-0.8.2 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.8.2] - 2026-07-07
+
+**Preference schema v1 + read-only doctor validator.** The preference-control slice of the v0.8.x
+"Solidify the core, local-first" line (council-backed + Fable-architected planning): a normative,
+tighten-only preference **schema v1** plus a **read-only validator** folded into `vibe project doctor`
+— the "auditable before executable" gate. The schema is **defined and validated but never applied**:
+no preference influences any behavior, no council/persona behavior change, no new command, no new
+dependency. See [`docs/releases/v0.8.2.md`](docs/releases/v0.8.2.md).
 
 ### Added
 
@@ -46,6 +58,13 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
   validator/parser (that is PR 8), no schema application (v0.9.x), no council/guide/context-export/
   project-doctor behavior change (guide/export stay pointer-only), no `.council/profile.*` store, no
   dependency change, no version bump.
+
+### Changed
+
+- **Release metadata → `0.8.2`.** `backend/__init__.py` / `pyproject.toml` report `0.8.2`; `uv.lock`'s
+  `vibe-council` self-version entry synced to match (one line, **no dependency-graph change**). Added
+  [`docs/releases/v0.8.2.md`](docs/releases/v0.8.2.md); README release status → v0.8.2. No tag / GitHub
+  Release in this PR — those are a separate manual step once it merges.
 
 ## [0.8.1] - 2026-07-07
 

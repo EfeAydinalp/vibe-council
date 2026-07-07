@@ -62,8 +62,8 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.7.1]` section,
           [`docs/releases/v0.7.1.md`](../../releases/v0.7.1.md), README release status. No tag/Release
           (manual follow-up).
-- [ ] **v0.8.x — "solidify the core, local-first"** *(v0.8.0 released; v0.8.1 prepared as a release;
-      v0.8.2 next).* v0.8.0 = `vibe init-agent` (dry-run-first launcher) + localhost CI guard;
+- [ ] **v0.8.x — "solidify the core, local-first"** *(v0.8.0 & v0.8.1 released; v0.8.2 prepared as a
+      release).* v0.8.0 = `vibe init-agent` (dry-run-first launcher) + localhost CI guard;
       v0.8.1 = vault digest + capped `RELEASES.md`; v0.8.2 = tighten-only JSON preference schema +
       read-only doctor validator (**full** review; no application). Workbench UX / named profiles /
       profile store / notifications deferred. Planning:
@@ -109,7 +109,10 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           note, invalid → warn "ignored"). READY/NOT-READY unchanged. Hardening per §3 Q4;
           findings-only API (no module outside the doctor path imports it). No application, no behavior
           change, no `.council/profile.*` store, no dependency.
-    - [ ] PR 9 (v0.8.2 release prep) per plan.
+    - [x] **PR 9 — v0.8.2 release prep.** Version → `0.8.2` (`backend/__init__.py`/`pyproject.toml`/
+          `uv.lock` self-version), dated `CHANGELOG.md` `[0.8.2]` section,
+          [`docs/releases/v0.8.2.md`](../../releases/v0.8.2.md), README release status. Release metadata
+          + docs only (no code/behavior change). No tag/Release (manual follow-up).
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
 - [ ] **v0.9+ — preference application / hosted / team** *(deferred; separate planning).*
 
