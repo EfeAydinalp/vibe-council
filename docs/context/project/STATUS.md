@@ -553,12 +553,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   usage-flag warning in v0.9.0; three review lenses documented in v0.9.1). Balanced review:
   conditional approval; adoptions/declines recorded in-plan. **Fable stops here; Opus/Sonnet
   implement.**
-- **Current focus:** **v0.8.x complete/released; v0.9.x planned (council + Fable), implementation
-  next.** Opus/Sonnet implement the 8-PR sequence per
-  [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6, starting with PR 1
-  (clamped suggestions reader, balanced review). No new network endpoint. Deferred: persona behavior /
-  persona schema / persona UI (v0.10.x, with the PR 7 dissent-preservation sketch as input),
-  `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team (v0.9+).
+- **v0.9.0 PR 1 landed — clamped preference suggestions reader (implementation started).**
+  [`backend/preferences.py`](../../../backend/preferences.py) gained a pure, read-only, fail-closed
+  `effective_suggestions() → Suggestions` reader (+ `NEUTRAL`): it reuses the validator internals and
+  returns **clamped tighten-only values only** — a review-preset floor **only strictly above the
+  baseline** (so "lower" is inexpressible, `premium` unrepresentable), re-validated/deduped path
+  tuples, and a usage bool; **any anomaly → `NEUTRAL`**; raw JSON never escapes. **No CLI consumer yet
+  — zero behavior change** (review/diff/doctor/guide/export byte-identical); the allowlist-first import
+  scan pins the importer set to exactly `{cli.py}`. No schema change, no persona behavior, no
+  `.council/profile.*`, no dependency change.
+- **Current focus:** **v0.8.x complete/released; v0.9.0 implementation started.** PR 1 (reader) is
+  done; next is PR 2 (apply the review/diff preset floor + `--no-preferences`, balanced review) per
+  [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6, then PRs 3–5. No new
+  network endpoint. Deferred: persona behavior / persona schema / persona UI (v0.10.x, with the PR 7
+  dissent-preservation sketch as input), `.council/profile.*` store, mobile/LAN/voice (own gated
+  line), hosted/team (v0.9+).
 
 ## Next actions
 

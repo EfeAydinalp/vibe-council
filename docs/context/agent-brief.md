@@ -407,6 +407,12 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   byte-identity for no-block/invalid/`--no-preferences`, and red-lines (preferences never touch
   control flow / network / model selection / trust / executor / ranking / prompts). **Fable stops
   here; Opus/Sonnet implement the 8 PRs**, starting with PR 1 (balanced review).
+  **v0.9.0 PR 1 has landed (implementation):** `backend/preferences.py` gained the pure, read-only,
+  fail-closed `effective_suggestions() → Suggestions` reader (+ `NEUTRAL`) — clamped tighten-only
+  values only (floor **only strictly above the baseline preset**, re-validated/deduped path tuples,
+  usage bool), any anomaly → `NEUTRAL`, raw JSON never escapes. **No CLI consumer yet — zero behavior
+  change** (review/diff/doctor/guide/export byte-identical; importer set pinned to `{cli.py}`). Next:
+  PR 2 applies the review/diff preset floor + `--no-preferences`.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
