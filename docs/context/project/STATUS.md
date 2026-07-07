@@ -516,12 +516,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   API (a test asserts no module outside the doctor path imports it). **No preference applied to any
   behavior** (v0.9.x), no council/guide/context-export behavior change, no `.council/profile.*` store,
   no dependency change.
-- **Current focus:** **v0.8.1 released; v0.8.2 in progress.** The tighten-only preference **schema v1**
-  is defined (PR 7) and a **read-only validator** is folded into `vibe project doctor` (PR 8, full
-  review; **findings-only, no application**); next is v0.8.2 release prep (PR 9), per
-  [`v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md). Fable returns only at the
-  v0.9.x (preference application) version-line moment. No new network endpoint. Deferred: preference
-  application + council personas (v0.9.x), mobile/LAN/voice (own gated line), hosted/team (v0.9+).
+- **v0.8.2 PR 9 — v0.8.2 release prep (in progress).** `backend/__init__.py`/`pyproject.toml` now
+  report `0.8.2`; `uv.lock`'s self-version synced to match (one line, no dependency-graph change).
+  `CHANGELOG.md` gained a dated `[0.8.2]` section and
+  [`docs/releases/v0.8.2.md`](../../releases/v0.8.2.md) bundles the preference-control slice (schema v1
+  + read-only doctor validator) as the "preference schema + validator" release. README release status
+  → v0.8.2. No code/behavior change (release metadata + docs only); no validator/schema behavior
+  change, no application, no new command, no dependency change. **No tag / GitHub Release** in the PR —
+  a separate manual step once it merges.
+- **Current focus:** **v0.8.2 prepared, not yet tagged.** The v0.8.x line is complete: v0.8.0 launcher
+  (released), v0.8.1 vault polish (released), v0.8.2 preference **schema v1** (PR 7) + **read-only
+  validator** in `vibe project doctor` (PR 8, full review; findings-only, no application) with release
+  prep (PR 9) in review. Next is the manual tag/GitHub Release step, then the next version-line moment
+  **v0.9.x — preference *application*** (Fable architecture pass, then Opus/Sonnet). No new network
+  endpoint. Deferred: preference application + council personas / persona UX (v0.9.x), mobile/LAN/voice
+  (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 

@@ -6,25 +6,35 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.8.x — implementation in progress (v0.8.0 released; v0.8.1 prepared).** Theme: **"Solidify the
-  core, local-first."** Architecture:
+- **v0.8.x — "Solidify the core, local-first" (v0.8.0 & v0.8.1 released; v0.8.2 prepared).**
+  Architecture:
   [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md) (9-PR sequence).
-  **v0.8.0** (`vibe init-agent` launcher: read-only report + guarded append; localhost-only guard) is
-  **released**. **v0.8.1** (capped `RELEASES.md` release-history index + STATUS-trimming workflow;
-  docs + tests only) is **prepared** (repo reports `0.8.1`; tag/GitHub Release from
-  [`docs/releases/v0.8.1.md`](../../releases/v0.8.1.md) is the remaining manual step). **v0.8.2 in
-  progress:** the tighten-only **JSON** preference **schema v1** is defined (PR 7 — normative
-  [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md) + a bounded block in
-  [`PREFERENCES.md`](./PREFERENCES.md); docs + tests only); **next** the **read-only** doctor validator
-  (PR 8, full review; **no application** — that is v0.9.x). Guide/context-export stay pointer-only;
-  `.council/profile.*` store, named profiles / **council personas** (a future v0.9.x preset of the
-  tighten-only schema values), Workbench UX, and local notifications deferred. **Note:** this v0.8.x
-  line supersedes the older
+  **v0.8.0** (`vibe init-agent` launcher + localhost-only guard) and **v0.8.1** (capped `RELEASES.md`
+  index + STATUS-trimming workflow) are **released**. **v0.8.2** (tighten-only **JSON** preference
+  **schema v1** — normative [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md)
+  + a bounded block in [`PREFERENCES.md`](./PREFERENCES.md) — plus a **read-only** doctor validator,
+  [`backend/preferences.py`](../../../backend/preferences.py), findings-only; **no application**) is
+  **prepared** (repo reports `0.8.2`; tag/GitHub Release from
+  [`docs/releases/v0.8.2.md`](../../releases/v0.8.2.md) is the remaining manual step). This completes the
+  v0.8.x line; **next version-line moment: v0.9.x — preference *application*** (Fable architecture pass,
+  then Opus/Sonnet). Guide/context-export stay pointer-only; `.council/profile.*` store, named profiles
+  / **council personas** (a future v0.9.x preset of the tighten-only schema values), Workbench UX, and
+  local notifications deferred. **Note:** this v0.8.x line supersedes the older
   "v0.8 = mobile/LAN/voice" entry in [`docs/fable/04-roadmap.md`](../../fable/04-roadmap.md) — that
   surface-expanding work is now its own gated security line.
 
 ## Recently shipped
 
+- **v0.8.2 — preference schema v1 + read-only doctor validator** *(prepared as the `v0.8.2` release).*
+  The tighten-only preference **schema v1** (normative
+  [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md) + a bounded fenced `json`
+  block in [`PREFERENCES.md`](./PREFERENCES.md): `schema: 1` + `default_review_preset` /
+  `extra_sensitive_paths` / `never_stage_extra` / `require_usage_flag`) plus a **read-only validator**
+  ([`backend/preferences.py`](../../../backend/preferences.py)) folded into `vibe project doctor` as an
+  advisory section (valid → ok, missing → note, invalid → warn/ignored; READY/exit code unchanged).
+  Findings-only, fail-closed, stdlib `json` only; the schema is **defined and validated but never
+  applied** — council personas are a future v0.9.x preset direction, not v1 fields. Source plan:
+  [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md).
 - **v0.8.1 — vault polish (capped release-history index)** *(prepared as the `v0.8.1` release).*
   A **docs + tests only** patch: new [`RELEASES.md`](./RELEASES.md) newest-first release-history index
   (one line per release, hard cap 30, oldest entries roll up; pointers to `docs/releases/`, never
