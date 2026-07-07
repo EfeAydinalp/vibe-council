@@ -13,6 +13,25 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.9.x Fable architecture plan (planning, docs-only).**
+  [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) consumes the
+  council-produced v0.9.x planning files and produces the implementable line: **accepts the council's
+  theme** ("apply the proven; describe the personas; defer their behavior") with two delegated
+  modifications — **two releases instead of three** (v0.9.0 apply-the-keys, 5 PRs; v0.9.1 persona
+  lenses + v0.10.x dissent-preservation sketch + dogfood, 3 PRs; v0.9.2 reserved as an optional patch
+  slot) and a resolution of a real spec/CLI mismatch (schema v1's `full` is a council **mode**, not a
+  `--preset` value → notice-only application; the preset never silently changes; schema v1 stays
+  frozen). Architecture: a **clamped `effective_suggestions()` reader** in `backend/preferences.py`
+  (fail-closed to `NEUTRAL`, values pre-clamped, raw JSON never escapes), an **argparse-sentinel
+  CLI-wins precedence** with `--no-preferences`, stderr-only pinned notices, **warn-only doctor
+  integration** (volume-capped), an **allowlist-first import scan** (importer set == `{cli.py}`), and
+  golden byte-identity for every off-state. Answers all seven council questions (ships
+  `require_usage_flag` in v0.9.0; documents **three** review lenses — Security Guardian, Cost Skeptic,
+  Local-first Guardian — with four stubs; schema v1 unchanged, future presets recommended as
+  `schema: 2`). Balanced council review: conditional approval — adopted allowlist-first scan/warn
+  cap/dogfood step/red-lines; declined per-key fail-closed, rejecting `full`, deferring the sketch,
+  and a Hypothesis dependency (reasons recorded in-plan). **Docs only — no code/behavior change, no
+  persona application, no dependency change; Fable stops here; Opus/Sonnet implement.**
 - **v0.9.x council-backed phase brief (planning, docs-only).** A council-led planning round (two
   `vibe review --preset balanced` multi-model passes) produced three planning files:
   [`docs/fable/v0.9.x-council-debate.md`](docs/fable/v0.9.x-council-debate.md) (candidate directions +
