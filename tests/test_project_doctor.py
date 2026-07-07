@@ -234,6 +234,84 @@ class TestDoctorProfileScaffold(unittest.TestCase):
             self.assertIn(rel, r.stdout)
 
 
+class TestDoctorPreferenceValidator(unittest.TestCase):
+    """v0.8.2 PR 8 — the advisory preference-schema section. Findings only; ADVISORY —
+    a valid/missing/invalid block never changes READY/NOT-READY (never touches `ok`)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        _seed_ready_repo(self.root)
+        _seed_profile_scaffold(self.root)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _set_prefs(self, body: str) -> None:
+        (self.root / "docs/context/project/PREFERENCES.md").write_text(body, encoding="utf-8")
+
+    def _report(self):
+        return cli.project_doctor_report(self.root)
+
+    def test_section_present_and_advisory(self):
+        lines, ok = self._report()
+        text = "\n".join(lines)
+        self.assertIn("Preferences (machine-readable, advisory):", text)
+        self.assertIn("not applied to any behavior", text)
+
+    def test_valid_block_shows_ok_and_stays_ready(self):
+        self._set_prefs('# prefs\n\n```json\n{ "schema": 1, '
+                        '"default_review_preset": "balanced" }\n```\n')
+        lines, ok = self._report()
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)                       # advisory: never affects readiness
+        self.assertIn("preference schema v1 is valid", text)
+        self.assertIn("READY", text)
+
+    def test_invalid_block_warns_but_stays_ready(self):
+        # premium is a loosening attempt -> invalid, but the doctor stays READY (advisory).
+        self._set_prefs('# prefs\n\n```json\n{ "schema": 1, '
+                        '"default_review_preset": "premium" }\n```\n')
+        lines, ok = self._report()
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)                       # invalid preferences != doctor failure
+        self.assertIn("READY", text)
+        self.assertIn("invalid", text.lower())
+        self.assertIn("premium", text.lower())
+        self.assertNotIn("[MISS]", text)                # advisory uses warn, never MISS/FAIL
+        self.assertNotIn("[FAIL] staged", text)
+
+    def test_missing_block_is_note_and_stays_ready(self):
+        self._set_prefs("# prefs\n\njust prose, no machine block.\n")
+        lines, ok = self._report()
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)
+        self.assertIn("[note]", text)
+        self.assertIn("prose-only", text.lower())
+
+    def test_invalid_preferences_do_not_flip_exit_code(self):
+        # An otherwise-READY repo with an invalid block still exits READY (ok True).
+        self._set_prefs('```json\n{ "schema": 9 }\n```\n')
+        _, ok = self._report()
+        self.assertTrue(ok)
+
+    def test_section_writes_nothing_and_no_council(self):
+        self._set_prefs('```json\n{ "schema": 1 }\n```\n')
+        before = sorted(p.relative_to(self.root).as_posix()
+                        for p in self.root.rglob("*") if p.is_file())
+        self._report()
+        after = sorted(p.relative_to(self.root).as_posix()
+                       for p in self.root.rglob("*") if p.is_file())
+        self.assertEqual(before, after)
+        self.assertFalse((self.root / ".council").exists())
+
+    def test_real_repo_doctor_shows_valid_preferences(self):
+        r = run_cli(["project", "doctor"], caller_cwd=REPO)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("Preferences (machine-readable, advisory):", r.stdout)
+        self.assertIn("preference schema v1 is valid", r.stdout)
+
+
 class TestDoctorCli(unittest.TestCase):
     def test_passes_on_real_repo(self):
         # The real repo has all required files; doctor should report READY, exit 0.

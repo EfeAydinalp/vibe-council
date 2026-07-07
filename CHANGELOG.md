@@ -13,6 +13,23 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.8.2 PR 8 — read-only preference validator in `vibe project doctor`** (per
+  [`docs/fable/v0.8.x-architecture-plan.md`](docs/fable/v0.8.x-architecture-plan.md) §3 Q3/Q4 / §6 PR
+  8). New pure module [`backend/preferences.py`](backend/preferences.py) validates the optional schema
+  v1 ```json block in `docs/context/project/PREFERENCES.md` and returns **findings only** — it is
+  **read-only, fail-closed, and advisory**. `vibe project doctor` gains a new
+  `Preferences (machine-readable, advisory):` section: a valid block → `[ok ]`, a missing block →
+  informational `[note]`, an invalid block → `[warn]` with the reason and "ignored (not applied to
+  anything)". **Readiness is unchanged** — a missing/invalid block is **never** a doctor failure
+  (`ok`/exit code untouched; failure stays reserved for missing required docs + dangerous staged
+  files). Hardening per §3 Q4: exact-fence extraction (first/only ```json block), 4096-byte cap,
+  stdlib `json.loads` only, key allowlist, strict per-key types, relative-path checks (reject
+  absolute/drive-letter/`..`/backslash/non-string), empty-array + duplicate warnings, unknown/missing
+  schema version rejected, realpath-inside-project-root symlink defense (generic warn, no content/target
+  leak), `UnicodeDecodeError` → clean warn, fail-closed-to-ignored. The module exposes **findings, not
+  settings** (parse helpers private; a test asserts no module outside the doctor path imports it).
+  **No preference is applied to any behavior** (that is v0.9.x), no council/guide/context-export
+  behavior change, no `.council/profile.*` store, no dependency change, no version bump.
 - **v0.8.2 PR 7 — tighten-only preference schema v1 (docs + tests)** (per
   [`docs/fable/v0.8.x-architecture-plan.md`](docs/fable/v0.8.x-architecture-plan.md) §3 Q1/Q4 / §6 PR
   7). Defines the normative machine-readable preference schema: a single bounded (`≤ 4096 byte`) fenced

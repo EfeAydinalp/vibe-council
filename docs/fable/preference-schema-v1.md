@@ -1,13 +1,14 @@
 # Preference schema v1 — normative spec (tighten-only, validate-never-apply)
 
-> **Status: normative spec + docs/tests only (v0.8.2 PR 7).** This document defines the v1
-> machine-readable preference schema. **Nothing parses or applies it yet.** The read-only validator
-> that reports on the block lands in a **separate** PR (v0.8.2 PR 8, folded into `vibe project doctor`
-> as an advisory section — see [`v0.8.x-architecture-plan.md`](v0.8.x-architecture-plan.md) §3 Q3/Q4).
-> Preference **application** (letting a value influence a command) is deferred to **v0.9.x** behind its
-> own reviewed design. This PR ships the spec, an example block in
-> [`docs/context/project/PREFERENCES.md`](../context/project/PREFERENCES.md), and consistency tests —
-> **no runtime parser, no behavior change.**
+> **Status: normative spec (v0.8.2 PR 7) + read-only validator (v0.8.2 PR 8).** This document defines
+> the v1 machine-readable preference schema. A **read-only, fail-closed, findings-only validator** now
+> reports on the block — [`backend/preferences.py`](../../backend/preferences.py), folded into
+> `vibe project doctor` as an advisory `Preferences (machine-readable, advisory):` section (see
+> [`v0.8.x-architecture-plan.md`](v0.8.x-architecture-plan.md) §3 Q3/Q4). The validator **only reports**
+> (valid → ok, missing → note, invalid → warn "ignored"); it **applies nothing** and never changes
+> `vibe project doctor`'s READY/NOT-READY result. Preference **application** (letting a value influence a
+> command) remains deferred to **v0.9.x** behind its own reviewed design. **No preference is applied to
+> any behavior; guide/context-export stay pointer-only.**
 
 This is the machine-checkable region of the otherwise prose
 [`PREFERENCES.md`](../context/project/PREFERENCES.md). Markdown stays the source of truth; the block is
