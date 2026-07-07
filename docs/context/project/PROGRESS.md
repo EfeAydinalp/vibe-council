@@ -123,9 +123,16 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
       dissent-preservation design sketch + a v0.9.0 dogfood pass; v0.9.2 = release prep. Persona
       *behavior* deferred to v0.10.x. **Next: the Fable architecture pass** (architecture + PR breakdown),
       then Opus/Sonnet implement.
-    - [x] **Council phase brief** (two `vibe review --preset balanced` passes; docs-only). *This PR.*
-    - [ ] Fable architecture plan (`docs/fable/v0.9.x-architecture-plan.md`) — next.
-    - [ ] PRs per Fable's breakdown (v0.9.0 apply keys → v0.9.1 persona docs → v0.9.2 release prep).
+    - [x] **Council phase brief** (two `vibe review --preset balanced` passes; docs-only).
+    - [x] **Fable architecture plan**
+          ([`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md)): 8-PR breakdown
+          across **two releases** (v0.9.0 apply-the-keys: clamped reader → preset floor +
+          `--no-preferences` → usage warn + doctor advisories → isolation tests → release prep;
+          v0.9.1 review-lenses docs → v0.10.x dissent-preservation sketch → release prep); schema v1
+          frozen; `full`-floor = notice-only; CLI-wins precedence; allowlist-first import scan;
+          balanced-review adjudication recorded in-plan. Fable stops; Opus/Sonnet implement.
+    - [ ] PRs 1–8 per the plan (v0.9.0 apply keys → v0.9.1 persona-lens docs + sketch; v0.9.2
+          reserved as an optional patch slot).
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
       framework; its own council+Fable line).*
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*

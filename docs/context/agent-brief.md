@@ -393,8 +393,20 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   a v0.9.0 dogfood pass; v0.9.2 = release prep. **Persona *behavior* (prompt emphasis) is deferred to
   v0.10.x** — the council found dissent-suppression a new risk class the tighten-only proofs don't cover.
   Guide/context export stay pointer-only; `.council/profile.*` store, session/workspace, UI/dashboard,
-  Workbench-UX all deferred. Next version-line moment: the **Fable architecture pass** over the
-  fable-input (architecture + PR breakdown; Fable does not implement), then Opus/Sonnet implement v0.9.0.
+  Workbench-UX all deferred.
+  **The v0.9.x Fable architecture plan is done (docs-only):**
+  [`v0.9.x-architecture-plan.md`](../fable/v0.9.x-architecture-plan.md) accepts the council theme with
+  delegated modifications — **two releases** (v0.9.0 apply-the-keys, 5 PRs: clamped
+  `effective_suggestions()` reader → review/diff preset floor + `--no-preferences` → usage warn +
+  volume-capped doctor advisories → guard/executor-isolation tests → release prep; v0.9.1, 3 PRs:
+  three review-lens docs → v0.10.x dissent-preservation design sketch → release prep; v0.9.2 reserved
+  as an optional patch slot) — and resolves a spec/CLI mismatch (schema v1 `full` is a council *mode*,
+  not a preset → **notice-only** application; schema v1 stays frozen). Key invariants: **CLI wins**
+  (argparse sentinel), suggest≠enforce, fail-closed-to-`NEUTRAL`, raw JSON never escapes
+  `backend/preferences.py`, allowlist-first import scan (importer set == `{cli.py}`), golden
+  byte-identity for no-block/invalid/`--no-preferences`, and red-lines (preferences never touch
+  control flow / network / model selection / trust / executor / ranking / prompts). **Fable stops
+  here; Opus/Sonnet implement the 8 PRs**, starting with PR 1 (balanced review).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

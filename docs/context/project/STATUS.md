@@ -540,12 +540,25 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   deferred to v0.10.x** (dissent-suppression is a new risk class the tighten-only proofs don't cover);
   guide/context export stay pointer-only; `.council/profile.*` store, session/workspace, UI/dashboard,
   Workbench-UX all deferred. No code/behavior change; Fable not run yet.
-- **Current focus:** **v0.8.x complete/released; v0.9.x council planning done, Fable architecture next.**
-  The council phase brief is written; the next version-line moment is the **Fable architecture pass** over
-  [`v0.9.x-fable-input.md`](../../fable/v0.9.x-fable-input.md) (architecture + PR breakdown; Fable does
-  not implement), then Opus/Sonnet implement v0.9.0 (apply the four keys). No new network endpoint.
-  Deferred: persona behavior / persona schema / persona UI (v0.10.x), `.council/profile.*` store,
-  mobile/LAN/voice (own gated line), hosted/team (v0.9+).
+- **v0.9.x Fable architecture plan done (docs-only).**
+  [`docs/fable/v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) accepts the
+  council's theme with delegated modifications (two releases — v0.9.0 apply-the-keys 5 PRs, v0.9.1
+  persona lenses + v0.10.x dissent-preservation sketch 3 PRs; v0.9.2 reserved as an optional patch
+  slot) and resolves a real spec/CLI mismatch (schema v1 `full` = council *mode*, not a preset →
+  notice-only application; schema v1 frozen). Architecture: clamped `effective_suggestions()` reader
+  (fail-closed `NEUTRAL`; raw JSON never escapes), argparse-sentinel **CLI-wins** precedence +
+  `--no-preferences`, stderr-only pinned notices, warn-only volume-capped doctor integration,
+  allowlist-first import scan (importer set == `{cli.py}`), golden byte-identity off-states, and
+  red-lines binding all future preference work. Answers all seven council questions (ships the
+  usage-flag warning in v0.9.0; three review lenses documented in v0.9.1). Balanced review:
+  conditional approval; adoptions/declines recorded in-plan. **Fable stops here; Opus/Sonnet
+  implement.**
+- **Current focus:** **v0.8.x complete/released; v0.9.x planned (council + Fable), implementation
+  next.** Opus/Sonnet implement the 8-PR sequence per
+  [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6, starting with PR 1
+  (clamped suggestions reader, balanced review). No new network endpoint. Deferred: persona behavior /
+  persona schema / persona UI (v0.10.x, with the PR 7 dissent-preservation sketch as input),
+  `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 
