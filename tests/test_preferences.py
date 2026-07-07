@@ -56,6 +56,9 @@ class _TmpProject(unittest.TestCase):
     def _validate(self):
         return prefs.validate_preferences(self.root)
 
+    def _suggest(self):
+        return prefs.effective_suggestions(self.root)
+
 
 class TestValidBlocks(_TmpProject):
     def test_canonical_block_is_ok(self):
@@ -253,9 +256,170 @@ class TestRealRepo(unittest.TestCase):
         self.assertNotIn("warn", _levels(findings))
 
 
+class TestEffectiveSuggestions(_TmpProject):
+    """v0.9.0 PR 1 — the clamped, fail-closed `effective_suggestions()` reader.
+
+    It returns only clamped `Suggestions` (never raw JSON), `NEUTRAL` on any anomaly, a floor
+    only STRICTLY above the baseline preset, re-validated path tuples, and applies nothing.
+    """
+
+    def test_neutral_shape(self):
+        n = prefs.NEUTRAL
+        self.assertIsNone(n.review_preset_floor)
+        self.assertFalse(n.require_usage)
+        self.assertEqual(n.extra_sensitive_paths, ())
+        self.assertEqual(n.never_stage_extra, ())
+
+    def test_canonical_block_clamps_correctly(self):
+        # baseline is "balanced", so a "balanced" default_review_preset is NOT above baseline
+        # -> no floor; paths + usage still surface.
+        self._write_block(json.dumps(CANONICAL))
+        s = self._suggest()
+        self.assertIsNone(s.review_preset_floor)                       # balanced == baseline
+        self.assertTrue(s.require_usage)
+        self.assertEqual(s.extra_sensitive_paths, ("infra/prod/", "ops/deploy/"))
+        self.assertEqual(s.never_stage_extra, ("notes/local-scratch.md",))
+
+    def test_full_is_the_only_floor_above_baseline(self):
+        # "full" is strictly above the "balanced" baseline -> it is the floor value. (The CLI
+        # layer, PR 2, renders this as a notice-only recommendation to run `vibe full`; the
+        # reader's job is only to represent it, per plan §5.1/§5.2.)
+        self._write_block(json.dumps({"schema": 1, "default_review_preset": "full"}))
+        self.assertEqual(self._suggest().review_preset_floor, "full")
+
+    def test_cheap_and_balanced_never_produce_a_floor(self):
+        # tighten-only: a value at/below baseline can never lower anything -> no floor.
+        for preset in ("cheap", "balanced"):
+            self._write_block(json.dumps({"schema": 1, "default_review_preset": preset}))
+            self.assertIsNone(self._suggest().review_preset_floor, preset)
+
+    def test_premium_never_escapes_as_a_floor(self):
+        # premium is not in the enum -> the block is invalid -> NEUTRAL (never a floor).
+        self._write_block(json.dumps({"schema": 1, "default_review_preset": "premium"}))
+        self.assertEqual(self._suggest(), prefs.NEUTRAL)
+
+    def test_minimal_schema_only_is_neutral(self):
+        self._write_block('{ "schema": 1 }')
+        self.assertEqual(self._suggest(), prefs.NEUTRAL)
+
+    def test_missing_file_is_neutral(self):
+        self.assertEqual(prefs.effective_suggestions(self.root), prefs.NEUTRAL)
+
+    def test_missing_block_is_neutral(self):
+        self._write_prefs("# prefs\n\njust prose.\n")
+        self.assertEqual(self._suggest(), prefs.NEUTRAL)
+
+    def test_require_usage_only_when_true(self):
+        self._write_block(json.dumps({"schema": 1, "require_usage_flag": True}))
+        self.assertTrue(self._suggest().require_usage)
+        self._write_block(json.dumps({"schema": 1, "require_usage_flag": False}))
+        self.assertFalse(self._suggest().require_usage)
+
+    def test_paths_deduped_and_ordered(self):
+        self._write_block(json.dumps(
+            {"schema": 1, "never_stage_extra": ["a.md", "b.md", "a.md"]}))
+        self.assertEqual(self._suggest().never_stage_extra, ("a.md", "b.md"))
+
+    def test_empty_arrays_are_valid_and_yield_empty_tuples(self):
+        # empty array is a soft warn (block still valid) -> tuples are ().
+        self._write_block(json.dumps({"schema": 1, "extra_sensitive_paths": []}))
+        s = self._suggest()
+        self.assertEqual(s.extra_sensitive_paths, ())
+        self.assertEqual(s, prefs.NEUTRAL)
+
+    def test_fail_closed_matrix_matches_the_validator(self):
+        # Every block the VALIDATOR rejects (invalid -> ignored) must read as NEUTRAL. This is
+        # the shared anti-drift matrix (plan §8.8): validator "ignored" <=> reader NEUTRAL.
+        invalid_blocks = [
+            '{ "default_review_preset": "balanced" }',              # missing schema
+            '{ "schema": 2 }',                                      # unknown version
+            '{ "schema": true }',                                   # bool schema
+            '{ "schema": 1, "allow_commands": ["rm -rf"] }',        # unknown key
+            '{ "schema": 1, "default_review_preset": "premium" }',  # premium
+            '{ "schema": 1, "default_review_preset": "turbo" }',    # bad enum
+            '{ "schema": 1, "require_usage_flag": "yes" }',         # non-bool
+            '{ "schema": 1, "extra_sensitive_paths": ["/etc/passwd"] }',  # absolute
+            '{ "schema": 1, "never_stage_extra": ["../out.md"] }',  # traversal
+            r'{ "schema": 1, "extra_sensitive_paths": ["a\\b"] }',  # backslash
+            '{ "schema": 1, "never_stage_extra": [123] }',          # non-string
+            '{ "schema": 1, "never_stage_extra": "x.md" }',         # non-list
+            '[1, 2, 3]',                                            # not an object
+            '{ "schema": 1, ',                                      # malformed JSON
+        ]
+        for body in invalid_blocks:
+            self._write_block(body)
+            findings = self._validate()
+            invalid = any("ignored" in f.message.lower() for f in findings)
+            self.assertTrue(invalid, f"validator should reject: {body}")
+            self.assertEqual(self._suggest(), prefs.NEUTRAL, f"reader not NEUTRAL for: {body}")
+
+    def test_multiple_blocks_and_oversize_are_neutral(self):
+        self._write_prefs("```json\n{ \"schema\": 1 }\n```\n\n```json\n{ \"schema\": 1 }\n```\n")
+        self.assertEqual(self._suggest(), prefs.NEUTRAL)                      # >1 block
+        big = {"schema": 1, "extra_sensitive_paths": ["a/" * 3000]}
+        self._write_block(json.dumps(big))
+        self.assertEqual(self._suggest(), prefs.NEUTRAL)                      # oversized
+
+    def test_returns_no_raw_json_or_settings(self):
+        # The public shape is exactly four clamped fields — no dict, no get(), no raw block.
+        self._write_block(json.dumps(CANONICAL))
+        s = self._suggest()
+        self.assertIsInstance(s, prefs.Suggestions)
+        self.assertEqual(set(s._fields),
+                         {"review_preset_floor", "require_usage",
+                          "extra_sensitive_paths", "never_stage_extra"})
+        self.assertFalse(hasattr(s, "get"))
+        self.assertFalse(hasattr(s, "keys"))
+        # no field carries a dict / arbitrary parsed object
+        for v in s:
+            self.assertNotIsInstance(v, dict)
+
+    def test_suggestions_are_immutable(self):
+        s = self._suggest()
+        with self.assertRaises(AttributeError):
+            s.require_usage = True            # NamedTuple fields are read-only
+
+    def test_reader_writes_nothing_and_no_council(self):
+        self._write_block(json.dumps(CANONICAL))
+        before = sorted(p.relative_to(self.root).as_posix()
+                        for p in self.root.rglob("*") if p.is_file())
+        self._suggest()
+        after = sorted(p.relative_to(self.root).as_posix()
+                       for p in self.root.rglob("*") if p.is_file())
+        self.assertEqual(before, after)
+        self.assertFalse((self.root / ".council").exists())
+
+    def test_reader_never_reads_local_profile(self):
+        self._write_block(json.dumps(CANONICAL))
+        (self.root / ".council").mkdir()
+        (self.root / ".council" / "profile.json").write_text(
+            '{"default_review_preset": "cheap", "secret": "LEAK_ME"}\n', encoding="utf-8")
+        s = self._suggest()
+        # the local profile is never consulted: canonical (balanced) still yields no floor,
+        # and nothing from the secret file influences the result.
+        self.assertIsNone(s.review_preset_floor)
+        self.assertEqual(s, prefs.effective_suggestions(self.root))   # deterministic, unaffected
+
+    def test_deterministic(self):
+        self._write_block(json.dumps(CANONICAL))
+        self.assertEqual(self._suggest(), self._suggest())
+
+
+class TestRealRepoSuggestions(unittest.TestCase):
+    def test_real_repo_block_is_clamped(self):
+        # The committed PREFERENCES.md sets default_review_preset=balanced (== baseline) -> no
+        # floor; whatever paths/usage it declares are validated tuples/bool. Never raises.
+        s = prefs.effective_suggestions(REPO)
+        self.assertIsInstance(s, prefs.Suggestions)
+        self.assertIn(s.review_preset_floor, (None, "full"))
+        self.assertIsInstance(s.require_usage, bool)
+        self.assertIsInstance(s.extra_sensitive_paths, tuple)
+
+
 class TestNoOutsideImport(unittest.TestCase):
     """Contract: no module outside the doctor path (cli.py) imports backend.preferences —
-    the validator has exactly one consumer (the doctor report), never a behavior path."""
+    the validator/reader has exactly one consumer (cli.py), never a behavior path. This is the
+    allowlist-first scan (plan §5.2): the importer set must equal exactly {"cli.py"}."""
 
     _IMPORT_RE = re.compile(
         r"(from\s+\.\s+import\s+[^\n]*\bpreferences\b"
@@ -264,18 +428,21 @@ class TestNoOutsideImport(unittest.TestCase):
         r"|from\s+backend\s+import\s+[^\n]*\bpreferences\b"
         r"|from\s+backend\.preferences\s+import)")
 
-    def test_only_cli_imports_preferences(self):
+    def test_importer_set_is_exactly_cli(self):
+        # Allowlist-first: scan EVERY backend/*.py (except preferences.py itself) and assert the
+        # set of modules importing backend.preferences is exactly {"cli.py"}. Any new importer
+        # anywhere — a workbench_*, council, providers, guards, mcp_*, context_pack module —
+        # fails the suite by construction (a preference must never reach a behavior/trust path).
         backend = REPO / "backend"
-        offenders = []
+        importers = set()
         for py in backend.glob("*.py"):
-            if py.name in ("preferences.py", "cli.py"):
+            if py.name == "preferences.py":
                 continue
-            text = py.read_text(encoding="utf-8")
-            if self._IMPORT_RE.search(text):
-                offenders.append(py.name)
-        self.assertEqual(offenders, [],
-                         f"backend.preferences must only be imported by the doctor path "
-                         f"(cli.py); found imports in: {offenders}")
+            if self._IMPORT_RE.search(py.read_text(encoding="utf-8")):
+                importers.add(py.name)
+        self.assertEqual(importers, {"cli.py"},
+                         f"backend.preferences importer set must be exactly {{'cli.py'}}; "
+                         f"got: {sorted(importers)}")
 
     def test_cli_does_import_it(self):
         # sanity: the doctor path is the one legitimate consumer.

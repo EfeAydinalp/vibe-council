@@ -131,8 +131,15 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           v0.9.1 review-lenses docs → v0.10.x dissent-preservation sketch → release prep); schema v1
           frozen; `full`-floor = notice-only; CLI-wins precedence; allowlist-first import scan;
           balanced-review adjudication recorded in-plan. Fable stops; Opus/Sonnet implement.
-    - [ ] PRs 1–8 per the plan (v0.9.0 apply keys → v0.9.1 persona-lens docs + sketch; v0.9.2
-          reserved as an optional patch slot).
+    - [x] **PR 1 — clamped preference suggestions reader.** `backend/preferences.py` gains a pure,
+          read-only, fail-closed `effective_suggestions() → Suggestions` (+ `NEUTRAL`): reuses the
+          validator internals; returns clamped tighten-only values only (floor **only strictly above
+          baseline**, re-validated/deduped path tuples, usage bool); any anomaly → `NEUTRAL`; raw JSON
+          never escapes. **No CLI consumer yet — zero behavior change**; allowlist-first import scan
+          (importer set == `{cli.py}`). 19 new tests.
+    - [ ] PRs 2–8 per the plan (v0.9.0: preset floor + `--no-preferences` → usage warn + doctor
+          advisories → isolation tests → release prep; v0.9.1: persona-lens docs + v0.10.x sketch +
+          release prep; v0.9.2 reserved as an optional patch slot).
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
       framework; its own council+Fable line).*
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*

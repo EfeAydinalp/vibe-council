@@ -13,6 +13,23 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.9.0 PR 1 — clamped preference suggestions reader** (per
+  [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §5.2 / §6 PR 1).
+  [`backend/preferences.py`](backend/preferences.py) gains a pure, read-only, fail-closed
+  `effective_suggestions(project_root) → Suggestions` reader plus the `Suggestions` NamedTuple and
+  `NEUTRAL` default. It reuses the existing validator internals (`_extract_json_blocks` /
+  `_validate_object` via a shared `_load_validated_block` pipeline) and returns **clamped tighten-only
+  values only — raw parsed JSON never escapes**: `review_preset_floor` is emitted **only for a preset
+  strictly above the project baseline** (so "lower" is inexpressible and `premium` is unrepresentable),
+  `extra_sensitive_paths` / `never_stage_extra` are re-validated de-duplicated relative-path tuples, and
+  `require_usage` is a plain bool. **Any anomaly** (missing/invalid/oversized/multiple-block/out-of-root/
+  undecodable block, or any validation error) → `NEUTRAL` (per-block fail-closed). **This is the safe
+  substrate only — no command consumes it yet, so there is zero behavior change**: `vibe review` /
+  `vibe diff` / `vibe project doctor` / guide / context-export output is byte-identical, the
+  guard/executor/importer/panel and prompt/ranking/synthesis paths never read it, and the
+  allowlist-first import scan pins the importer set to exactly `{cli.py}`. Read-only (one file,
+  realpath-inside-root), writes nothing, creates/reads no `.council/`, never reads `.council/profile.*`.
+  No schema change (v1 frozen), no persona behavior, no dependency change, no version bump.
 - **v0.9.x Fable architecture plan (planning, docs-only).**
   [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) consumes the
   council-produced v0.9.x planning files and produces the implementable line: **accepts the council's
