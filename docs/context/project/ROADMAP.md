@@ -6,22 +6,31 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.8.x — "Solidify the core, local-first" (v0.8.0 & v0.8.1 released; v0.8.2 prepared).**
-  Architecture:
-  [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md) (9-PR sequence).
-  **v0.8.0** (`vibe init-agent` launcher + localhost-only guard) and **v0.8.1** (capped `RELEASES.md`
-  index + STATUS-trimming workflow) are **released**. **v0.8.2** (tighten-only **JSON** preference
-  **schema v1** — normative [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md)
-  + a bounded block in [`PREFERENCES.md`](./PREFERENCES.md) — plus a **read-only** doctor validator,
-  [`backend/preferences.py`](../../../backend/preferences.py), findings-only; **no application**) is
-  **prepared** (repo reports `0.8.2`; tag/GitHub Release from
-  [`docs/releases/v0.8.2.md`](../../releases/v0.8.2.md) is the remaining manual step). This completes the
-  v0.8.x line; **next version-line moment: v0.9.x — preference *application*** (Fable architecture pass,
-  then Opus/Sonnet). Guide/context-export stay pointer-only; `.council/profile.*` store, named profiles
-  / **council personas** (a future v0.9.x preset of the tighten-only schema values), Workbench UX, and
-  local notifications deferred. **Note:** this v0.8.x line supersedes the older
-  "v0.8 = mobile/LAN/voice" entry in [`docs/fable/04-roadmap.md`](../../fable/04-roadmap.md) — that
-  surface-expanding work is now its own gated security line.
+- **v0.9.x — council planning done; Fable architecture next (docs-only).** The council-led planning
+  round (two `vibe review --preset balanced` passes) produced
+  [`v0.9.x-council-debate.md`](../../fable/v0.9.x-council-debate.md),
+  [`v0.9.x-phase-brief.md`](../../fable/v0.9.x-phase-brief.md), and
+  [`v0.9.x-fable-input.md`](../../fable/v0.9.x-fable-input.md). **Chosen theme: "Apply the proven;
+  describe the personas; defer their behavior."** v0.9.0 *applies* the four mechanically-proven,
+  add-friction-only v0.8.2 preference keys (additive, reversible, override-flagged, guard-authoritative;
+  CLI wins, suggest≠enforce); v0.9.1 *describes* the council personas as **pure documentation** (no
+  schema/validator/behavior) + a v0.10.x dissent-preservation design sketch; v0.9.2 = release prep.
+  **Persona *behavior* deferred to v0.10.x** (dissent-suppression is a new risk class); guide/context
+  export stay pointer-only; `.council/profile.*` store, session/workspace, UI/dashboard, Workbench-UX
+  deferred. **Next:** the Fable architecture pass over the fable-input, then Opus/Sonnet implement.
+
+## Recently completed
+
+- **v0.8.x — "Solidify the core, local-first" (released).**
+  Architecture: [`docs/fable/v0.8.x-architecture-plan.md`](../../fable/v0.8.x-architecture-plan.md).
+  **v0.8.0** (`vibe init-agent` launcher + localhost-only guard), **v0.8.1** (capped `RELEASES.md` index
+  + STATUS-trimming workflow), and **v0.8.2** (tighten-only preference **schema v1** —
+  [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md) + a bounded block in
+  [`PREFERENCES.md`](./PREFERENCES.md) — plus a **read-only, findings-only** doctor validator,
+  [`backend/preferences.py`](../../../backend/preferences.py); **no application**) are all **released**.
+  **Note:** this v0.8.x line supersedes the older "v0.8 = mobile/LAN/voice" entry in
+  [`docs/fable/04-roadmap.md`](../../fable/04-roadmap.md) — that surface-expanding work is now its own
+  gated security line.
 
 ## Recently shipped
 

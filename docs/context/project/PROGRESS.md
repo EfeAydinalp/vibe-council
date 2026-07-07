@@ -113,8 +113,23 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.8.2]` section,
           [`docs/releases/v0.8.2.md`](../../releases/v0.8.2.md), README release status. Release metadata
           + docs only (no code/behavior change). No tag/Release (manual follow-up).
+- [ ] **v0.9.x — "apply the proven; describe the personas; defer their behavior"** *(council planning
+      done; Fable architecture next).* Council-backed planning:
+      [`v0.9.x-council-debate.md`](../../fable/v0.9.x-council-debate.md) +
+      [`v0.9.x-phase-brief.md`](../../fable/v0.9.x-phase-brief.md) +
+      [`v0.9.x-fable-input.md`](../../fable/v0.9.x-fable-input.md). v0.9.0 = apply the four proven
+      tighten-only preference keys (additive/reversible/override-flagged; CLI wins, suggest≠enforce);
+      v0.9.1 = council personas as **pure documentation** (no schema/validator/behavior) + a v0.10.x
+      dissent-preservation design sketch + a v0.9.0 dogfood pass; v0.9.2 = release prep. Persona
+      *behavior* deferred to v0.10.x. **Next: the Fable architecture pass** (architecture + PR breakdown),
+      then Opus/Sonnet implement.
+    - [x] **Council phase brief** (two `vibe review --preset balanced` passes; docs-only). *This PR.*
+    - [ ] Fable architecture plan (`docs/fable/v0.9.x-architecture-plan.md`) — next.
+    - [ ] PRs per Fable's breakdown (v0.9.0 apply keys → v0.9.1 persona docs → v0.9.2 release prep).
+- [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
+      framework; its own council+Fable line).*
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
-- [ ] **v0.9+ — preference application / hosted / team** *(deferred; separate planning).*
+- [ ] **hosted / team** *(deferred; separate planning).*
 
 ## How to update
 
