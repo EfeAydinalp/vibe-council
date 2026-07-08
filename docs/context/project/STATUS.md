@@ -607,9 +607,28 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   boundary; may only *add* scrutiny; can never suppress another lens's dissent or loosen a rule; no
   `.council/profile.*`, no UI). Behavior deferred to v0.10.x+. Adds an `AGENT-ROLES.md` pointer and
   vault/export tests; no code/behavior/schema change.
+- **v0.9.1 PR 7 — v0.10.x dissent-preservation framework design sketch (documentation only).** New
+  [`docs/fable/v0.10.x-dissent-preservation-sketch.md`](../../fable/v0.10.x-dissent-preservation-sketch.md)
+  specifies, **design-only (no implementation)**, the safety framework any future council **persona /
+  review-lens behavior** must satisfy before it could ship: a threat model (reframing bias,
+  emphasis-as-suppression, seat crowd-out, cumulative bias, persona-text-as-injection), how a lens can
+  accidentally suppress dissent, why *"more scrutiny" is not automatically "more safety,"* structural
+  rules (additive collect-stage-only, own-seat-only, ranking/synthesis persona-blind, default-off,
+  trust boundary untouched), content rules, dissent-canary test ideas (a seeded objection must still
+  surface with every persona enabled; injection rejected), observability/audit, override + rollback
+  (CLI wins, per-invocation override, feature-flag default-off, kill-switch), acceptance criteria (a
+  merge gate), an honest feasibility verdict (**partly a research problem** — reframing bias is not
+  fully catchable by output-diff tests), open research questions, and stop conditions that force a full
+  council review. [`council-review-lenses.md`](../../fable/council-review-lenses.md) now points at the
+  sketch. Persona/lens behavior, `.council/profile.*`, UI, network, and any `schema: 2` stay deferred;
+  no prompt/ranking/synthesis, preference reader/validator, review/diff/doctor, guide/context-export,
+  or Workbench/executor/guard/trust change. Adds vault + export tests. Implemented by Opus/Sonnet
+  (Fable not used). Balanced review (~$0.26): conditional approval — the design is sound; in-scope
+  lifecycle/cancellation-disclosure notes were folded in, persona-behavior implementation declined as
+  out of scope for a docs PR.
 - **Current focus:** **v0.8.x + v0.9.0 released; v0.9.1 in progress.** The v0.9.0 apply-the-proven line
-  is complete and released (tag + GitHub Release live). v0.9.1 PR 6 (review-lens docs) is done; next is
-  PR 7 (the v0.10.x dissent-preservation design sketch, balanced) then PR 8 (v0.9.1 release prep) per
+  is complete and released (tag + GitHub Release live). v0.9.1 PR 6 (review-lens docs) and PR 7 (the
+  v0.10.x dissent-preservation design sketch) are done; next is PR 8 (v0.9.1 release prep) per
   [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6. No new network endpoint.
   Deferred: persona **behavior** / persona schema / persona UI (v0.10.x, with the PR 7 sketch as
   input), `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team (v0.9+).

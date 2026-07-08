@@ -203,6 +203,16 @@ class TestAgentExportProfilePointers(unittest.TestCase):
             text = self._export(agent)
             self.assertNotIn(needle, text, f"{agent}: inlined a review-lens body")
 
+    def test_does_not_inline_dissent_sketch_body(self):
+        # v0.9.1 PR 7: the v0.10.x dissent-preservation sketch is docs-only in docs/fable/; the export
+        # stays pointer-only and must never inline the sketch body.
+        needle = "a seeded canary objection must still surface verbatim"   # distinctive sketch-body phrase
+        sketch = (REPO / "docs/fable/v0.10.x-dissent-preservation-sketch.md").read_text(encoding="utf-8")
+        self.assertIn(needle, sketch)                                # sanity
+        for agent in ("claude", "codex", "fable"):
+            text = self._export(agent)
+            self.assertNotIn(needle, text, f"{agent}: inlined the dissent-preservation sketch body")
+
     # --- v0.7.1 PR 3 invariant locks -------------------------------------- #
 
     def _profile_section(self, text):

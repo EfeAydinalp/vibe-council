@@ -448,8 +448,18 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   a binding safety envelope (a lens is a reviewer's mental lens, not a command; never changes
   prompts/ranking/synthesis, the preference system, guide/export, or the Workbench/trust boundary; may
   only *add* scrutiny; can never suppress dissent or loosen a rule; no `.council/profile.*`, no UI).
-  Persona/lens **behavior** is deferred to v0.10.x+ behind the dissent-preservation framework. Next: PR
-  7 (the v0.10.x dissent-preservation design sketch) → PR 8 (v0.9.1 release prep).
+  Persona/lens **behavior** is deferred to v0.10.x+ behind the dissent-preservation framework.
+  **v0.9.1 PR 7 has landed (docs only):** [`docs/fable/v0.10.x-dissent-preservation-sketch.md`](../fable/v0.10.x-dissent-preservation-sketch.md)
+  is the **design-only (no implementation)** framework any future persona/lens *behavior* must satisfy
+  before it could ship — threat model (reframing bias, emphasis-as-suppression, seat crowd-out,
+  persona-text-as-injection), how a lens can accidentally suppress dissent, why *"more scrutiny" is not
+  automatically "more safety,"* structural rules (additive collect-stage-only, own-seat-only, ranking/
+  synthesis persona-blind, default-off, trust boundary untouched), content rules, dissent-canary tests,
+  observability, override + rollback (CLI wins, feature-flag default-off, kill-switch), acceptance
+  criteria, and an honest feasibility verdict (partly a research problem). The lens doc links it;
+  persona behavior, `.council/profile.*`, UI, network, and any `schema: 2` stay deferred; no
+  prompt/ranking/synthesis, preference, review/diff/doctor, guide/export, or Workbench/trust change.
+  Next: PR 8 (v0.9.1 release prep).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

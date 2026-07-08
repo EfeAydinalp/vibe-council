@@ -628,5 +628,136 @@ class TestContextPackDoesNotLeakPrivatePlans(unittest.TestCase):
         self.assertNotIn(needle, res.text, "context pack ingested RELEASES.md body content")
 
 
+class TestDissentPreservationSketch(unittest.TestCase):
+    """v0.9.1 PR 7 — the v0.10.x dissent-preservation framework design sketch (docs only).
+
+    Locks that the sketch exists, is framed design-only (no implementation), covers every
+    required section (threat model, structural/content rules, dissent-canary tests,
+    observability, rollback, acceptance criteria, stop conditions, feasibility verdict),
+    forbids dissent/minority suppression and hidden prompt/ranking/synthesis change, keeps the
+    Workbench/executor/guard/trust boundary and `.council/profile.*` deferred, and is linked
+    from the lens doc. NO production behavior — this is a docs PR.
+    """
+
+    SKETCH = REPO / "docs" / "fable" / "v0.10.x-dissent-preservation-sketch.md"
+    LENS_DOC = REPO / "docs" / "fable" / "council-review-lenses.md"
+    # a phrase that lives ONLY in the sketch body (used for the pack no-ingest check).
+    _BODY_NEEDLE = "a seeded canary objection must still surface verbatim"
+
+    def _doc(self):
+        return self.SKETCH.read_text(encoding="utf-8")
+
+    def test_sketch_exists_and_is_markdown(self):
+        self.assertTrue(self.SKETCH.is_file(),
+                        "missing docs/fable/v0.10.x-dissent-preservation-sketch.md")
+        text = self._doc()
+        self.assertTrue(text.lstrip().startswith("#"))
+        self.assertIn("dissent-preservation", text.lower())
+        # sanity: the body needle used by the pack test really is in the doc.
+        self.assertIn(self._BODY_NEEDLE, text)
+
+    def test_framing_is_design_only_not_implemented(self):
+        low = self._doc().lower()
+        self.assertIn("design only", low)
+        self.assertIn("no implementation", low)
+        # persona/lens behavior is explicitly not built yet
+        self.assertTrue("not implemented yet" in low or "is not implemented" in low)
+        self.assertIn("deferred to v0.10.x", low)
+        self.assertIn("subject to change", low)
+
+    def test_covers_all_required_sections(self):
+        low = self._doc().lower()
+        for token in ("threat model", "structural rules", "content rules", "dissent-canary",
+                      "observability", "rollback", "acceptance criteria", "stop conditions",
+                      "feasibility verdict"):
+            self.assertIn(token, low, f"sketch missing required section: {token}")
+
+    def test_names_threat_model_items(self):
+        low = self._doc().lower()
+        for token in ("reframing bias", "emphasis-as-suppression", "seat crowd-out",
+                      "persona-text-as-injection"):
+            self.assertIn(token, low, f"threat model missing: {token}")
+
+    def test_states_more_scrutiny_is_not_more_safety(self):
+        low = self._doc().lower()
+        self.assertIn("more scrutiny", low)
+        self.assertIn("more safety", low)
+
+    def test_forbids_suppressing_dissent_and_minority(self):
+        low = self._doc().lower()
+        self.assertIn("dissent", low)
+        self.assertIn("minority", low)
+        self.assertIn("suppress", low)
+        self.assertIn("never", low)
+        # dissent preservation is stated as non-negotiable / a hard principle
+        self.assertTrue("dissent preservation" in low or "preserve" in low)
+
+    def test_forbids_hidden_prompt_ranking_synthesis_change(self):
+        low = self._doc().lower()
+        for token in ("prompt", "ranking", "synthesis"):
+            self.assertIn(token, low, f"sketch must name: {token}")
+        # no *silent*/hidden mutation of prompts or ranking/synthesis
+        self.assertTrue("silent" in low or "hidden" in low)
+        self.assertIn("persona-blind", low)   # ranking & synthesis stay persona-blind
+
+    def test_forbids_workbench_executor_guard_trust_change(self):
+        low = self._doc().lower()
+        for token in ("executor", "trust", "guard", "workbench"):
+            self.assertIn(token, low, f"sketch must name the boundary: {token}")
+        # the trust boundary/executor stay persona-blind / untouched
+        self.assertTrue("untouched" in low or "persona-blind" in low or "unchanged" in low)
+
+    def test_keeps_local_profile_store_deferred(self):
+        text = self._doc()
+        low = text.lower()
+        self.assertIn(".council/profile.*", text)   # glob form, never a concrete filename
+        self.assertIn("defer", low)                  # deferred / defers
+        # no UI/dashboard and no network surface introduced by the sketch
+        self.assertTrue("ui" in low or "dashboard" in low)
+
+    def test_feasibility_verdict_is_honest(self):
+        low = self._doc().lower()
+        self.assertIn("feasibility verdict", low)
+        # an honest verdict allows "this may be a research problem"
+        self.assertIn("research problem", low)
+
+    def test_override_and_rollback_rules_present(self):
+        low = self._doc().lower()
+        self.assertTrue("cli wins" in low or "cli choice always wins" in low
+                        or "explicit user / cli choice always wins" in low)
+        self.assertIn("default-off", low)
+        self.assertTrue("kill-switch" in low or "reversible" in low or "disable-able" in low)
+
+    def test_no_schema_v2_in_this_pr(self):
+        low = self._doc().lower()
+        # schema v2 stays deferred / not implemented here
+        self.assertIn("schema: 2", low)
+        self.assertTrue("deferred" in low or "not decided here" in low or "no `schema: 2`" in low
+                        or "no schema: 2" in low)
+
+    def test_lens_doc_links_the_sketch(self):
+        lens = self.LENS_DOC.read_text(encoding="utf-8")
+        self.assertIn("v0.10.x-dissent-preservation-sketch.md", lens,
+                      "council-review-lenses.md must link the dissent-preservation sketch")
+
+    def test_sketch_names_absent_from_backend_code(self):
+        # Design-only: no production module may hardcode a persona/lens behavior hook from this
+        # sketch. Tripwire — the distinctive body needle must never appear in backend code.
+        backend = REPO / "backend"
+        offenders = [py.name for py in backend.glob("*.py")
+                     if self._BODY_NEEDLE in py.read_text(encoding="utf-8")]
+        self.assertEqual(offenders, [],
+                         f"dissent-sketch body must not appear in backend code (docs-only): {offenders}")
+
+    def test_pack_does_not_ingest_sketch_content(self):
+        # The pack is built from STATUS.md + decisions only; a distinctive sketch-body phrase must
+        # never reach it (STATUS deliberately avoids that exact phrase).
+        self.assertNotIn(self._BODY_NEEDLE, _read("STATUS.md"))
+        ddir = REPO / "docs" / "decisions"
+        status = VAULT / "STATUS.md"
+        res = cp.build_pack(ddir, status, on="2026-07-04T00:00:00Z")
+        self.assertNotIn(self._BODY_NEEDLE, res.text, "context pack ingested dissent-sketch content")
+
+
 if __name__ == "__main__":
     unittest.main()

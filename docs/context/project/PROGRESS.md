@@ -166,8 +166,15 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           documentation-only with a binding safety envelope (not applied/schema/validated; dissent-
           preservation; tighten-only; no `.council/profile.*`/UI; behavior deferred to v0.10.x).
           `AGENT-ROLES.md` pointer + vault/export tests. No code/behavior/schema change.
-    - [ ] PR 7 (v0.10.x dissent-preservation design sketch) → PR 8 (v0.9.1 release prep); v0.9.2
-          reserved as an optional patch slot.
+    - [x] **PR 7 — v0.10.x dissent-preservation framework design sketch (documentation only).** New
+          [`docs/fable/v0.10.x-dissent-preservation-sketch.md`](../../fable/v0.10.x-dissent-preservation-sketch.md):
+          **design-only (no implementation)** framework any future persona/lens *behavior* must meet —
+          threat model, structural rules, content rules, dissent-canary tests, observability, override/
+          rollback, acceptance criteria, feasibility verdict (partly a research problem), stop
+          conditions. Lens doc links it; persona behavior / `.council/profile.*` / UI / `schema: 2`
+          stay deferred; no prompt/ranking/synthesis/preference/Workbench/trust change. Vault + export
+          tests. No code/behavior/schema change.
+    - [ ] PR 8 (v0.9.1 release prep); v0.9.2 reserved as an optional patch slot.
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
       framework; its own council+Fable line).*
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*

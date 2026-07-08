@@ -47,7 +47,17 @@ Concise and current; retire an entry when it no longer applies. No secrets or pr
   council opinions**); guide and context-export stay **pointer-only** (never inline the block); personas
   are a future v0.9.x preset of the same tighten-only values, never a policy override. Treat any new
   consumer of `backend.preferences`, or any code path that routes a parsed preference/persona into a
-  command's logic, as a review flag.
+  command's logic, as a review flag. **Dissent suppression is the specific new risk class for any
+  future persona/lens *behavior*** — a lens can quietly narrow a seat's attention (reframing bias) so a
+  dissenting finding never forms, without touching ranking or synthesis. No persona behavior exists yet
+  (deferred to v0.10.x+); before any ships it must satisfy the design-only framework in
+  [`docs/fable/v0.10.x-dissent-preservation-sketch.md`](../../fable/v0.10.x-dissent-preservation-sketch.md)
+  (threat model, structural/content rules, dissent-canary merge-gate tests, observability, override/
+  rollback, acceptance criteria, feasibility verdict). Treat any persona text reaching the ranking/
+  synthesis stage, any on-by-default persona, or any lens that could downrank/hide a minority opinion
+  as a stop condition requiring full council review. If dissent-preservation proves infeasible in
+  prototyping, persona/lens **behavior may be canceled — not merely deferred**; passing the sketch's
+  doc tests is not proof the reframing-bias problem is solved.
 - **Hosted / network scope creep.** The Workbench is localhost-only; agent intake is file/CLI only
   (no network endpoint). Do not add LAN/mobile/hosted surface outside an explicitly-scoped phase.
   `tests/test_localhost_guard.py` **locks** this: the panel binds loopback only, and **no module

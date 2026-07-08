@@ -7,7 +7,8 @@
 > synthesis, model/provider selection, the guide/context-export output, or the Workbench trust/executor
 > boundary. Behavior/application is **deferred to v0.10.x or later**, and only behind the
 > dissent-preservation framework designed in
-> [`v0.10.x-dissent-preservation-sketch.md`](v0.10.x-dissent-preservation-sketch.md) (planned).
+> [`v0.10.x-dissent-preservation-sketch.md`](v0.10.x-dissent-preservation-sketch.md) (this sketch now
+> exists — design only, no implementation).
 
 ## What a "review lens" is
 
@@ -102,8 +103,10 @@ This page is **documentation for humans and agents in v0.9.1** — a shared voca
 **No lens is defined as behavior, parsed, selected, or applied.** Turning any lens into runtime behavior
 (prompt emphasis, a `--lens`/`--persona` flag, a preset object) is a **v0.10.x-or-later** decision that
 must land behind the dissent-preservation framework (its acceptance criteria, adversarial dissent tests,
-and content rules) — see the planned
-[`v0.10.x-dissent-preservation-sketch.md`](v0.10.x-dissent-preservation-sketch.md). Until then, a lens is
+and content rules) — see the
+[`v0.10.x-dissent-preservation-sketch.md`](v0.10.x-dissent-preservation-sketch.md) design sketch (design
+only, no implementation; threat model → structural rules → content rules → dissent-canary tests →
+observability → override/rollback → acceptance criteria → feasibility verdict). Until then, a lens is
 only a way of reading. Pointers: the vault [`AGENT-ROLES.md`](../context/project/AGENT-ROLES.md) (roles
 are advice, not runtime override) and [`PREFERENCES.md`](../context/project/PREFERENCES.md) (the
 tighten-only preference model these lenses would one day preset, unchanged here).
