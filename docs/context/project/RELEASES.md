@@ -25,6 +25,7 @@ deterministic, and local — see [`WORKFLOWS.md`](./WORKFLOWS.md) → "Trimming 
 
 ## Releases (newest first)
 
+- **v0.9.0** — Apply the proven preferences: review/diff preset floor + `--no-preferences`, usage & doctor advisories (tighten-only, advisory; no persona behavior) — [notes](../../releases/v0.9.0.md)
 - **v0.8.2** — Preference schema v1 + read-only doctor validator (findings-only, no application) — [notes](../../releases/v0.8.2.md)
 - **v0.8.1** — Vault polish: capped release-history index + STATUS-trimming workflow — [notes](../../releases/v0.8.1.md)
 - **v0.8.0** — Agent onboarding launcher (`vibe init-agent` + localhost guard) — [notes](../../releases/v0.8.0.md)

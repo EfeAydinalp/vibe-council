@@ -6,18 +6,19 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.9.x — council planning done; Fable architecture next (docs-only).** The council-led planning
-  round (two `vibe review --preset balanced` passes) produced
-  [`v0.9.x-council-debate.md`](../../fable/v0.9.x-council-debate.md),
-  [`v0.9.x-phase-brief.md`](../../fable/v0.9.x-phase-brief.md), and
-  [`v0.9.x-fable-input.md`](../../fable/v0.9.x-fable-input.md). **Chosen theme: "Apply the proven;
-  describe the personas; defer their behavior."** v0.9.0 *applies* the four mechanically-proven,
-  add-friction-only v0.8.2 preference keys (additive, reversible, override-flagged, guard-authoritative;
-  CLI wins, suggest≠enforce); v0.9.1 *describes* the council personas as **pure documentation** (no
-  schema/validator/behavior) + a v0.10.x dissent-preservation design sketch; v0.9.2 = release prep.
-  **Persona *behavior* deferred to v0.10.x** (dissent-suppression is a new risk class); guide/context
-  export stay pointer-only; `.council/profile.*` store, session/workspace, UI/dashboard, Workbench-UX
-  deferred. **Next:** the Fable architecture pass over the fable-input, then Opus/Sonnet implement.
+- **v0.9.x — "Apply the proven; describe the personas; defer their behavior" (v0.9.0 prepared; v0.9.1
+  next).** Council-backed + Fable-architected planning
+  ([`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md)). **v0.9.0** *applies* the
+  four mechanically-proven, add-friction-only v0.8.2 preference keys in **bounded, advisory,
+  tighten-only** ways — a review/diff preset floor + `--no-preferences`, a usage-flag warning, and
+  doctor staged-path advisories (CLI wins, suggest≠enforce; guard/executor/Workbench/prompt/ranking/
+  synthesis stay preference-blind, locked by tests) — and is **prepared** (repo reports `0.9.0`;
+  tag/GitHub Release from [`docs/releases/v0.9.0.md`](../../releases/v0.9.0.md) is the remaining manual
+  step). **Next: v0.9.1** — the council **review lenses** as pure documentation (Security Guardian,
+  Cost Skeptic, Local-first Guardian + stubs; no schema/validator/behavior) + the **v0.10.x
+  dissent-preservation design sketch** + a v0.9.0 dogfood pass. **Persona *behavior* deferred to
+  v0.10.x** (dissent-suppression is a new risk class); guide/context export stay pointer-only;
+  `.council/profile.*` store, session/workspace, UI/dashboard, Workbench-UX deferred.
 
 ## Recently completed
 

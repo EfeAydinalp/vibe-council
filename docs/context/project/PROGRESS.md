@@ -113,8 +113,8 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.8.2]` section,
           [`docs/releases/v0.8.2.md`](../../releases/v0.8.2.md), README release status. Release metadata
           + docs only (no code/behavior change). No tag/Release (manual follow-up).
-- [ ] **v0.9.x — "apply the proven; describe the personas; defer their behavior"** *(council planning
-      done; Fable architecture next).* Council-backed planning:
+- [ ] **v0.9.x — "apply the proven; describe the personas; defer their behavior"** *(v0.9.0 prepared as
+      a release; v0.9.1 next).* Council-backed planning:
       [`v0.9.x-council-debate.md`](../../fable/v0.9.x-council-debate.md) +
       [`v0.9.x-phase-brief.md`](../../fable/v0.9.x-phase-brief.md) +
       [`v0.9.x-fable-input.md`](../../fable/v0.9.x-fable-input.md). v0.9.0 = apply the four proven
@@ -156,8 +156,12 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `context_pack` proven clean), trust + executor byte-identity with/without a maximal block,
           guide/export pointer-only tripwires, doctor READY stability, pack 21/21 + no-ingest, no
           `.council/profile.*`. No production change.
-    - [ ] PR 5 (v0.9.0 release prep) → v0.9.1 (persona-lens docs + v0.10.x sketch + release prep);
-          v0.9.2 reserved as an optional patch slot.
+    - [x] **PR 5 — v0.9.0 release prep.** Version → `0.9.0` (`backend/__init__.py`/`pyproject.toml`/
+          `uv.lock` self-version), dated `CHANGELOG.md` `[0.9.0]` section,
+          [`docs/releases/v0.9.0.md`](../../releases/v0.9.0.md), README release status. Release metadata
+          + docs only (no code/behavior change). No tag/Release (manual follow-up).
+    - [ ] v0.9.1 (council review-lens docs + v0.10.x dissent-preservation sketch + dogfood); v0.9.2
+          reserved as an optional patch slot.
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
       framework; its own council+Fable line).*
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*

@@ -435,7 +435,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   forbidden-surface list of all `workbench_*`/`council`/providers/`guards`/`mcp_*`/`context_pack` proven
   clean), trust + executor **byte-identity** with/without a maximal block, guide/export pointer-only
   tripwires, doctor READY stability, pack 21/21 + no-ingest, and no `.council/profile.*`. A future
-  consumer of preferences outside `cli.py` fails the suite. Next: PR 5 (v0.9.0 release prep).
+  consumer of preferences outside `cli.py` fails the suite.
+  **v0.9.0 PR 5 (release prep) is prepared:** version → `0.9.0`
+  (`backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version, one line, no dependency-graph change),
+  dated `CHANGELOG.md` `[0.9.0]` section, [`docs/releases/v0.9.0.md`](../releases/v0.9.0.md), README
+  release status → v0.9.0. Release metadata + docs only; no code/behavior/preference change. **No tag /
+  GitHub Release** in the PR — a separate manual step once it merges. **v0.9.0 completes the
+  apply-the-proven line.** Next version-line work: **v0.9.1** (council review-lens docs + v0.10.x
+  dissent-preservation sketch + dogfood).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

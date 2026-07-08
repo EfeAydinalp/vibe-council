@@ -591,13 +591,22 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   executor dry-run with/without a maximal block, guide/context-export pointer-only tripwires, doctor
   READY stability across block states, pack 21/21 + no schema ingestion, and no `.council/profile.*`
   read/create. A future consumer of preferences anywhere outside `cli.py` fails the suite.
-- **Current focus:** **v0.8.x complete/released; v0.9.0 implementation in progress.** PRs 1 (reader),
-  2 (preset floor + `--no-preferences`), 3 (usage warning + doctor advisories), and 4 (isolation
-  lock-in tests) are done — all four proven keys applied advisory/tighten-only, with the boundary
-  locked. Next is PR 5 (v0.9.0 release prep, cheap) per
-  [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6. No new network endpoint.
-  Deferred: persona behavior / persona schema / persona UI (v0.10.x, with the PR 7 dissent-preservation
-  sketch as input), `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team (v0.9+).
+- **v0.9.0 PR 5 — v0.9.0 release prep (in progress).** `backend/__init__.py`/`pyproject.toml` now
+  report `0.9.0`; `uv.lock`'s self-version synced to match (one line, no dependency-graph change).
+  `CHANGELOG.md` gained a dated `[0.9.0]` section (folding the PR 1–4 + planning entries) and
+  [`docs/releases/v0.9.0.md`](../../releases/v0.9.0.md) bundles the apply-the-proven-keys slice as the
+  "apply the proven preferences (tighten-only, advisory)" release. README release status → v0.9.0.
+  Release metadata + docs only; no code/behavior change, no preference-behavior change, no new command,
+  no dependency change. **No tag / GitHub Release** in the PR — a separate manual step once it merges.
+- **Current focus:** **v0.8.x released; v0.9.0 prepared, not yet tagged.** The v0.9.0 apply-the-proven
+  line is complete: PRs 1 (reader), 2 (preset floor + `--no-preferences`), 3 (usage warning + doctor
+  advisories), 4 (isolation lock-in tests), and 5 (release prep) — all four proven keys applied
+  advisory/tighten-only with the boundary locked. Next is the manual tag/GitHub Release step, then
+  v0.9.1 (council **review lenses** as pure documentation + the v0.10.x dissent-preservation sketch +
+  dogfood) per [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6. No new
+  network endpoint. Deferred: persona **behavior** / persona schema / persona UI (v0.10.x, with the PR
+  7 sketch as input), `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team
+  (v0.9+).
 
 ## Next actions
 
