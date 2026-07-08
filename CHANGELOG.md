@@ -13,6 +13,25 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.9.0 PR 2 — apply the preference review-preset floor to `review`/`diff` + `--no-preferences`**
+  (per [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §5.1/§5.3 /
+  §6 PR 2). The **first bounded preference application**: `vibe review` and `vibe diff` now resolve
+  their model preset through a tiny `_resolve_preset` helper that consults the clamped
+  `effective_suggestions()` reader — **tighten-only and CLI-first**. Precedence (highest wins): an
+  explicit `--preset` (CLI always wins) → the new `--no-preferences` escape hatch (baseline,
+  byte-identical to pre-v0.9.0) → a validated PREFERENCES.md preset **floor** (can only *raise* toward
+  more review, never lower, never `premium`) → the project baseline (`DEFAULT_PRESET`). Because the
+  baseline is already `balanced` (the strongest non-premium preset), the only observable effect today
+  is that a `default_review_preset: "full"` block prints **one pinned stderr notice** — *"consider
+  'vibe full' for this review"* — and **leaves the preset at the baseline** (`full` is a council
+  **mode**, not a `--preset` value; nothing is silently reinterpreted). The `--preset` argparse default
+  became a sentinel (`None`) so an explicit choice is distinguishable from the default; `args.preset` is
+  reassigned the resolved value so every downstream use is unchanged. **Scope is exactly review/diff
+  preset resolution** — `extract`/`mini`/`full` modes never consult preferences; the `require_usage_flag`
+  warning, `extra_sensitive_paths`/`never_stage_extra` doctor advisories are later PRs; no prompt/
+  ranking/synthesis/guard/executor/Workbench/guide/context-export change; raw JSON never escapes; no
+  `.council/profile.*` read/created; the importer set stays exactly `{cli.py}`; no dependency change, no
+  version bump.
 - **v0.9.0 PR 1 — clamped preference suggestions reader** (per
   [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §5.2 / §6 PR 1).
   [`backend/preferences.py`](backend/preferences.py) gains a pure, read-only, fail-closed

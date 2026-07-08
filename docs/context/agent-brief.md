@@ -411,8 +411,17 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   fail-closed `effective_suggestions() → Suggestions` reader (+ `NEUTRAL`) — clamped tighten-only
   values only (floor **only strictly above the baseline preset**, re-validated/deduped path tuples,
   usage bool), any anomaly → `NEUTRAL`, raw JSON never escapes. **No CLI consumer yet — zero behavior
-  change** (review/diff/doctor/guide/export byte-identical; importer set pinned to `{cli.py}`). Next:
-  PR 2 applies the review/diff preset floor + `--no-preferences`.
+  change** (review/diff/doctor/guide/export byte-identical; importer set pinned to `{cli.py}`).
+  **v0.9.0 PR 2 has landed (first bounded application):** `backend/cli.py` gained `_resolve_preset`
+  (+ a pinned full-floor stderr notice); `--preset` default is now a `None` sentinel and
+  `--no-preferences` was added. **`vibe review`/`vibe diff` only** resolve their preset through the
+  clamped `effective_suggestions()` floor — **tighten-only, CLI-first** (explicit `--preset` wins →
+  `--no-preferences` → floor raise-only, never lowers/`premium` → `DEFAULT_PRESET`). Since the baseline
+  is already `balanced`, the only observable delta is that a `default_review_preset: "full"` block
+  prints one stderr notice recommending `vibe full` (a council **mode**, not a preset) and leaves the
+  preset at baseline. `extract`/`mini`/`full` never consult preferences; raw JSON never escapes; no
+  prompt/guard/executor/guide/export change. Next: PR 3 (`require_usage_flag` warning + doctor advisory
+  staged-path warns).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

@@ -562,9 +562,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   — zero behavior change** (review/diff/doctor/guide/export byte-identical); the allowlist-first import
   scan pins the importer set to exactly `{cli.py}`. No schema change, no persona behavior, no
   `.council/profile.*`, no dependency change.
-- **Current focus:** **v0.8.x complete/released; v0.9.0 implementation started.** PR 1 (reader) is
-  done; next is PR 2 (apply the review/diff preset floor + `--no-preferences`, balanced review) per
-  [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6, then PRs 3–5. No new
+- **v0.9.0 PR 2 landed — review/diff preset floor + `--no-preferences` (first bounded application).**
+  [`backend/cli.py`](../../../backend/cli.py) gained `_resolve_preset` (+ the pinned
+  `_PREF_FULL_FLOOR_NOTICE`); `--preset` default is now a `None` sentinel and `--no-preferences` was
+  added to the shared guard parser. **`vibe review`/`vibe diff` only** resolve their preset through the
+  clamped `effective_suggestions()` floor — **tighten-only, CLI-first**: explicit `--preset` wins →
+  `--no-preferences` → floor (raise-only, never lowers, never `premium`) → baseline. With the baseline
+  already `balanced`, the sole observable delta is that a `default_review_preset: "full"` block prints
+  **one stderr notice** recommending `vibe full` (a council **mode**, not a preset) and leaves the
+  preset at baseline. `extract`/`mini`/`full` never consult preferences; raw JSON never escapes; no
+  prompt/ranking/synthesis/guard/executor/Workbench/guide/export change; importer set stays `{cli.py}`;
+  no `.council/profile.*`, no dependency change.
+- **Current focus:** **v0.8.x complete/released; v0.9.0 implementation in progress.** PRs 1 (reader) +
+  2 (review/diff preset floor + `--no-preferences`) are done; next is PR 3 (the usage-flag warning +
+  doctor advisory staged-path warns, balanced) per
+  [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6, then PRs 4–5. No new
   network endpoint. Deferred: persona behavior / persona schema / persona UI (v0.10.x, with the PR 7
   dissent-preservation sketch as input), `.council/profile.*` store, mobile/LAN/voice (own gated
   line), hosted/team (v0.9+).
