@@ -5,11 +5,25 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.8.2` is prepared. The repo reports `0.8.2`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.8.2` git tag + GitHub Release are cut by a
+> **Status:** `0.9.0` is prepared. The repo reports `0.9.0`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.9.0` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+_Nothing yet. Post-0.9.0 changes will be listed here as normal Keep-a-Changelog deltas
+(Added / Changed / Fixed / Removed)._
+
+## [0.9.0] - 2026-07-08
+
+**Apply the proven preferences (tighten-only, advisory).** Opens the v0.9.x line
+(council-backed + Fable-architected planning). v0.8.2 *defined and validated* the tighten-only
+preference schema; v0.9.0 finally *applies* it — but only the four mechanically-proven, add-friction-
+only keys, and only in **bounded, advisory, tighten-only** ways (review/diff preset floor +
+`--no-preferences`, a usage-flag warning, and doctor staged-path advisories). The guard/executor/
+Workbench/trust and the council prompt/ranking/synthesis paths stay **completely preference-blind**
+(locked by tests). No named-persona behavior, no new command, no new dependency. See
+[`docs/releases/v0.9.0.md`](docs/releases/v0.9.0.md).
 
 ### Added
 
@@ -112,6 +126,13 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
   does not cover); guide/context export stay pointer-only; `.council/profile.*` store, session/workspace,
   UI/dashboard, and Workbench-UX stay deferred. **No code/behavior change, no persona/council behavior
   application, no dependency change, no version bump** — planning docs only; Fable is not run yet.
+
+### Changed
+
+- **Release metadata → `0.9.0`.** `backend/__init__.py` / `pyproject.toml` report `0.9.0`; `uv.lock`'s
+  `vibe-council` self-version entry synced to match (one line, **no dependency-graph change**). Added
+  [`docs/releases/v0.9.0.md`](docs/releases/v0.9.0.md); README release status → v0.9.0. No tag / GitHub
+  Release in this PR — those are a separate manual step once it merges.
 
 ## [0.8.2] - 2026-07-07
 

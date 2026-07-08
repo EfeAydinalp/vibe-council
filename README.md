@@ -730,22 +730,23 @@ vibe lint --redaction                             # scan public docs for leaks
 vibe operator status                              # show local workflow status
 ```
 
-**Release status:** **v0.8.2 — preference schema v1 + read-only doctor validator.** The repo reports
-`0.8.2`; the `v0.8.2` git tag and GitHub Release are cut by a maintainer right after the release PR
-merges. The **preference-control** slice of the v0.8.x "**Solidify the core, local-first**" line — the
-"auditable before executable" gate. It adds a normative, **tighten-only preference schema v1**
-([`docs/fable/preference-schema-v1.md`](docs/fable/preference-schema-v1.md); a bounded fenced `json`
-block in [`docs/context/project/PREFERENCES.md`](docs/context/project/PREFERENCES.md) with
-`schema: 1` + `default_review_preset` / `extra_sensitive_paths` / `never_stage_extra` /
-`require_usage_flag`) and a **read-only validator** ([`backend/preferences.py`](backend/preferences.py))
-folded into `vibe project doctor` as an advisory `Preferences (machine-readable, advisory):` section
-(valid → ok, missing → note, invalid → warn/ignored; **READY/exit code unchanged**). The validator is
-**findings-only** and fail-closed (stdlib `json` only, 4096-byte cap, key allowlist, unsafe/absolute/
-`..`/symlink-escape paths rejected). The schema is **defined and validated but never applied** — **no
-preference influences any behavior**, council **personas** (Cost Skeptic, Security Guardian, …) are an
-illustrative **future v0.9.x** direction, not v1 fields. No new command, no `.council/profile.*` store,
-no guide/context-export or Workbench change, no new dependency (see
-[`docs/releases/v0.8.2.md`](docs/releases/v0.8.2.md)). It builds on **v0.8.1 — vault polish** (the
+**Release status:** **v0.9.0 — apply the proven preferences (tighten-only, advisory).** The repo reports
+`0.9.0`; the `v0.9.0` git tag and GitHub Release are cut by a maintainer right after the release PR
+merges. Opening the v0.9.x line (**"Apply the proven; describe the personas; defer their behavior"**),
+it finally *applies* the four mechanically-proven v0.8.2 preference keys — but only in **bounded,
+advisory, tighten-only** ways. A clamped, fail-closed `effective_suggestions()` reader
+([`backend/preferences.py`](backend/preferences.py); raw JSON never escapes) feeds: a **review/diff
+preset floor** (explicit `--preset` always wins; a preference can only *raise* toward more review, never
+lower, never `premium`; `full` is **notice-only** — a council **mode**, not a `--preset` value) plus a
+new **`--no-preferences`** escape hatch; an advisory **usage-flag warning** (never adds `--usage`, never
+fails); and **doctor staged-path advisories** for `never_stage_extra`/`extra_sensitive_paths` (capped,
+`READY`/exit code unchanged). The guard/executor/Workbench/trust and the council prompt/ranking/synthesis
+paths stay **completely preference-blind** — locked by a static import scan + trust/executor
+byte-identity tests; guide/context-export stay pointer-only; no `.council/profile.*` store. **No
+named-persona behavior**, no prompt emphasis, no new command, no new dependency (see
+[`docs/releases/v0.9.0.md`](docs/releases/v0.9.0.md)). It builds on **v0.8.2 — preference schema v1 +
+read-only doctor validator** (the "auditable before executable" gate that *defined and validated* the
+schema; see [`docs/releases/v0.8.2.md`](docs/releases/v0.8.2.md)), **v0.8.1 — vault polish** (the
 capped [`docs/context/project/RELEASES.md`](docs/context/project/RELEASES.md) release-history index +
 STATUS-trimming workflow, docs + tests only) and **v0.8.0 — the agent onboarding
 launcher (`vibe init-agent`)**, which opened the line (council-backed + Fable-architected planning) by
@@ -763,7 +764,8 @@ panel hardening remain in force, and the underlying Workbench model is unchanged
 visible stages, an audited approval gates it, and an approved bounded file action or exact allowlisted
 command can be explicitly executed — approving never auto-executes, and the deterministic trust
 boundary re-runs at execution time. See [`CHANGELOG.md`](CHANGELOG.md) and
-[`docs/releases/v0.8.2.md`](docs/releases/v0.8.2.md) for the notes (v0.8.1:
+[`docs/releases/v0.9.0.md`](docs/releases/v0.9.0.md) for the notes (v0.8.2:
+[`docs/releases/v0.8.2.md`](docs/releases/v0.8.2.md); v0.8.1:
 [`docs/releases/v0.8.1.md`](docs/releases/v0.8.1.md); v0.8.0:
 [`docs/releases/v0.8.0.md`](docs/releases/v0.8.0.md); v0.7.1:
 [`docs/releases/v0.7.1.md`](docs/releases/v0.7.1.md); v0.7.0:
