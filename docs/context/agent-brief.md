@@ -459,7 +459,13 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   criteria, and an honest feasibility verdict (partly a research problem). The lens doc links it;
   persona behavior, `.council/profile.*`, UI, network, and any `schema: 2` stay deferred; no
   prompt/ranking/synthesis, preference, review/diff/doctor, guide/export, or Workbench/trust change.
-  Next: PR 8 (v0.9.1 release prep).
+  **PR 8 is v0.9.1 release prep:** `backend/__init__.py`/`pyproject.toml` now report `0.9.1`,
+  `uv.lock`'s self-version is synced to match (one line, no dependency-graph change), `CHANGELOG.md`
+  gained a dated `[0.9.1]` section, and [`docs/releases/v0.9.1.md`](../releases/v0.9.1.md) documents
+  the describe-the-personas slice (PR 6 review-lens docs + PR 7 dissent-preservation sketch) with the
+  security posture explicitly unchanged (no runtime/schema/preference/Workbench/trust change, no new
+  dependency). **No new command surface, no tag, no GitHub Release** in this PR — the `v0.9.1` git tag
+  and GitHub Release are a separate, manual step once it merges.
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

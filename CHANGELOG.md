@@ -5,11 +5,18 @@ All notable changes to **vibe-council** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Status:** `0.9.0` is prepared. The repo reports `0.9.0`
-> (`backend/__init__.py`, `pyproject.toml`). The `v0.9.0` git tag + GitHub Release are cut by a
+> **Status:** `0.9.1` is prepared. The repo reports `0.9.1`
+> (`backend/__init__.py`, `pyproject.toml`). The `v0.9.1` git tag + GitHub Release are cut by a
 > maintainer right after the release PR merges — see [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## [Unreleased]
+
+## [0.9.1] - 2026-07-09
+
+**Describe the personas (documentation only).** Closes the v0.9.x line's theme — v0.9.0 *applied*
+the four proven preference keys; v0.9.1 *describes* the council review lenses as pure documentation
+and designs the safety framework any future persona **behavior** would have to satisfy. **No
+runtime, no schema, no behavior of any kind.** See [`docs/releases/v0.9.1.md`](docs/releases/v0.9.1.md).
 
 ### Added
 

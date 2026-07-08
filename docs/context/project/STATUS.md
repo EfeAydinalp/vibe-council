@@ -626,9 +626,18 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   (Fable not used). Balanced review (~$0.26): conditional approval — the design is sound; in-scope
   lifecycle/cancellation-disclosure notes were folded in, persona-behavior implementation declined as
   out of scope for a docs PR.
-- **Current focus:** **v0.8.x + v0.9.0 released; v0.9.1 in progress.** The v0.9.0 apply-the-proven line
+- **v0.9.1 PR 8 — v0.9.1 release prep (in progress).** `backend/__init__.py`/`pyproject.toml` now
+  report `0.9.1`; `uv.lock`'s self-version synced to match (one line, no dependency-graph change).
+  `CHANGELOG.md` gained a dated `[0.9.1]` section and
+  [`docs/releases/v0.9.1.md`](../../releases/v0.9.1.md) bundles the describe-the-personas slice (PR 6
+  review-lens docs + PR 7 dissent-preservation sketch) as the "describe the personas (documentation
+  only)" release. README release status → v0.9.1. Release metadata + docs only; no code/behavior
+  change, no preference/schema-behavior change, no new command, no dependency change. **No tag /
+  GitHub Release** in the PR — a separate manual step once it merges.
+- **Current focus:** **v0.8.x + v0.9.0 released; v0.9.1 prepared.** The v0.9.0 apply-the-proven line
   is complete and released (tag + GitHub Release live). v0.9.1 PR 6 (review-lens docs) and PR 7 (the
-  v0.10.x dissent-preservation design sketch) are done; next is PR 8 (v0.9.1 release prep) per
+  v0.10.x dissent-preservation design sketch) are done; PR 8 (v0.9.1 release prep) is prepared here —
+  tag/GitHub Release remain a manual step once it merges, per
   [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6. No new network endpoint.
   Deferred: persona **behavior** / persona schema / persona UI (v0.10.x, with the PR 7 sketch as
   input), `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team (v0.9+).
