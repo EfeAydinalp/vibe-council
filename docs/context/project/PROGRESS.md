@@ -150,8 +150,14 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `--usage`/`--no-preferences`); `project_doctor_report` emits advisory `[warn]` lines for
           staged paths matching `never_stage_extra`/`extra_sensitive_paths` (capped 10 + roll-up;
           READY/`[FAIL]`/exit code byte-stable). No enforcement; importer set stays `{cli.py}`.
-    - [ ] PRs 4–8 per the plan (v0.9.0: guard/executor-isolation tests → release prep; v0.9.1:
-          persona-lens docs + v0.10.x sketch + release prep; v0.9.2 reserved as an optional patch slot).
+    - [x] **PR 4 — preference isolation lock-in tests (tests only).** New
+          `tests/test_preferences_isolation.py`: allowlist-first static scan (importer set ==
+          `{cli.py}`; forbidden-surface list of all `workbench_*`/`council`/providers/`guards`/`mcp_*`/
+          `context_pack` proven clean), trust + executor byte-identity with/without a maximal block,
+          guide/export pointer-only tripwires, doctor READY stability, pack 21/21 + no-ingest, no
+          `.council/profile.*`. No production change.
+    - [ ] PR 5 (v0.9.0 release prep) → v0.9.1 (persona-lens docs + v0.10.x sketch + release prep);
+          v0.9.2 reserved as an optional patch slot.
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
       framework; its own council+Fable line).*
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*

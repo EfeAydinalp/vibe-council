@@ -13,6 +13,21 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.9.0 PR 4 — preference isolation lock-in tests** (per
+  [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §5.6 / §6 PR 4).
+  **Tests only — no production code, no behavior change.** New
+  [`tests/test_preferences_isolation.py`](tests/test_preferences_isolation.py) locks the boundary that
+  preferences influence *exactly* the allowed CLI surfaces and nothing else: an **allowlist-first static
+  scan** over every `backend/*.py` asserts the `backend.preferences` importer set is exactly `{cli.py}`
+  and that `effective_suggestions` is referenced only in `{preferences.py, cli.py}`, with an explicit
+  **forbidden-surface list** (all `workbench_*` incl. trust/executor/panel/importer/proposals, plus
+  `council.py`, `openrouter.py`/`providers.py`, `guards.py`, `mcp_*`, `context_pack.py`) proven to
+  import none of it; a **behavioral byte-identity** check confirms the deterministic trust evaluation
+  and the dry-run executor produce identical results with and without a maximal valid PREFERENCES.md
+  block; guide/context-export stay **pointer-only** (never inline the block, its values, or the reader);
+  the doctor's READY/exit-code stays stable across valid/missing/invalid blocks; the context pack stays
+  21/21 with a block present and ingests no schema token; and `effective_suggestions` reads exactly one
+  file (never a `.council/profile.*` store), writing nothing. No dependency change, no version bump.
 - **v0.9.0 PR 3 — preference `require_usage_flag` warning + doctor advisory staged-path warns** (per
   [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §5.3/§5.5 / §6 PR
   3). Two more **advisory-only** applications of the clamped `effective_suggestions()` reader — no
