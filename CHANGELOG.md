@@ -11,6 +11,25 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **v0.10.x product-surface decision gate (docs only — no code, no behavior, no version bump, no
+  tag/release).** New [`docs/fable/v0.10.x-product-surface-framing.md`](docs/fable/v0.10.x-product-surface-framing.md)
+  — a **decision document** (not an implementation plan) that frames the candidate next surfaces after
+  the released v0.9.1 (A: open v0.10.x for persona/review-lens **behavior**; B: open v0.10.x for
+  dissent-preservation **infrastructure only**; C: a scoped v0.9.2 dogfood/tooling patch; D: pause for
+  product-surface/commercialization planning; E: no-new-surface maintenance) and runs a **balanced
+  council-style review** (`vibe review --preset balanced --usage`, one pass, ~$0.25) to decide whether
+  a v0.10.x line should open at all. **Council verdict (deep, decisive, non-conflicted — no `full`
+  run): do not open v0.10.x now** — no validated demand + an acknowledged unsolved research residual
+  (reframing-bias evaluation) + a clean release ⇒ a short, human-led **product-surface / commercialization
+  planning pass (Candidate D), then a time-boxed hold (Candidate E)**; v0.9.2 (C) is a placeholder with
+  no driving defect; Fable does **not** run next (no surface chosen). Persona/lens **behavior** stays
+  deferred (and cancelable). Changes no prompt/ranking/synthesis, preference reader/validator,
+  review/diff/doctor, guide/context-export, schema (`schema: 1` frozen, no `schema: 2`), or
+  Workbench/executor/guard/trust behavior; no `.council/profile.*`, no UI, no network surface, no
+  dependency change.
+
 ## [0.9.1] - 2026-07-09
 
 **Describe the personas (documentation only).** Closes the v0.9.x line's theme — v0.9.0 *applied*

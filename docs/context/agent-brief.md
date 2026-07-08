@@ -546,6 +546,15 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
 - Do not start provider-abstraction-2, app/TUI/web, persona/advisor, or community work. MCP is
   scoped **read-only for v0.4** (per its plan/decision); do not add write/action MCP, an MCP server
   beyond the scoped sequence, or an MCP dependency without explicit scope.
+- **Persona / review-lens *behavior* stays deferred (and is cancelable), reaffirmed by the v0.10.x
+  product-surface decision gate.** v0.9.1 shipped review-lens + dissent-preservation docs (documentation
+  only); the balanced council review over
+  [`docs/fable/v0.10.x-product-surface-framing.md`](fable/v0.10.x-product-surface-framing.md)
+  recommended **not** opening a v0.10.x line yet (no validated demand + an unsolved reframing-bias
+  research residual) — the safe next step is a human-led product-surface / commercialization planning
+  pass, then a time-boxed hold. Do not wire any persona/lens behavior, `--persona`/`--lens` flag,
+  persona preset object, or persona schema without an explicit new scope that clears the
+  dissent-preservation framework.
 - Do not add or change a `LICENSE`, or weaken upstream attribution/provenance.
 - Do not commit `.council/`, `data/`, `.env`, `.venv/`, raw outputs, or `.obsidian/`.
 - Do not use `premium`/`full` for real runs unless asked; default preset is `balanced`.
