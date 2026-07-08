@@ -641,6 +641,22 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6. No new network endpoint.
   Deferred: persona **behavior** / persona schema / persona UI (v0.10.x, with the PR 7 sketch as
   input), `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team (v0.9+).
+- **v0.10.x product-surface decision gate (docs-only) — verdict: do not open v0.10.x now.** New
+  [`docs/fable/v0.10.x-product-surface-framing.md`](../../fable/v0.10.x-product-surface-framing.md) is a
+  **decision document** (not a plan) that frames five candidate next surfaces after the released,
+  audit-clean v0.9.1 — A: open v0.10.x for persona/review-lens **behavior**; B: open v0.10.x for
+  dissent-preservation **infrastructure only**; C: a scoped v0.9.2 dogfood/tooling patch; D: pause for
+  product-surface/commercialization planning; E: no-new-surface maintenance — and runs a **balanced
+  council-style review** (`review --preset balanced --usage`, one pass, ~$0.25) to decide whether a
+  v0.10.x line should open at all. The council was **deep, decisive, and non-conflicted** (so `full` was
+  **not** run) and recommended **not** opening v0.10.x: with no validated demand, an acknowledged
+  unsolved research residual (reframing-bias evaluation), and a clean release, the safe next step is a
+  short, **human-led product-surface / commercialization planning pass (D), then a time-boxed hold
+  (E)** — not persona behavior (A), not infrastructure-for-an-unvalidated-feature (B, conditional at
+  best), and not a manufactured v0.9.2 (C, a placeholder with no driving defect). **Fable does not run
+  next** (no surface chosen); persona/lens **behavior** stays deferred and **cancelable**. Docs only —
+  no code/behavior/schema/preference/Workbench/trust change, no `.council/profile.*`, no UI/network, no
+  dependency change; no implementation PR starts from this gate.
 
 ## Next actions
 

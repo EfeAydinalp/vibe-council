@@ -182,6 +182,18 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
       framework; its own council+Fable line — the v0.9.1 PR 7 sketch is its design input, incl. an
       honest feasibility verdict that flags a real chance persona behavior is not pursued at all).*
+    - [x] **Product-surface decision gate (docs-only) — verdict: do not open v0.10.x now.**
+          [`docs/fable/v0.10.x-product-surface-framing.md`](../../fable/v0.10.x-product-surface-framing.md)
+          frames five candidate next surfaces (A persona/lens **behavior**, B dissent-preservation
+          **infrastructure only**, C scoped v0.9.2 patch, D pause for product-surface/commercialization
+          planning, E no-new-surface maintenance) and runs a balanced council-style review
+          (`review --preset balanced --usage`, one pass, ~$0.25). The council was deep/decisive/
+          non-conflicted (no `full` run) and recommended **not** opening v0.10.x: with no validated
+          demand + an unsolved reframing-bias research residual + a clean release, the safe next step is
+          a short human-led **product-surface/commercialization planning pass (D), then a time-boxed
+          hold (E)** — not persona behavior (A), not infra-for-an-unvalidated-feature (B), not a
+          manufactured v0.9.2 (C, a placeholder). **Fable does not run next**; persona behavior stays
+          deferred and cancelable. Docs only; no code/behavior/schema/preference/Workbench/trust change.
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
 - [ ] **hosted / team** *(deferred; separate planning).*
 

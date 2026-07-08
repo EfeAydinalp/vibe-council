@@ -25,6 +25,15 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
   manual step. **Persona *behavior* deferred to v0.10.x** (dissent-suppression is a new risk class);
   guide/context export stay pointer-only;
   `.council/profile.*` store, session/workspace, UI/dashboard, Workbench-UX deferred.
+- **v0.10.x product-surface decision gate (docs-only) — verdict: do not open v0.10.x now.** A balanced
+  council-style review over
+  [`v0.10.x-product-surface-framing.md`](../../fable/v0.10.x-product-surface-framing.md) (five
+  candidates: persona/lens behavior, dissent-preservation infrastructure, a scoped v0.9.2 patch, a
+  product-surface/commercialization pause, or no-new-surface maintenance) recommended **not** opening a
+  v0.10.x line: with no validated demand, an unsolved reframing-bias research residual, and a clean
+  release, the safe next step is a short, **human-led product-surface / commercialization planning pass,
+  then a time-boxed hold** — not persona behavior. Persona/lens **behavior** stays deferred (and
+  cancelable); **Fable is not run next** (no surface chosen).
 
 ## Recently completed
 
