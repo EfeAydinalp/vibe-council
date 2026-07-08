@@ -76,14 +76,22 @@ carrier format, the four allowed types, validation rules, tighten-only proofs, f
 the future council-persona direction — is
 [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md).
 
-> **Mostly advisory; one tighten-only application (v0.9.0).** `vibe project doctor` *reports* on this
-> block (read-only validator, v0.8.2). As of **v0.9.0**, `vibe review` / `vibe diff` also consult
-> `default_review_preset` as a **tighten-only preset floor** — it can only *raise* toward more review,
-> never lower, never select `premium`, and an explicit `--preset` (or `--no-preferences`) always wins.
-> Because the project baseline is already `balanced`, a `full` value is **notice-only** (`full` is a
-> council **mode**, not a `--preset` value — the CLI recommends `vibe full` and leaves the preset at
-> the baseline). The other keys (`extra_sensitive_paths`, `never_stage_extra`, `require_usage_flag`)
-> are **not applied yet**; a `.council/profile.*` store and any prompt/persona behavior remain deferred.
+> **Advisory / tighten-only application (v0.9.0).** `vibe project doctor` *reports* on this block
+> (read-only validator, v0.8.2). As of **v0.9.0** all four keys are consulted in **advisory,
+> tighten-only** ways — never enforcing, never blocking, never failing a command, and an explicit
+> `--preset`/`--usage` (or `--no-preferences`) always wins:
+> - **`default_review_preset`** — `vibe review`/`vibe diff` treat it as a preset **floor** (raise-only,
+>   never lower, never `premium`). Because the baseline is already `balanced`, a `full` value is
+>   **notice-only** (`full` is a council **mode**, not a `--preset` value — the CLI recommends `vibe
+>   full` and leaves the preset at the baseline).
+> - **`require_usage_flag`** — `vibe review`/`vibe diff` print one advisory stderr *warning* when
+>   `--usage` is absent (they never add `--usage`, never fail).
+> - **`extra_sensitive_paths` / `never_stage_extra`** — `vibe project doctor` emits advisory `[warn]`
+>   lines for **staged** paths that match (capped; READY/exit code unchanged). They do **not** change
+>   staging, git, the no-stage guard, or the trust/executor boundary.
+>
+> A `.council/profile.*` store, named personas, and any prompt/ranking/synthesis influence remain
+> deferred (v0.10.x+).
 
 **v1 has exactly four preference keys** plus the required `schema: 1`, each **tighten-only by
 construction** (an ordered floor-raise or an additive constraint):

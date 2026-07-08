@@ -420,8 +420,16 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   is already `balanced`, the only observable delta is that a `default_review_preset: "full"` block
   prints one stderr notice recommending `vibe full` (a council **mode**, not a preset) and leaves the
   preset at baseline. `extract`/`mini`/`full` never consult preferences; raw JSON never escapes; no
-  prompt/guard/executor/guide/export change. Next: PR 3 (`require_usage_flag` warning + doctor advisory
-  staged-path warns).
+  prompt/guard/executor/guide/export change.
+  **v0.9.0 PR 3 has landed (advisory-only):** `vibe review`/`vibe diff` now print one pinned stderr
+  *warning* when the block requires `--usage` and it is absent (never adds `--usage`, never fails;
+  suppressed by `--usage`/`--no-preferences`/explicit choice; `extract`/`mini`/`full` never warn); and
+  `vibe project doctor` emits advisory `[warn]` lines for **staged** paths matching a declared
+  `never_stage_extra`/`extra_sensitive_paths` entry (naming the key, not its value; **capped at 10 +
+  roll-up**; READY/`[FAIL]`/exit code byte-stable, missing/invalid block leaves doctor unchanged). No
+  enforcement/blocking, no git/no-stage/guard/executor change; raw JSON never escapes; importer set
+  stays `{cli.py}`. All four proven keys are now applied advisory/tighten-only. Next: PR 4
+  (guard/executor-isolation lock-in tests) → PR 5 (v0.9.0 release prep).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

@@ -144,9 +144,14 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           floor raise-only → baseline); `full` → stderr notice only (never silently a preset). Baseline
           already `balanced` so the only delta is the notice. `extract`/`mini`/`full` unaffected; no
           prompt/guard/executor/guide/export change; importer set stays `{cli.py}`. 19 new tests.
-    - [ ] PRs 3–8 per the plan (v0.9.0: usage warn + doctor advisories → isolation tests → release
-          prep; v0.9.1: persona-lens docs + v0.10.x sketch + release prep; v0.9.2 reserved as an
-          optional patch slot).
+    - [x] **PR 3 — usage-flag warning + doctor advisory staged-path warns (advisory-only).**
+          `_resolve_preset` emits a pinned stderr warning on review/diff when the block requires
+          `--usage` and it is absent (never adds `--usage`, never fails, suppressed by
+          `--usage`/`--no-preferences`); `project_doctor_report` emits advisory `[warn]` lines for
+          staged paths matching `never_stage_extra`/`extra_sensitive_paths` (capped 10 + roll-up;
+          READY/`[FAIL]`/exit code byte-stable). No enforcement; importer set stays `{cli.py}`.
+    - [ ] PRs 4–8 per the plan (v0.9.0: guard/executor-isolation tests → release prep; v0.9.1:
+          persona-lens docs + v0.10.x sketch + release prep; v0.9.2 reserved as an optional patch slot).
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
       framework; its own council+Fable line).*
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*

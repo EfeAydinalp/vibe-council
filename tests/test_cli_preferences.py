@@ -27,9 +27,9 @@ REPO = Path(__file__).resolve().parents[1]
 NOTICE_SUBSTR = "full-council review floor"
 
 
-def _resolve(root, *, preset=None, no_preferences=False, command="review"):
+def _resolve(root, *, preset=None, no_preferences=False, usage=False, command="review"):
     """Call the pure resolver, capturing anything it writes to stderr."""
-    ns = argparse.Namespace(preset=preset, no_preferences=no_preferences)
+    ns = argparse.Namespace(preset=preset, no_preferences=no_preferences, usage=usage)
     err = io.StringIO()
     with contextlib.redirect_stderr(err):
         out = cli._resolve_preset(ns, command, root)
@@ -185,6 +185,103 @@ class TestResolvePresetMatrix(_PrefsDir):
             _cli.preferences_mod.effective_suggestions = orig
         self.assertEqual(preset, cli.DEFAULT_PRESET)
         self.assertEqual(err, "")
+
+
+class TestRequireUsageWarning(_PrefsDir):
+    """v0.9.0 PR 3 — the advisory `require_usage_flag` warning (review/diff only). It never adds
+    --usage, never fails, is stderr-only, at most once, and leaks no raw JSON."""
+
+    USAGE_SUBSTR = "sets require_usage_flag"
+
+    def test_warns_on_review_without_usage(self):
+        self._write_block({"schema": 1, "require_usage_flag": True})
+        _, err = _resolve(self.root, command="review", usage=False)
+        self.assertIn(self.USAGE_SUBSTR, err)
+
+    def test_warns_on_diff_without_usage(self):
+        self._write_block({"schema": 1, "require_usage_flag": True})
+        _, err = _resolve(self.root, command="diff", usage=False)
+        self.assertIn(self.USAGE_SUBSTR, err)
+
+    def test_no_warning_with_usage(self):
+        self._write_block({"schema": 1, "require_usage_flag": True})
+        _, err = _resolve(self.root, command="review", usage=True)
+        self.assertEqual(err, "")
+
+    def test_no_warning_with_no_preferences(self):
+        self._write_block({"schema": 1, "require_usage_flag": True})
+        _, err = _resolve(self.root, command="review", usage=False, no_preferences=True)
+        self.assertEqual(err, "")
+
+    def test_require_usage_false_no_warning(self):
+        self._write_block({"schema": 1, "require_usage_flag": False})
+        _, err = _resolve(self.root, command="review", usage=False)
+        self.assertEqual(err, "")
+
+    def test_no_warning_for_missing_invalid_minimal(self):
+        # missing file
+        _, err = _resolve(self.root, command="review", usage=False)
+        self.assertEqual(err, "")
+        # minimal schema (key absent)
+        self._write_block({"schema": 1})
+        self.assertEqual(_resolve(self.root, command="review", usage=False)[1], "")
+        # invalid block (fail-closed -> no warning)
+        self._write_raw("```json\n{ \"schema\": 1, \"require_usage_flag\": \"yes\" }\n```\n")
+        self.assertEqual(_resolve(self.root, command="review", usage=False)[1], "")
+
+    def test_unrelated_commands_do_not_warn(self):
+        self._write_block({"schema": 1, "require_usage_flag": True})
+        for command in ("extract", "mini", "full"):
+            _, err = _resolve(self.root, command=command, usage=False)
+            self.assertEqual(err, "", command)
+
+    def test_warning_is_pinned_and_leaks_no_raw_json(self):
+        self._write_block({"schema": 1, "require_usage_flag": True,
+                           "never_stage_extra": ["notes/leak-canary.md"]})
+        _, err = _resolve(self.root, command="review", usage=False)
+        self.assertEqual(err.strip(), cli._PREF_USAGE_WARNING)   # exact pinned wording
+        self.assertNotIn("leak-canary", err)
+        self.assertNotIn("{", err)                               # no raw JSON
+
+    def test_warning_appears_at_most_once(self):
+        self._write_block({"schema": 1, "require_usage_flag": True})
+        _, err = _resolve(self.root, command="review", usage=False)
+        self.assertEqual(err.count("require_usage_flag"), 1)
+
+
+class TestUsageWarningCli(unittest.TestCase):
+    """CLI-level (empty-diff path, no model call): the usage warning is stderr-only and is
+    suppressed by --usage / --no-preferences."""
+
+    USAGE_SUBSTR = "sets require_usage_flag"
+
+    def _mk(self, obj):
+        d = tempfile.mkdtemp()
+        p = Path(d) / "docs/context/project"
+        p.mkdir(parents=True)
+        (p / "PREFERENCES.md").write_text(
+            f"# prefs\n\n```json\n{json.dumps(obj)}\n```\n", encoding="utf-8")
+        return d
+
+    def test_usage_warning_on_stderr_not_stdout(self):
+        d = self._mk({"schema": 1, "require_usage_flag": True})
+        r = run_cli(["diff"], caller_cwd=d)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("No changes to review", r.stdout)
+        self.assertIn(self.USAGE_SUBSTR, r.stderr)
+        self.assertNotIn(self.USAGE_SUBSTR, r.stdout)
+
+    def test_usage_flag_suppresses_warning(self):
+        d = self._mk({"schema": 1, "require_usage_flag": True})
+        r = run_cli(["diff", "--usage"], caller_cwd=d)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertNotIn(self.USAGE_SUBSTR, r.stderr)
+
+    def test_no_preferences_suppresses_warning(self):
+        d = self._mk({"schema": 1, "require_usage_flag": True})
+        r = run_cli(["diff", "--no-preferences"], caller_cwd=d)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertNotIn(self.USAGE_SUBSTR, r.stderr)
 
 
 class TestDiffCliNoticeSurface(unittest.TestCase):
