@@ -6,18 +6,19 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Now
 
-- **v0.9.x — "Apply the proven; describe the personas; defer their behavior" (v0.9.0 prepared; v0.9.1
-  next).** Council-backed + Fable-architected planning
+- **v0.9.x — "Apply the proven; describe the personas; defer their behavior" (v0.9.0 released; v0.9.1
+  in progress).** Council-backed + Fable-architected planning
   ([`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md)). **v0.9.0** *applies* the
   four mechanically-proven, add-friction-only v0.8.2 preference keys in **bounded, advisory,
   tighten-only** ways — a review/diff preset floor + `--no-preferences`, a usage-flag warning, and
   doctor staged-path advisories (CLI wins, suggest≠enforce; guard/executor/Workbench/prompt/ranking/
-  synthesis stay preference-blind, locked by tests) — and is **prepared** (repo reports `0.9.0`;
-  tag/GitHub Release from [`docs/releases/v0.9.0.md`](../../releases/v0.9.0.md) is the remaining manual
-  step). **Next: v0.9.1** — the council **review lenses** as pure documentation (Security Guardian,
-  Cost Skeptic, Local-first Guardian + stubs; no schema/validator/behavior) + the **v0.10.x
-  dissent-preservation design sketch** + a v0.9.0 dogfood pass. **Persona *behavior* deferred to
-  v0.10.x** (dissent-suppression is a new risk class); guide/context export stay pointer-only;
+  synthesis stay preference-blind, locked by tests) — and is **released** (tag + GitHub Release live;
+  [`docs/releases/v0.9.0.md`](../../releases/v0.9.0.md)). **v0.9.1 in progress:** the council **review
+  lenses** as pure documentation ([`council-review-lenses.md`](../../fable/council-review-lenses.md):
+  Security Guardian, Cost Skeptic, Local-first Guardian + future stubs; no schema/validator/behavior —
+  PR 6 done) → the **v0.10.x dissent-preservation design sketch** (PR 7) → release prep + a v0.9.0
+  dogfood pass. **Persona *behavior* deferred to v0.10.x** (dissent-suppression is a new risk class);
+  guide/context export stay pointer-only;
   `.council/profile.*` store, session/workspace, UI/dashboard, Workbench-UX deferred.
 
 ## Recently completed

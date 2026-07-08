@@ -440,9 +440,16 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   (`backend/__init__.py`/`pyproject.toml`/`uv.lock` self-version, one line, no dependency-graph change),
   dated `CHANGELOG.md` `[0.9.0]` section, [`docs/releases/v0.9.0.md`](../releases/v0.9.0.md), README
   release status → v0.9.0. Release metadata + docs only; no code/behavior/preference change. **No tag /
-  GitHub Release** in the PR — a separate manual step once it merges. **v0.9.0 completes the
-  apply-the-proven line.** Next version-line work: **v0.9.1** (council review-lens docs + v0.10.x
-  dissent-preservation sketch + dogfood).
+  GitHub Release** in the PR — a separate manual step once it merges. **v0.9.0 is now released** (tag +
+  GitHub Release live), completing the apply-the-proven line.
+  **v0.9.1 PR 6 has landed (docs only):** [`docs/fable/council-review-lenses.md`](../fable/council-review-lenses.md)
+  documents **review lenses** as a shared human/agent review vocabulary — three primary lenses (Security
+  Guardian, Cost Skeptic, Local-first Guardian) + four future stubs — framed **documentation-only** with
+  a binding safety envelope (a lens is a reviewer's mental lens, not a command; never changes
+  prompts/ranking/synthesis, the preference system, guide/export, or the Workbench/trust boundary; may
+  only *add* scrutiny; can never suppress dissent or loosen a rule; no `.council/profile.*`, no UI).
+  Persona/lens **behavior** is deferred to v0.10.x+ behind the dissent-preservation framework. Next: PR
+  7 (the v0.10.x dissent-preservation design sketch) → PR 8 (v0.9.1 release prep).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),

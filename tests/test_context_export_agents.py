@@ -193,6 +193,16 @@ class TestAgentExportProfilePointers(unittest.TestCase):
                              f"{agent}: inlined the preference schema block")
             self.assertNotIn("```json", text, f"{agent}: inlined a json schema block")
 
+    def test_does_not_inline_review_lens_bodies(self):
+        # v0.9.1 PR 6: review lenses are documentation only; the export stays pointer-only and must
+        # never inline a lens body (the lens doc lives in docs/fable/, not the vault).
+        needle = "attack surface and trust-boundary erosion first"   # distinctive lens-body phrase
+        lens_doc = (REPO / "docs/fable/council-review-lenses.md").read_text(encoding="utf-8")
+        self.assertIn(needle, lens_doc)                              # sanity
+        for agent in ("claude", "codex", "fable"):
+            text = self._export(agent)
+            self.assertNotIn(needle, text, f"{agent}: inlined a review-lens body")
+
     # --- v0.7.1 PR 3 invariant locks -------------------------------------- #
 
     def _profile_section(self, text):

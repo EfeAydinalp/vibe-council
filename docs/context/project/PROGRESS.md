@@ -160,7 +160,13 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.9.0]` section,
           [`docs/releases/v0.9.0.md`](../../releases/v0.9.0.md), README release status. Release metadata
           + docs only (no code/behavior change). No tag/Release (manual follow-up).
-    - [ ] v0.9.1 (council review-lens docs + v0.10.x dissent-preservation sketch + dogfood); v0.9.2
+    - [x] **PR 6 — council review lenses (documentation only).** New
+          [`docs/fable/council-review-lenses.md`](../../fable/council-review-lenses.md): three primary
+          lenses (Security Guardian, Cost Skeptic, Local-first Guardian) + four future stubs, framed
+          documentation-only with a binding safety envelope (not applied/schema/validated; dissent-
+          preservation; tighten-only; no `.council/profile.*`/UI; behavior deferred to v0.10.x).
+          `AGENT-ROLES.md` pointer + vault/export tests. No code/behavior/schema change.
+    - [ ] PR 7 (v0.10.x dissent-preservation design sketch) → PR 8 (v0.9.1 release prep); v0.9.2
           reserved as an optional patch slot.
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
       framework; its own council+Fable line).*
