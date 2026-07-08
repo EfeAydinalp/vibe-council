@@ -7,17 +7,22 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 ## Now
 
 - **v0.9.x — "Apply the proven; describe the personas; defer their behavior" (v0.9.0 released; v0.9.1
-  in progress).** Council-backed + Fable-architected planning
+  prepared as a release).** Council-backed + Fable-architected planning
   ([`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md)). **v0.9.0** *applies* the
   four mechanically-proven, add-friction-only v0.8.2 preference keys in **bounded, advisory,
   tighten-only** ways — a review/diff preset floor + `--no-preferences`, a usage-flag warning, and
   doctor staged-path advisories (CLI wins, suggest≠enforce; guard/executor/Workbench/prompt/ranking/
   synthesis stay preference-blind, locked by tests) — and is **released** (tag + GitHub Release live;
-  [`docs/releases/v0.9.0.md`](../../releases/v0.9.0.md)). **v0.9.1 in progress:** the council **review
-  lenses** as pure documentation ([`council-review-lenses.md`](../../fable/council-review-lenses.md):
-  Security Guardian, Cost Skeptic, Local-first Guardian + future stubs; no schema/validator/behavior —
-  PR 6 done) → the **v0.10.x dissent-preservation design sketch** (PR 7) → release prep + a v0.9.0
-  dogfood pass. **Persona *behavior* deferred to v0.10.x** (dissent-suppression is a new risk class);
+  [`docs/releases/v0.9.0.md`](../../releases/v0.9.0.md)). **v0.9.1 — the council review lenses** as
+  pure documentation ([`council-review-lenses.md`](../../fable/council-review-lenses.md): Security
+  Guardian, Cost Skeptic, Local-first Guardian + future stubs; no schema/validator/behavior) **plus the
+  v0.10.x dissent-preservation design sketch**
+  ([`v0.10.x-dissent-preservation-sketch.md`](../../fable/v0.10.x-dissent-preservation-sketch.md):
+  threat model, structural/content rules, dissent-canary tests, observability, override/rollback,
+  acceptance criteria, an honest feasibility verdict — reframing bias is partly a research problem,
+  cancellation on the table) — PRs 6–7 done, **PR 8 (release prep) done here**
+  ([`docs/releases/v0.9.1.md`](../../releases/v0.9.1.md)); the `v0.9.1` git tag/GitHub Release remain a
+  manual step. **Persona *behavior* deferred to v0.10.x** (dissent-suppression is a new risk class);
   guide/context export stay pointer-only;
   `.council/profile.*` store, session/workspace, UI/dashboard, Workbench-UX deferred.
 
@@ -36,6 +41,24 @@ direction lives in [`docs/decisions/`](../../decisions/). Keep this file short; 
 
 ## Recently shipped
 
+- **v0.9.1 — describe the personas (documentation only)** *(prepared as the `v0.9.1` release).* The
+  council **review lenses** as pure documentation
+  ([`docs/fable/council-review-lenses.md`](../../fable/council-review-lenses.md): Security Guardian,
+  Cost Skeptic, Local-first Guardian + four future stubs; not applied, not schema, not validated) plus
+  the **v0.10.x dissent-preservation design sketch**
+  ([`docs/fable/v0.10.x-dissent-preservation-sketch.md`](../../fable/v0.10.x-dissent-preservation-sketch.md):
+  design only, no implementation — threat model, structural/content rules, dissent-canary tests,
+  observability, override/rollback, acceptance criteria, an honest feasibility verdict that treats
+  reframing bias as partly a research problem with cancellation on the table). Neither file changes any
+  runtime behavior — no prompt/ranking/synthesis, schema, preference reader/validator, guide/export, or
+  Workbench/executor/guard/trust change; no dependency change. Source plan:
+  [`docs/fable/v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md).
+- **v0.9.0 — apply the proven preferences (tighten-only, advisory)** *(released).* A clamped,
+  fail-closed `effective_suggestions()` reader feeds a review/diff preset floor + `--no-preferences`, a
+  usage-flag warning, and doctor staged-path advisories — additive, reversible, CLI-wins,
+  guard-authoritative; the trust boundary and council prompt/ranking/synthesis stay preference-blind
+  (locked by tests). Source plan:
+  [`docs/fable/v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md).
 - **v0.8.2 — preference schema v1 + read-only doctor validator** *(prepared as the `v0.8.2` release).*
   The tighten-only preference **schema v1** (normative
   [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md) + a bounded fenced `json`

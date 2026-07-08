@@ -113,8 +113,8 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           `uv.lock` self-version), dated `CHANGELOG.md` `[0.8.2]` section,
           [`docs/releases/v0.8.2.md`](../../releases/v0.8.2.md), README release status. Release metadata
           + docs only (no code/behavior change). No tag/Release (manual follow-up).
-- [ ] **v0.9.x — "apply the proven; describe the personas; defer their behavior"** *(v0.9.0 prepared as
-      a release; v0.9.1 next).* Council-backed planning:
+- [ ] **v0.9.x — "apply the proven; describe the personas; defer their behavior"** *(v0.9.0 released;
+      v0.9.1 prepared as a release).* Council-backed planning:
       [`v0.9.x-council-debate.md`](../../fable/v0.9.x-council-debate.md) +
       [`v0.9.x-phase-brief.md`](../../fable/v0.9.x-phase-brief.md) +
       [`v0.9.x-fable-input.md`](../../fable/v0.9.x-fable-input.md). v0.9.0 = apply the four proven
@@ -174,9 +174,14 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           conditions. Lens doc links it; persona behavior / `.council/profile.*` / UI / `schema: 2`
           stay deferred; no prompt/ranking/synthesis/preference/Workbench/trust change. Vault + export
           tests. No code/behavior/schema change.
-    - [ ] PR 8 (v0.9.1 release prep); v0.9.2 reserved as an optional patch slot.
+    - [x] **PR 8 — v0.9.1 release prep.** Version → `0.9.1` (`backend/__init__.py`/`pyproject.toml`/
+          `uv.lock` self-version), dated `CHANGELOG.md` `[0.9.1]` section,
+          [`docs/releases/v0.9.1.md`](../../releases/v0.9.1.md), README release status. Release
+          metadata + docs only (no code/behavior change). No tag/Release (manual follow-up).
+    - v0.9.2 reserved as an optional patch slot (nothing scheduled).
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
-      framework; its own council+Fable line).*
+      framework; its own council+Fable line — the v0.9.1 PR 7 sketch is its design input, incl. an
+      honest feasibility verdict that flags a real chance persona behavior is not pursued at all).*
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
 - [ ] **hosted / team** *(deferred; separate planning).*
 
