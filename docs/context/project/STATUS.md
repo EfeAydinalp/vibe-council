@@ -573,13 +573,23 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   preset at baseline. `extract`/`mini`/`full` never consult preferences; raw JSON never escapes; no
   prompt/ranking/synthesis/guard/executor/Workbench/guide/export change; importer set stays `{cli.py}`;
   no `.council/profile.*`, no dependency change.
-- **Current focus:** **v0.8.x complete/released; v0.9.0 implementation in progress.** PRs 1 (reader) +
-  2 (review/diff preset floor + `--no-preferences`) are done; next is PR 3 (the usage-flag warning +
-  doctor advisory staged-path warns, balanced) per
-  [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6, then PRs 4–5. No new
-  network endpoint. Deferred: persona behavior / persona schema / persona UI (v0.10.x, with the PR 7
-  dissent-preservation sketch as input), `.council/profile.*` store, mobile/LAN/voice (own gated
-  line), hosted/team (v0.9+).
+- **v0.9.0 PR 3 landed — usage-flag warning + doctor advisory staged-path warns (advisory-only).**
+  Two more bounded applications of the clamped reader, **no enforcement/blocking/exit-code change**.
+  (1) On `vibe review`/`vibe diff` only, a block that sets the usage-flag prints one pinned stderr
+  warning when `--usage` is absent (never adds `--usage`, never fails; suppressed by `--usage` /
+  `--no-preferences` / explicit choice; `extract`/`mini`/`full` never warn). (2) `vibe project doctor`
+  emits advisory `[warn]` lines for **staged** paths matching a declared
+  `never_stage_extra`/`extra_sensitive_paths` entry — naming the preference **key** (never its value),
+  **capped at 10 + roll-up**; READY/`[FAIL]`/exit code byte-stable, missing/invalid block leaves doctor
+  unchanged. No git/no-stage enforcement change; raw JSON never escapes; no `.council/profile.*`;
+  importer set stays `{cli.py}`.
+- **Current focus:** **v0.8.x complete/released; v0.9.0 implementation in progress.** PRs 1 (reader),
+  2 (review/diff preset floor + `--no-preferences`), and 3 (usage warning + doctor advisories) are
+  done — all four proven keys now applied advisory/tighten-only. Next is PR 4 (guard/executor-isolation
+  lock-in tests, cheap) then PR 5 (v0.9.0 release prep) per
+  [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6. No new network endpoint.
+  Deferred: persona behavior / persona schema / persona UI (v0.10.x, with the PR 7 dissent-preservation
+  sketch as input), `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 

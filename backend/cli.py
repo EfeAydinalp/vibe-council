@@ -277,10 +277,16 @@ _PREF_FULL_FLOOR_NOTICE = (
     "'vibe full' for this review (--preset/--no-preferences override; premium "
     "still requires --allow-premium)")
 
+# The pinned stderr warning for `require_usage_flag` (v0.9.0 PR 3 / plan §5.3). Advisory: it
+# never adds --usage, never fails, never changes cost/model behavior. Wording is asserted.
+_PREF_USAGE_WARNING = (
+    "[preferences] PREFERENCES.md sets require_usage_flag — pass --usage to see "
+    "token usage (advisory).")
+
 
 def _resolve_preset(args, command: str, project_root) -> str:
-    """Resolve the effective model preset, honoring a tighten-only PREFERENCES.md preset floor
-    for **review/diff only** (v0.9.0 PR 2, plan §5.1/§5.3).
+    """Resolve the effective model preset and emit any advisory preference notices, for
+    **review/diff only** (v0.9.0 PR 2/PR 3, plan §5.1/§5.3).
 
     Precedence, highest wins: (1) an explicit ``--preset`` (CLI always wins — preferences are
     never consulted); (2) ``--no-preferences`` (baseline, byte-identical to pre-v0.9.0);
@@ -290,8 +296,9 @@ def _resolve_preset(args, command: str, project_root) -> str:
     A preference can never lower a preset, never select ``premium``, and never *silently* change
     anything: a floor that is a real preset strictly above baseline raises to it (announced), and
     a ``full`` floor — a council MODE, not a ``--preset`` value — emits the pinned stderr notice
-    once and leaves the preset at the baseline. Reads exactly the clamped ``Suggestions`` reader;
-    no raw preference value is used here.
+    once and leaves the preset at the baseline. Additionally, ``require_usage_flag`` prints one
+    advisory stderr warning when ``--usage`` is absent — it never adds ``--usage`` and never
+    fails. Reads exactly the clamped ``Suggestions`` reader; no raw preference value escapes.
     """
     # 1. explicit CLI choice always wins — never consult preferences.
     if args.preset is not None:
@@ -300,15 +307,21 @@ def _resolve_preset(args, command: str, project_root) -> str:
     # 2. escape hatch — ignore preferences entirely.
     if getattr(args, "no_preferences", False):
         return baseline
-    # 3. preference floor — review/diff only (the schema's anchored behavior; all other
-    #    commands resolve straight to the baseline, unaffected by preferences).
+    # 3. preferences — review/diff only (the schema's anchored behaviors; all other commands
+    #    resolve straight to the baseline, unaffected). All effects are advisory (stderr).
     if command in ("review", "diff"):
         # The reader is fail-closed and documented never to raise; belt-and-suspenders, never
         # let a preference crash review/diff — treat any surprise as "no preference".
         try:
-            floor = preferences_mod.effective_suggestions(project_root).review_preset_floor
+            sugg = preferences_mod.effective_suggestions(project_root)
         except Exception:  # noqa: BLE001
             return baseline
+        # 3a. require_usage_flag — advisory only: warn once when --usage is absent. Never adds
+        #     --usage, never fails, never touches cost/model behavior.
+        if sugg.require_usage and not getattr(args, "usage", False):
+            _err(_PREF_USAGE_WARNING)
+        # 3b. preset floor.
+        floor = sugg.review_preset_floor
         if floor is not None:
             # A floor that is a real, non-premium CLI preset strictly above the baseline is a
             # genuine raise (with the current balanced baseline this branch is unreachable —
@@ -854,7 +867,7 @@ def project_doctor_report(project_root: Path):
         lines.append("  [warn] git unavailable or not a git repo — skipped staged-file "
                      "checks.")
     else:
-        dangerous, uvlock_staged = [], False
+        dangerous, uvlock_staged, staged_paths = [], False, []
         for entry in porcelain:
             if len(entry) < 4:
                 continue
@@ -863,6 +876,7 @@ def project_doctor_report(project_root: Path):
             if not staged:
                 continue
             norm = path.replace("\\", "/")
+            staged_paths.append(norm)
             if norm == "uv.lock":
                 uvlock_staged = True
             elif (any(norm == d or norm.startswith(d) for d in _DOCTOR_DANGEROUS_STAGED)
@@ -877,6 +891,32 @@ def project_doctor_report(project_root: Path):
         if not dangerous and not uvlock_staged:
             lines.append("  [ok ] no dangerous staged files (.env / .council/ / private "
                          "plans) detected.")
+        # Preference advisory staged-path warns (v0.9.0 PR 3, plan §5.5) — ADVISORY ONLY:
+        # they never touch `ok`, never [FAIL], and never change READY/NOT-READY. If
+        # PREFERENCES.md declares never_stage_extra / extra_sensitive_paths, a staged path
+        # equal to / prefixed by an entry gets one [warn] naming the preference KEY (never the
+        # configured value / raw JSON). Volume-capped at 10 lines + a roll-up. The reader is
+        # fail-closed; any surprise -> no advisory (old behavior).
+        try:
+            sugg = preferences_mod.effective_suggestions(root)
+        except Exception:  # noqa: BLE001
+            sugg = None
+        if sugg is not None and (sugg.never_stage_extra or sugg.extra_sensitive_paths):
+            def _match(prefixes, p):
+                return any(p == x or p.startswith(x) for x in prefixes)
+            pref_warns = []
+            for norm in staged_paths:
+                if _match(sugg.never_stage_extra, norm):
+                    pref_warns.append("  [warn] staged path matches a PREFERENCES.md "
+                                      f"never_stage_extra entry (advisory): {norm}")
+                elif _match(sugg.extra_sensitive_paths, norm):
+                    pref_warns.append("  [warn] staged path is under a PREFERENCES.md "
+                                      f"extra_sensitive_paths prefix (advisory): {norm}")
+            _PREF_WARN_CAP = 10
+            lines.extend(pref_warns[:_PREF_WARN_CAP])
+            if len(pref_warns) > _PREF_WARN_CAP:
+                lines.append(f"  [warn] … and {len(pref_warns) - _PREF_WARN_CAP} more "
+                             "preference-flagged staged path(s) (see PREFERENCES.md).")
     lines.append("")
 
     # Context health (advisory only; in-memory, writes nothing).

@@ -13,6 +13,21 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.9.0 PR 3 — preference `require_usage_flag` warning + doctor advisory staged-path warns** (per
+  [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §5.3/§5.5 / §6 PR
+  3). Two more **advisory-only** applications of the clamped `effective_suggestions()` reader — no
+  enforcement, no blocking, no exit-code change. **(1) `require_usage_flag`:** on `vibe review`/`vibe
+  diff` only, when the block sets it and `--usage` is absent, a single pinned stderr warning
+  (*"pass --usage to see token usage (advisory)"*) — it never adds `--usage`, never fails, and is
+  suppressed by `--usage`, `--no-preferences`, or an explicit choice; `extract`/`mini`/`full` never
+  warn. **(2) `extra_sensitive_paths` / `never_stage_extra`:** `vibe project doctor` gains advisory
+  `[warn]` lines in its staged-file section when a **staged** path equals/prefixes a declared entry —
+  naming the preference **key** (never its configured value / raw JSON), **volume-capped at 10** lines
+  plus a roll-up. **READY/NOT-READY, exit code, and the `[FAIL]` dangerous-staged set are byte-stable**
+  (advisory never touches `ok`); a missing/invalid block leaves doctor behavior unchanged. No staging/
+  git/no-stage enforcement change, no prompt/ranking/synthesis/guard/executor/Workbench/guide/context-
+  export change, raw JSON never escapes, no `.council/profile.*` read/created, importer set stays
+  `{cli.py}`, no dependency change, no version bump.
 - **v0.9.0 PR 2 — apply the preference review-preset floor to `review`/`diff` + `--no-preferences`**
   (per [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §5.1/§5.3 /
   §6 PR 2). The **first bounded preference application**: `vibe review` and `vibe diff` now resolve

@@ -7,6 +7,7 @@ read-only `git status`, and reports readiness — it never writes a file, never 
 `run_cli` subprocess helper, and staged-file detection in a throwaway git repo.
 """
 
+import json
 import os
 import shutil
 import subprocess
@@ -416,6 +417,105 @@ class TestDoctorNonGitDegradesGracefully(unittest.TestCase):
             text = "\n".join(lines)
             self.assertTrue(ok, text)  # missing-git is a warning, not a failure
             self.assertIn("git unavailable or not a git repo", text)
+
+
+@unittest.skipUnless(_GIT, "git not available")
+class TestDoctorPreferenceStagedAdvisories(unittest.TestCase):
+    """v0.9.0 PR 3 — advisory staged-path warns for PREFERENCES.md never_stage_extra /
+    extra_sensitive_paths. Advisory ONLY: they never touch READY / exit code / [FAIL], are
+    volume-capped, and are absent when there is no valid block."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        _seed_ready_repo(self.root)
+        self._git("init")
+        self._git("config", "user.email", "t@t.invalid")
+        self._git("config", "user.name", "t")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _git(self, *args):
+        subprocess.run(["git", "-C", str(self.root), *args],
+                       capture_output=True, text=True, check=False)
+
+    def _set_prefs(self, obj):
+        (self.root / "docs/context/project/PREFERENCES.md").write_text(
+            f"# prefs\n\n```json\n{json.dumps(obj)}\n```\n", encoding="utf-8")
+
+    def _stage(self, rel, content="x\n"):
+        p = self.root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content, encoding="utf-8")
+        self._git("add", "-f", rel)
+
+    def test_never_stage_extra_advisory_and_stays_ready(self):
+        self._set_prefs({"schema": 1, "never_stage_extra": ["notes/local-scratch.md"]})
+        self._stage("notes/local-scratch.md")
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)                                   # advisory: still READY
+        self.assertIn("READY", text)
+        self.assertIn("never_stage_extra", text)
+        self.assertIn("notes/local-scratch.md", text)
+        self.assertNotIn("[FAIL]", text)                            # never a failure
+
+    def test_extra_sensitive_paths_prefix_advisory(self):
+        self._set_prefs({"schema": 1, "extra_sensitive_paths": ["infra/"]})
+        self._stage("infra/prod.tf")
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)
+        self.assertIn("extra_sensitive_paths", text)
+        self.assertIn("infra/prod.tf", text)
+
+    def test_non_matching_staged_path_no_advisory(self):
+        self._set_prefs({"schema": 1, "never_stage_extra": ["notes/local-scratch.md"]})
+        self._stage("src/app.py")                                   # does not match
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)
+        self.assertNotIn("never_stage_extra", text)                 # no preference advisory
+
+    def test_advisory_is_volume_capped(self):
+        self._set_prefs({"schema": 1, "extra_sensitive_paths": ["infra/"]})
+        for i in range(14):
+            self._stage(f"infra/f{i:02d}.tf")
+        lines, _ = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        warn_lines = [l for l in lines if "extra_sensitive_paths prefix (advisory)" in l]
+        self.assertEqual(len(warn_lines), 10)                       # capped at 10
+        self.assertIn("and 4 more preference-flagged staged path(s)", text)
+
+    def test_no_block_leaves_doctor_unchanged(self):
+        # no machine block -> no preference advisory; doctor behaves exactly as before.
+        (self.root / "docs/context/project/PREFERENCES.md").write_text(
+            "# prefs\n\njust prose.\n", encoding="utf-8")
+        self._stage("notes/local-scratch.md")
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)
+        self.assertNotIn("never_stage_extra", text)
+        self.assertNotIn("extra_sensitive_paths", text)
+
+    def test_invalid_block_leaves_doctor_unchanged(self):
+        self._set_prefs({"schema": 1, "never_stage_extra": ["../escape.md"]})  # invalid path
+        self._stage("notes/local-scratch.md")
+        lines, ok = cli.project_doctor_report(self.root)
+        text = "\n".join(lines)
+        self.assertTrue(ok, text)
+        # fail-closed reader -> NEUTRAL -> no preference advisory lines.
+        self.assertNotIn("staged path matches", text)
+        self.assertNotIn("staged path is under", text)
+
+    def test_advisory_does_not_read_local_profile(self):
+        self._set_prefs({"schema": 1, "never_stage_extra": ["notes/local-scratch.md"]})
+        (self.root / ".council").mkdir()
+        (self.root / ".council" / "profile.json").write_text(
+            '{"never_stage_extra": ["SECRET_LEAK"]}\n', encoding="utf-8")
+        lines, _ = cli.project_doctor_report(self.root)
+        self.assertNotIn("SECRET_LEAK", "\n".join(lines))
 
 
 if __name__ == "__main__":
