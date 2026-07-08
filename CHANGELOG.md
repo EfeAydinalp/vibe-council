@@ -13,6 +13,30 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **v0.9.1 PR 7 — v0.10.x dissent-preservation framework design sketch (docs only)** (per
+  [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §6 PR 7 / §12 Q7).
+  **Docs + tests only — design only, no implementation, no code, no behavior, no schema, no persona
+  application.** New [`docs/fable/v0.10.x-dissent-preservation-sketch.md`](docs/fable/v0.10.x-dissent-preservation-sketch.md)
+  specifies the safety framework that would have to exist *before* any future council **persona /
+  review-lens behavior** could ship: a **threat model** (reframing bias, emphasis-as-suppression, seat
+  crowd-out, cumulative bias, persona-text-as-injection), how a lens can accidentally **suppress
+  dissent**, why *"more scrutiny" is not automatically "more safety,"* **structural rules** (additive
+  collect-stage-only, own-seat-only, ranking/synthesis persona-blind, default-off, trust boundary
+  untouched), **content rules** (no suppression/override language, additive-only, length-bounded,
+  curated-not-free-form), **dissent-canary** test ideas (a seeded objection must still surface with
+  every persona enabled; injection-shaped text rejected; ranking/synthesis byte-identity),
+  **observability/audit** requirements, **override + rollback** rules (CLI wins, per-invocation
+  override, feature-flag default-off, kill-switch), **acceptance criteria** (a merge gate), an honest
+  **feasibility verdict** (partly a research problem — reframing bias is not fully catchable by
+  output-diff tests), open research questions, and **stop conditions** that force a full council
+  review. The sketch keeps persona/lens behavior **deferred to v0.10.x+**, keeps `.council/profile.*`,
+  UI/dashboard, network/LAN/mobile, and any `schema: 2` deferred, and changes no
+  prompt/ranking/synthesis, preference reader/validator, review/diff/doctor, guide/context-export, or
+  Workbench/executor/guard/trust behavior. [`council-review-lenses.md`](docs/fable/council-review-lenses.md)
+  now points at the sketch. Adds vault + export tests (existence, design-only framing, required
+  sections, dissent/minority non-suppression, no hidden prompt/ranking/synthesis change, no
+  Workbench/trust change, `.council/profile.*` deferred, lens-doc link, export-pointer-only,
+  pack-no-ingest). No dependency change, no version bump.
 - **v0.9.1 PR 6 — council review lenses (documentation only)** (per
   [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §6 PR 6 / §12 Q2).
   **Docs + tests only — no code, no behavior, no schema, no persona application.** New
