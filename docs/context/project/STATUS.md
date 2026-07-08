@@ -583,10 +583,18 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   **capped at 10 + roll-up**; READY/`[FAIL]`/exit code byte-stable, missing/invalid block leaves doctor
   unchanged. No git/no-stage enforcement change; raw JSON never escapes; no `.council/profile.*`;
   importer set stays `{cli.py}`.
+- **v0.9.0 PR 4 landed — preference isolation lock-in tests (tests only, no production change).**
+  New [`tests/test_preferences_isolation.py`](../../../tests/test_preferences_isolation.py): an
+  allowlist-first static scan (importer set == `{cli.py}`; `effective_suggestions` referenced only in
+  `{preferences.py, cli.py}`; explicit forbidden-surface list of all `workbench_*`/`council`/providers/
+  `guards`/`mcp_*`/`context_pack` proven clean), behavioral byte-identity for the trust evaluation +
+  executor dry-run with/without a maximal block, guide/context-export pointer-only tripwires, doctor
+  READY stability across block states, pack 21/21 + no schema ingestion, and no `.council/profile.*`
+  read/create. A future consumer of preferences anywhere outside `cli.py` fails the suite.
 - **Current focus:** **v0.8.x complete/released; v0.9.0 implementation in progress.** PRs 1 (reader),
-  2 (review/diff preset floor + `--no-preferences`), and 3 (usage warning + doctor advisories) are
-  done — all four proven keys now applied advisory/tighten-only. Next is PR 4 (guard/executor-isolation
-  lock-in tests, cheap) then PR 5 (v0.9.0 release prep) per
+  2 (preset floor + `--no-preferences`), 3 (usage warning + doctor advisories), and 4 (isolation
+  lock-in tests) are done — all four proven keys applied advisory/tighten-only, with the boundary
+  locked. Next is PR 5 (v0.9.0 release prep, cheap) per
   [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6. No new network endpoint.
   Deferred: persona behavior / persona schema / persona UI (v0.10.x, with the PR 7 dissent-preservation
   sketch as input), `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team (v0.9+).

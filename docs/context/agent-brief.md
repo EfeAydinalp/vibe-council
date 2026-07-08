@@ -428,8 +428,14 @@ Forked from and crediting [`karpathy/llm-council`](https://github.com/karpathy/l
   `never_stage_extra`/`extra_sensitive_paths` entry (naming the key, not its value; **capped at 10 +
   roll-up**; READY/`[FAIL]`/exit code byte-stable, missing/invalid block leaves doctor unchanged). No
   enforcement/blocking, no git/no-stage/guard/executor change; raw JSON never escapes; importer set
-  stays `{cli.py}`. All four proven keys are now applied advisory/tighten-only. Next: PR 4
-  (guard/executor-isolation lock-in tests) → PR 5 (v0.9.0 release prep).
+  stays `{cli.py}`. All four proven keys are now applied advisory/tighten-only.
+  **v0.9.0 PR 4 has landed (tests only, no production change):**
+  `tests/test_preferences_isolation.py` locks the boundary — an allowlist-first static scan (importer
+  set == `{cli.py}`; `effective_suggestions` referenced only in `{preferences.py, cli.py}`; a
+  forbidden-surface list of all `workbench_*`/`council`/providers/`guards`/`mcp_*`/`context_pack` proven
+  clean), trust + executor **byte-identity** with/without a maximal block, guide/export pointer-only
+  tripwires, doctor READY stability, pack 21/21 + no-ingest, and no `.council/profile.*`. A future
+  consumer of preferences outside `cli.py` fails the suite. Next: PR 5 (v0.9.0 release prep).
   **Near-term product name: "AI Council Workbench"; "local-first AI project OS" stays long-term /
   internal — not near-term external messaging.** Mobile/voice/personalization deferred. See
   [v0.5 Workbench plan](../plans/v0.5-workbench-mvp.md),
