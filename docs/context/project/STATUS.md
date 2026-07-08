@@ -598,15 +598,21 @@ folder is, and [`docs/decisions/`](../../decisions/) for the canonical decision 
   "apply the proven preferences (tighten-only, advisory)" release. README release status → v0.9.0.
   Release metadata + docs only; no code/behavior change, no preference-behavior change, no new command,
   no dependency change. **No tag / GitHub Release** in the PR — a separate manual step once it merges.
-- **Current focus:** **v0.8.x released; v0.9.0 prepared, not yet tagged.** The v0.9.0 apply-the-proven
-  line is complete: PRs 1 (reader), 2 (preset floor + `--no-preferences`), 3 (usage warning + doctor
-  advisories), 4 (isolation lock-in tests), and 5 (release prep) — all four proven keys applied
-  advisory/tighten-only with the boundary locked. Next is the manual tag/GitHub Release step, then
-  v0.9.1 (council **review lenses** as pure documentation + the v0.10.x dissent-preservation sketch +
-  dogfood) per [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6. No new
-  network endpoint. Deferred: persona **behavior** / persona schema / persona UI (v0.10.x, with the PR
-  7 sketch as input), `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team
-  (v0.9+).
+- **v0.9.1 PR 6 — council review lenses (documentation only).** New
+  [`docs/fable/council-review-lenses.md`](../../fable/council-review-lenses.md) documents review lenses
+  as a shared human/agent review vocabulary — three primary lenses (Security Guardian, Cost Skeptic,
+  Local-first Guardian) + four future stubs — with a pinned documentation-only header and a binding
+  safety envelope: a lens is *"a reviewer's mental lens, not a command"* (not applied/schema/validated;
+  never changes prompts/ranking/synthesis, the preference system, guide/export, or the Workbench/trust
+  boundary; may only *add* scrutiny; can never suppress another lens's dissent or loosen a rule; no
+  `.council/profile.*`, no UI). Behavior deferred to v0.10.x+. Adds an `AGENT-ROLES.md` pointer and
+  vault/export tests; no code/behavior/schema change.
+- **Current focus:** **v0.8.x + v0.9.0 released; v0.9.1 in progress.** The v0.9.0 apply-the-proven line
+  is complete and released (tag + GitHub Release live). v0.9.1 PR 6 (review-lens docs) is done; next is
+  PR 7 (the v0.10.x dissent-preservation design sketch, balanced) then PR 8 (v0.9.1 release prep) per
+  [`v0.9.x-architecture-plan.md`](../../fable/v0.9.x-architecture-plan.md) §6. No new network endpoint.
+  Deferred: persona **behavior** / persona schema / persona UI (v0.10.x, with the PR 7 sketch as
+  input), `.council/profile.*` store, mobile/LAN/voice (own gated line), hosted/team (v0.9+).
 
 ## Next actions
 

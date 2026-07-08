@@ -88,14 +88,19 @@ command reads or enforces them, and they never override runtime behavior.** In p
 change what the council does, what the guide/context-export emit (those stay **pointer-only** — they
 reference these files, never inline their contents), or how the Workbench trust/executor gate decides.
 
-**Council personas** — review lenses such as **Cost Skeptic**, **Security Guardian**, **Product
-Strategist**, **Local-first Guardian**, **UX/User Advocate**, **Risk Officer**, and **Commercialization
-Lens** — are a **future (v0.9.x) direction**, defined toward but **not part of** today's model. When
-they arrive they will be **curated presets of the tighten-only preference schema v1** (see
-[`PREFERENCES.md`](./PREFERENCES.md) → "Machine-readable preferences" and the normative
+**Council review lenses** — named viewpoints such as **Security Guardian**, **Cost Skeptic**, and
+**Local-first Guardian** (plus future stubs: Product Strategist, UX/User Advocate, Risk Officer,
+Commercialization Lens) — are **documentation only**: a human/agent reviewer's mental lens, **not** a
+command, schema field, or behavior. They are written up in
+[`docs/fable/council-review-lenses.md`](../../fable/council-review-lenses.md) (v0.9.1, subject to
+change). A lens may only *add* scrutiny — it never suppresses another lens's dissent, loosens a
+safety/trust rule, or changes prompts/ranking/synthesis, the preference system, or the Workbench/trust
+boundary. If a lens ever becomes *behavior* (v0.10.x+), it arrives as a **curated preset of the
+tighten-only preference schema v1** (see [`PREFERENCES.md`](./PREFERENCES.md) → "Machine-readable
+preferences" and the normative
 [`docs/fable/preference-schema-v1.md`](../../fable/preference-schema-v1.md)) plus advisory
-review-emphasis prose — an instance of the tighten-only model, never a policy override and never able
-to suppress another persona's dissent. **No persona is defined, selected, or applied today.**
+review-emphasis prose, gated behind a dissent-preservation design. **No lens/persona is defined,
+selected, or applied today.**
 
 ## Safe-to-commit boundary
 

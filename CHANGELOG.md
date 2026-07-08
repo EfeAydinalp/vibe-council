@@ -11,8 +11,25 @@ this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. Post-0.9.0 changes will be listed here as normal Keep-a-Changelog deltas
-(Added / Changed / Fixed / Removed)._
+### Added
+
+- **v0.9.1 PR 6 — council review lenses (documentation only)** (per
+  [`docs/fable/v0.9.x-architecture-plan.md`](docs/fable/v0.9.x-architecture-plan.md) §6 PR 6 / §12 Q2).
+  **Docs + tests only — no code, no behavior, no schema, no persona application.** New
+  [`docs/fable/council-review-lenses.md`](docs/fable/council-review-lenses.md) documents **review
+  lenses** as a shared *human/agent* review vocabulary: three elaborated primary lenses — **Security
+  Guardian, Cost Skeptic, Local-first Guardian** (each a short purpose + emphasis/questions) — plus
+  four **future stubs** (Product Strategist, UX/User Advocate, Risk Officer, Commercialization Lens).
+  A pinned header and a **binding envelope** state that a lens is *"a human reviewer's mental lens, not
+  a command"* — **not applied, not schema, not validated**; it never changes prompt construction, peer
+  ranking, chairman synthesis, model/provider selection, the preference reader/validator or
+  `PREFERENCES.md` machine-block semantics, the guide/context-export output, or the Workbench/executor/
+  guard/trust boundary; it may only *add* scrutiny (tighten-only), can **never suppress/outrank another
+  lens's dissent** or loosen a safety rule, creates/reads no `.council/profile.*` store, and implies no
+  UI. Behavior/application is explicitly **deferred to v0.10.x+** behind the dissent-preservation
+  framework. Adds an [`AGENT-ROLES.md`](docs/context/project/AGENT-ROLES.md) pointer and vault tests
+  (existence, primary + stub lenses, documentation-only framing, dissent/tighten-only/no-store wording,
+  pack-no-ingest, export-pointer-only). No dependency change, no version bump.
 
 ## [0.9.0] - 2026-07-08
 

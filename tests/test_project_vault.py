@@ -462,6 +462,122 @@ class TestPreferenceSchemaV1(unittest.TestCase):
         self.assertNotIn(needle, res.text, "context pack ingested the preference schema")
 
 
+class TestReviewLensesDoc(unittest.TestCase):
+    """v0.9.1 PR 6 — the council review-lenses documentation (docs only, no behavior).
+
+    Locks that the lens doc exists, names the three primary lenses + four future stubs, and is
+    framed as documentation-only with the binding safety envelope (no schema/runtime/prompt/
+    ranking/synthesis change, dissent-preservation, tighten-only, no `.council/profile.*`, no UI).
+    """
+
+    LENS_DOC = REPO / "docs" / "fable" / "council-review-lenses.md"
+    PRIMARY = ("Security Guardian", "Cost Skeptic", "Local-first Guardian")
+    FUTURE = ("Product Strategist", "UX / User Advocate", "Risk Officer", "Commercialization Lens")
+    # a phrase that lives ONLY in the lens doc body (used for the pack no-ingest check).
+    _BODY_NEEDLE = "attack surface and trust-boundary erosion first"
+
+    def _doc(self):
+        return self.LENS_DOC.read_text(encoding="utf-8")
+
+    def test_lens_doc_exists_and_is_markdown(self):
+        self.assertTrue(self.LENS_DOC.is_file(), "missing docs/fable/council-review-lenses.md")
+        text = self._doc()
+        self.assertTrue(text.lstrip().startswith("#"))
+        self.assertIn("review lens", text.lower())
+
+    def test_three_primary_lenses_documented(self):
+        text = self._doc()
+        for lens in self.PRIMARY:
+            self.assertIn(lens, text, f"primary lens not documented: {lens}")
+        # sanity: the body needle used by the pack test really is in the doc.
+        self.assertIn(self._BODY_NEEDLE, text)
+
+    def test_future_lenses_are_marked_stubs(self):
+        text = self._doc()
+        low = text.lower()
+        for lens in self.FUTURE:
+            self.assertIn(lens, text, f"future lens stub missing: {lens}")
+        # they are clearly future/not-elaborated.
+        self.assertIn("future lenses (stubs", low)
+        self.assertIn("*(future)*", text)
+
+    def test_framing_is_documentation_only(self):
+        low = self._doc().lower()
+        self.assertIn("documentation only", low)
+        self.assertIn("not applied, not schema, not validated", low)
+        self.assertTrue("not a command" in low or "not a preference key" in low)
+        self.assertIn("subject to change", low)
+
+    def test_states_no_runtime_prompt_ranking_synthesis_change(self):
+        low = self._doc().lower()
+        for token in ("prompt construction", "ranking", "synthesis",
+                      "model/provider selection", "schema"):
+            self.assertIn(token, low, f"envelope must name: {token}")
+
+    def test_states_dissent_preservation(self):
+        low = self._doc().lower()
+        self.assertIn("dissent", low)
+        self.assertTrue("never" in low and ("suppress" in low or "outrank" in low
+                                            or "downrank" in low))
+
+    def test_states_tighten_only_no_loosening(self):
+        low = self._doc().lower()
+        self.assertTrue("tighten-only" in low or "only add" in low or "only ask for" in low)
+        self.assertIn("never", low)
+        self.assertTrue("loosen" in low or "override the review policy" in low)
+
+    def test_states_workbench_trust_unaffected(self):
+        low = self._doc().lower()
+        self.assertTrue("executor" in low and "trust" in low)
+        self.assertIn("guard", low)
+
+    def test_states_no_local_profile_store_and_no_ui(self):
+        text = self._doc()
+        low = text.lower()
+        self.assertIn(".council/profile.*", text)          # glob form, never a concrete filename
+        self.assertTrue("no store" in low or "does not create or read" in low)
+        self.assertIn("no", low)
+        self.assertTrue("ui" in low or "dashboard" in low)
+
+    def test_states_relationship_to_preference_system_unchanged(self):
+        low = self._doc().lower()
+        self.assertIn("preference", low)
+        self.assertTrue("preferences.md machine-block semantics" in low
+                        or "change nothing about it" in low
+                        or "not part of the preference schema" in low)
+        self.assertIn("v0.10.x", low)                       # behavior deferred
+
+    def test_agent_roles_points_to_the_lens_doc(self):
+        t = (VAULT / "AGENT-ROLES.md").read_text(encoding="utf-8")
+        self.assertIn("docs/fable/council-review-lenses.md", t)
+        self.assertIn("documentation only", t.lower())
+
+    def test_pack_does_not_ingest_lens_content(self):
+        # The pack is built from STATUS.md + decisions only; a distinctive lens-body phrase must
+        # never reach it (STATUS deliberately avoids that phrase).
+        self.assertNotIn(self._BODY_NEEDLE, _read("STATUS.md"))
+        ddir = REPO / "docs" / "decisions"
+        status = VAULT / "STATUS.md"
+        res = cp.build_pack(ddir, status, on="2026-07-04T00:00:00Z")
+        self.assertNotIn(self._BODY_NEEDLE, res.text, "context pack ingested lens content")
+
+    def test_lens_names_absent_from_backend_code(self):
+        # Lenses are documentation-only: no production module may hardcode a lens name. This is a
+        # tripwire — if a future change wires a lens into prompt/ranking/synthesis, the council
+        # client, the guards, or the Workbench guard/executor/trust code, it fails the suite and
+        # forces an explicit review (lens *behavior* is a v0.10.x decision, not a v0.9.1 doc PR).
+        backend = REPO / "backend"
+        offenders = []
+        for py in backend.glob("*.py"):
+            text = py.read_text(encoding="utf-8")
+            for lens in self.PRIMARY:
+                if lens in text:
+                    offenders.append(f"{py.name}:{lens}")
+        self.assertEqual(offenders, [],
+                         f"review-lens names must not appear in backend code (docs-only): "
+                         f"{offenders}")
+
+
 class TestContextPackDoesNotLeakPrivatePlans(unittest.TestCase):
     # distinctive scaffold-body phrases (verified in PR C) — must NOT reach the pack.
     _PROFILE_BODY_NEEDLES = (
