@@ -269,6 +269,61 @@ def _premium_blocked(args) -> Optional[str]:
     return None
 
 
+# The pinned stderr notice for a `full` preference floor (v0.9.0 PR 2 / plan §5.1). `full` is a
+# council MODE, not a `--preset` value, so it is announced — never silently applied. Wording is
+# fixed and asserted by tests.
+_PREF_FULL_FLOOR_NOTICE = (
+    "[preferences] PREFERENCES.md sets a full-council review floor — consider "
+    "'vibe full' for this review (--preset/--no-preferences override; premium "
+    "still requires --allow-premium)")
+
+
+def _resolve_preset(args, command: str, project_root) -> str:
+    """Resolve the effective model preset, honoring a tighten-only PREFERENCES.md preset floor
+    for **review/diff only** (v0.9.0 PR 2, plan §5.1/§5.3).
+
+    Precedence, highest wins: (1) an explicit ``--preset`` (CLI always wins — preferences are
+    never consulted); (2) ``--no-preferences`` (baseline, byte-identical to pre-v0.9.0);
+    (3) a validated preference **floor** (can only *raise* toward more review); (4) the project
+    baseline ``DEFAULT_PRESET``.
+
+    A preference can never lower a preset, never select ``premium``, and never *silently* change
+    anything: a floor that is a real preset strictly above baseline raises to it (announced), and
+    a ``full`` floor — a council MODE, not a ``--preset`` value — emits the pinned stderr notice
+    once and leaves the preset at the baseline. Reads exactly the clamped ``Suggestions`` reader;
+    no raw preference value is used here.
+    """
+    # 1. explicit CLI choice always wins — never consult preferences.
+    if args.preset is not None:
+        return args.preset
+    baseline = DEFAULT_PRESET
+    # 2. escape hatch — ignore preferences entirely.
+    if getattr(args, "no_preferences", False):
+        return baseline
+    # 3. preference floor — review/diff only (the schema's anchored behavior; all other
+    #    commands resolve straight to the baseline, unaffected by preferences).
+    if command in ("review", "diff"):
+        # The reader is fail-closed and documented never to raise; belt-and-suspenders, never
+        # let a preference crash review/diff — treat any surprise as "no preference".
+        try:
+            floor = preferences_mod.effective_suggestions(project_root).review_preset_floor
+        except Exception:  # noqa: BLE001
+            return baseline
+        if floor is not None:
+            # A floor that is a real, non-premium CLI preset strictly above the baseline is a
+            # genuine raise (with the current balanced baseline this branch is unreachable —
+            # kept correct for a future lower baseline; never premium by construction). It is
+            # ANNOUNCED on stderr — every non-no-op must be visible (no silent behavior change).
+            if floor in PRESETS and floor != "premium":
+                _err(f"[preferences] PREFERENCES.md raises the review preset floor to "
+                     f"'{floor}' — using it (--preset/--no-preferences override).")
+                return floor
+            # `full` is a council MODE, not a --preset value -> notice-only, no preset change.
+            if floor == "full":
+                _err(_PREF_FULL_FLOOR_NOTICE)
+    return baseline
+
+
 def _confirm(question: str, default: bool = True) -> bool:
     suffix = "[Y/n]" if default else "[y/N]"
     try:
@@ -516,6 +571,9 @@ def _run_guarded(args, mode: str, text: str, ws, command: str):
 
 
 def cmd_mode(args, mode: str) -> int:
+    # Resolve the effective preset (sentinel None -> baseline; review consults the tighten-only
+    # preference floor). Assigning args.preset keeps every downstream use unchanged.
+    args.preset = _resolve_preset(args, mode, pw.caller_cwd())
     guard = _premium_blocked(args)
     if guard:
         _err(f"Error: {guard}")
@@ -571,6 +629,9 @@ def _git_diff(project_path: Path) -> str:
 
 
 def cmd_diff(args) -> int:
+    # Resolve the effective preset (sentinel None -> baseline; diff consults the tighten-only
+    # preference floor). Assigning args.preset keeps every downstream use unchanged.
+    args.preset = _resolve_preset(args, "diff", pw.caller_cwd())
     guard = _premium_blocked(args)
     if guard:
         _err(f"Error: {guard}")
@@ -2470,7 +2531,10 @@ def _rel_from_export(rel: str) -> str:
 def _build_parser() -> argparse.ArgumentParser:
     # Shared option groups
     p_model = argparse.ArgumentParser(add_help=False)
-    p_model.add_argument("--preset", choices=list(PRESETS.keys()), default=DEFAULT_PRESET,
+    # default=None is a sentinel (v0.9.0): it distinguishes "the user explicitly passed a
+    # preset" (CLI wins) from "no preset given" (resolve via `_resolve_preset`, which may
+    # honor a tighten-only PREFERENCES.md floor for review/diff). `None` -> DEFAULT_PRESET.
+    p_model.add_argument("--preset", choices=list(PRESETS.keys()), default=None,
                          help=f"Model preset (default: {DEFAULT_PRESET}).")
     p_model.add_argument("--allow-premium", action="store_true",
                          help="Allow preset=premium (otherwise blocked).")
@@ -2503,6 +2567,9 @@ def _build_parser() -> argparse.ArgumentParser:
                          help="Disable the loop guard for this run.")
     p_guard.add_argument("--allow-repeat", action="store_true",
                          help="Bypass duplicate/cooldown loop-guard checks.")
+    p_guard.add_argument("--no-preferences", action="store_true",
+                         help="Ignore PREFERENCES.md suggestions for this run "
+                              "(byte-identical to pre-v0.9.0 behavior).")
 
     parser = argparse.ArgumentParser(
         prog="backend.cli",

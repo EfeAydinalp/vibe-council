@@ -137,9 +137,16 @@ high-level "where are we" at a glance. Keep it lean; do not paste raw logs or tr
           baseline**, re-validated/deduped path tuples, usage bool); any anomaly → `NEUTRAL`; raw JSON
           never escapes. **No CLI consumer yet — zero behavior change**; allowlist-first import scan
           (importer set == `{cli.py}`). 19 new tests.
-    - [ ] PRs 2–8 per the plan (v0.9.0: preset floor + `--no-preferences` → usage warn + doctor
-          advisories → isolation tests → release prep; v0.9.1: persona-lens docs + v0.10.x sketch +
-          release prep; v0.9.2 reserved as an optional patch slot).
+    - [x] **PR 2 — review/diff preset floor + `--no-preferences` (first bounded application).**
+          `backend/cli.py` gains `_resolve_preset` (+ pinned full-floor notice); `--preset` default is
+          a `None` sentinel; `--no-preferences` added. `review`/`diff` resolve their preset through the
+          clamped floor — tighten-only, CLI-first (explicit `--preset` wins → `--no-preferences` →
+          floor raise-only → baseline); `full` → stderr notice only (never silently a preset). Baseline
+          already `balanced` so the only delta is the notice. `extract`/`mini`/`full` unaffected; no
+          prompt/guard/executor/guide/export change; importer set stays `{cli.py}`. 19 new tests.
+    - [ ] PRs 3–8 per the plan (v0.9.0: usage warn + doctor advisories → isolation tests → release
+          prep; v0.9.1: persona-lens docs + v0.10.x sketch + release prep; v0.9.2 reserved as an
+          optional patch slot).
 - [ ] **v0.10.x — persona *behavior*** *(deferred: prompt-emphasis presets + dissent-preservation
       framework; its own council+Fable line).*
 - [ ] **Mobile / LAN / voice** *(deferred to its own gated security line; pre-v0.9 threat model).*
